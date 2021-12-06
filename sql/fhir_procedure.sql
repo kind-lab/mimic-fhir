@@ -38,7 +38,7 @@ SELECT
             ))
           )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-        , 'encounter', jsonb_build_object('reference', 'Encounter' || uuid_HADM_ID) 
+        , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
         , 'performedDateTime', proc_CHARTDATE
     ))) as fhir 
 FROM

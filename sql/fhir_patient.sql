@@ -60,17 +60,15 @@ SELECT
       , 'communication',
       	CASE WHEN adm_LANGUAGE IS NOT NULL THEN
       		jsonb_build_array(jsonb_build_object(
-                'language', 
-                	jsonb_build_object(
-                      'coding',                        
-                      	jsonb_build_array(jsonb_build_object(
+                'language', jsonb_build_object(
+                      'coding', jsonb_build_array(jsonb_build_object(
                            'system', 'fhir.sickkids.ca/Valueset/language'
                            , 'display', adm_LANGUAGE
                         ))                        
                      )
             ))              
-      ELSE NULL
-      END
+        ELSE NULL
+        END
      , 'id', UUID_patient
      , 'managingOrganization', json_build_object(
        		'reference', 'Organization/' || uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Organization'), 'MIMIC Hospital')  
