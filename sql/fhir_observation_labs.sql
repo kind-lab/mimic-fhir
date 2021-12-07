@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS mimic_fhir.observation_labs;
+CREATE TABLE mimic_fhir.observation_labs(
+	id 		uuid PRIMARY KEY,
+  	fhir 	jsonb NOT NULL 
+);
+
 WITH vars as (
 	SELECT
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
@@ -41,10 +47,10 @@ WITH vars as (
   			ON lab.itemid = dlab.itemid
   		LEFT JOIN vars ON true
 )
-
+INSERT INTO mimic_fhir.observation_labs
 SELECT 
 	uuid_LABEVENT_ID as id
-	, jsonb_strip_nulls(jsonb_build_array(jsonb_build_object(
+	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_LABEVENT_ID
       	, 'identifier', 
@@ -128,8 +134,7 @@ SELECT
               ))
       	  ELSE NULL
       	  END
-    ))) as fhir 
+    )) as fhir 
 FROM
 	fhir_observation_labs
-WHERE lab_VALUENUM IS NOT NULL AND VALUE_COMPARATOR IS NOT NULL
 LIMIT 10

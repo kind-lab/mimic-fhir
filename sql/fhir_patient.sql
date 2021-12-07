@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS mimic_fhir.patient;
+CREATE TABLE mimic_fhir.patient(
+	id 		uuid PRIMARY KEY,
+  	fhir 	jsonb NOT NULL 
+);
+
 WITH tb_admissions AS (
    SELECT
       pat.subject_id
@@ -14,10 +20,7 @@ WITH tb_admissions AS (
   GROUP BY 
       pat.subject_id
   	  , pat.anchor_age
-), 
-
-
-fhir_patients AS (
+), fhir_patient AS (
     SELECT
       pat.subject_id as pat_SUBJECT_ID
       , pat.gender as pat_GENDER
@@ -33,6 +36,7 @@ fhir_patients AS (
       LEFT JOIN tb_admissions adm
   		  ON pat.subject_id = adm.subject_id)
 
+INSERT INTO mimic_fhir.patient
 SELECT 
  	UUID_patient as id
     , jsonb_strip_nulls(jsonb_build_object(
@@ -75,5 +79,5 @@ SELECT
        )
     )) as fhir
 FROM 
-	fhir_patients
+	fhir_patient
 LIMIT 10

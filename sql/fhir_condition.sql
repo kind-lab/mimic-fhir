@@ -1,9 +1,15 @@
+DROP TABLE IF EXISTS mimic_fhir.condition;
+CREATE TABLE mimic_fhir.condition(
+	id 		uuid PRIMARY KEY,
+  	fhir 	jsonb NOT NULL 
+);
+
 WITH vars as (
 	SELECT
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Condition') as uuid_condition
-), fhir_conditions as (
+), fhir_condition as (
 	SELECT
   		diag.hadm_id || '-' || diag.icd_code as diag_IDENTIFIER
   		, diag.icd_code as diag_ICD_CODE
@@ -17,9 +23,10 @@ WITH vars as (
   		LEFT JOIN vars ON true
 )
 
+INSERT INTO mimic_fhir.condition
 SELECT 
 	uuid_DIAGNOSIS as id
-	, jsonb_strip_nulls(jsonb_build_array(jsonb_build_object(
+	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Condition'
         , 'id', uuid_DIAGNOSIS
       	, 'identifier', 
@@ -49,7 +56,7 @@ SELECT
           )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
-    ))) as fhir 
+    )) as fhir 
 FROM
-	fhir_conditions
+	fhir_condition
 LIMIT 10

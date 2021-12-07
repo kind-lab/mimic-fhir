@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS mimic_fhir.encounter;
+CREATE TABLE mimic_fhir.encounter(
+	id 		uuid PRIMARY KEY,
+  	fhir 	jsonb NOT NULL 
+);
+
 WITH vars as (
 	SELECT
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
@@ -20,7 +26,7 @@ WITH vars as (
     GROUP BY
         adm.hadm_id
   		, uuid_condition
-), fhir_encounters as (
+), fhir_encounter as (
 	SELECT 
   		adm.hadm_id as adm_HADM_ID
   		
@@ -43,9 +49,10 @@ WITH vars as (
  		LEFT JOIN vars ON true
 )
 
+INSERT INTO mimic_fhir.encounter
 SELECT  
 	uuid_HADM_ID as id
-	, jsonb_strip_nulls(jsonb_build_array(jsonb_build_object(
+	, jsonb_strip_nulls(jsonb_build_object(
       	 'resourceType', 'Encounter'
          , 'id', uuid_HADM_ID
          , 'identifier', 
@@ -95,7 +102,7 @@ SELECT
          )        
          , 'diagnosis', fhir_DIAGNOSES 
          , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
-	))) as fhir
+	)) as fhir
 FROM 
-	fhir_encounters  
+	fhir_encounter 
 LIMIT 10

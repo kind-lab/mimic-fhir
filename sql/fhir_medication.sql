@@ -1,22 +1,45 @@
+/* Unique id for medication is not super straight forward. Candidates
+	- GSN generic sequence number: has 757 null entries for distinct drugs
+    - NDC national drug code:  has ~5000 null entries for distinct drugs
+    - Drug name: there is overlap of drug name and gsn, so non unique
+  Solution I think is a custom id based on gsn, where we default to gsn and if missing
+  generate a code. Then this value gets converted to UUID5
+  	- mimic2fhir uses rxnorm to get everything into a starndard system
+  		--> first tries NDC, converts NDC to rxnorm
+  		--> second tries GSN (can have multiple GSN entered), converts all GSN to rxnorm
+ 	 	--> third tries formulary_drug_cd, and sets if available but no system set
+*/
+
+DROP TABLE IF EXISTS mimic_fhir.medication;
+CREATE TABLE mimic_fhir.medication(
+	id 		uuid PRIMARY KEY,
+  	fhir 	jsonb NOT NULL 
+);
+
 WITH vars as (
 	SELECT
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
-), fhir_medications as (
+), fhir_medication as (
 	SELECT
   		pr.gsn as pr_GSN
-  		, pr.form_rx as pr_FORM_RX
-  		, pr.drug as pr_DRUG
+  		, MIN(pr.form_rx) as pr_FORM_RX
+  		, MIN(pr.drug) as pr_DRUG
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_medication, pr.drug) as uuid_DRUG
+  		, uuid_generate_v5(uuid_medication, pr.gsn) as uuid_DRUG
   	FROM
-  		mimic_hosp.prescriptions pr
+  		mimic_hosp.prescriptions pr			
   		LEFT JOIN vars ON true
+  	WHERE pr.gsn IS NOT NULL
+  	GROUP BY 
+  		pr.gsn
+  		, uuid_medication
 )
 
+INSERT INTO mimic_fhir.medication
 SELECT 
 	uuid_DRUG as id
-	, jsonb_strip_nulls(jsonb_build_array(jsonb_build_object(
+	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Medication'
         , 'id', uuid_DRUG
       	, 'code',
@@ -48,7 +71,7 @@ SELECT
             )
           )
 
-    ))) as fhir 
+    )) as fhir 
 FROM
-	fhir_medications
+	fhir_medication
 LIMIT 10
