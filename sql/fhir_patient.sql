@@ -34,7 +34,8 @@ WITH tb_admissions AS (
   FROM  
       mimic_core.patients pat
       LEFT JOIN tb_admissions adm
-  		  ON pat.subject_id = adm.subject_id)
+  		  ON pat.subject_id = adm.subject_id
+)
 
 INSERT INTO mimic_fhir.patient
 SELECT 

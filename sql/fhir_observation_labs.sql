@@ -25,12 +25,16 @@ WITH vars as (
   
   		-- comparator
         , CASE 
+  			WHEN value LIKE '%<=%' THEN split_part(lab.value,'<=',2)::numeric
             WHEN value LIKE '%<%' THEN split_part(lab.value,'<',2)::numeric
+  			WHEN value LIKE '%>=%' THEN split_part(lab.value,'>=',2)::numeric
             WHEN value LIKE '%>%' THEN split_part(lab.value,'>',2)::numeric
             ELSE lab.valuenum
         END as lab_VALUENUM
         , CASE 
+  			 WHEN value LIKE '%<=%' THEN '<='
              WHEN value LIKE '%<%' THEN '<'
+  			 WHEN value LIKE '%>=%' THEN '>='
              WHEN value LIKE '%>%' THEN '>'
              ELSE NULL
           END as VALUE_COMPARATOR

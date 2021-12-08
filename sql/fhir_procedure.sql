@@ -11,12 +11,12 @@ WITH vars as (
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Procedure') as uuid_procedure
 ), fhir_procedure as (
 	SELECT
-  		proc.hadm_id || '-' || proc.icd_code as proc_IDENTIFIER 
+  		proc.hadm_id || '-' || proc.seq_num  as proc_IDENTIFIER 
   		, proc.icd_code as proc_ICD_CODE
   		, proc.chartdate as proc_CHARTDATE
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_procedure, proc.hadm_id::text || '-' || proc.icd_code) as uuid_PROCEDURE
+  		, uuid_generate_v5(uuid_procedure, proc.hadm_id::text || '-' || proc.seq_num::text || '-' || proc.icd_code::text) as uuid_PROCEDURE_ID
   		, uuid_generate_v5(uuid_patient, proc.subject_id::text) as uuid_SUBJECT_ID
   		, uuid_generate_v5(uuid_encounter, proc.hadm_id::text) as uuid_HADM_ID
   	FROM
@@ -26,10 +26,10 @@ WITH vars as (
 
 INSERT INTO mimic_fhir.procedure
 SELECT 
-	uuid_PROCEDURE as id
+	uuid_PROCEDURE_ID as id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Procedure'
-        , 'id', uuid_PROCEDURE
+        , 'id', uuid_PROCEDURE_ID
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(

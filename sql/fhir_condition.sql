@@ -11,11 +11,11 @@ WITH vars as (
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Condition') as uuid_condition
 ), fhir_condition as (
 	SELECT
-  		diag.hadm_id || '-' || diag.icd_code as diag_IDENTIFIER
+  		diag.hadm_id || '-' || diag.seq_num as diag_IDENTIFIER
   		, diag.icd_code as diag_ICD_CODE
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_condition, diag.hadm_id::text || '-' || diag.icd_code) as uuid_DIAGNOSIS
+  		, uuid_generate_v5(uuid_condition, diag.hadm_id::text || '-' || diag.seq_num || '-' || diag.icd_code) as uuid_DIAGNOSIS
   		, uuid_generate_v5(uuid_patient, diag.subject_id::text) as uuid_SUBJECT_ID
   		, uuid_generate_v5(uuid_encounter, diag.hadm_id::text) as uuid_HADM_ID
   	FROM

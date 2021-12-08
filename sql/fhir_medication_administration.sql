@@ -32,10 +32,8 @@ WITH vars as (
   		mimic_hosp.emar em
   		LEFT JOIN mimic_hosp.emar_detail emd
   			ON em.emar_id = emd.emar_id
-  		LEFT JOIN mimic_hosp.pharmacy ph
-  			ON em.poe_id = ph.poe_id
   		LEFT JOIN mimic_hosp.prescriptions pr
-  			ON ph.pharmacy_id = pr.pharmacy_id
+  			ON em.pharmacy_id = pr.pharmacy_id
   		LEFT JOIN vars ON true
  	WHERE
   		emd.parent_field_ordinal IS NULL -- just grab the dose_due information, not the split apart dose_given
@@ -98,4 +96,4 @@ SELECT
     )) as fhir 
 FROM
 	fhir_medication_administration
-LIMIT 10
+LIMIT 1000
