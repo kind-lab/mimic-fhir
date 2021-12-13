@@ -23,11 +23,19 @@ WITH vars as (
       , uuid_generate_v5(uuid_observation_micro_test, mi.micro_specimen_id::text || '-' || mi.test_itemid) as uuid_MICRO_TEST
       , uuid_generate_v5(uuid_patient, mi.subject_id::text) as uuid_SUBJECT_ID
       , uuid_generate_v5(uuid_encounter, mi.hadm_id::text) as uuid_HADM_ID
-      , jsonb_agg(
+  
+  	  -- organism will be null if the test found no organisms. So no organism/susceptibility resources needed to be made off this
+      , CASE WHEN MIN(mi.org_itemid) IS NULL THEN NULL 
+        ELSE
+  		  jsonb_agg(
             jsonb_build_object('reference', 
                                'Observation/' || uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id::text || '-' || mi.org_itemid)
             ) 
-        ) as fhir_ORGANISMS
+          )
+  		END as fhir_ORGANISMS
+  
+  	  -- valueBoolean is used as a flag to say if there are any orgsanism, if yes true, if no false
+      , CASE WHEN MIN(mi.org_itemid) IS NULL THEN false ELSE true END as valueBoolean
 
   FROM 
       mimic_hosp.microbiologyevents mi
@@ -75,6 +83,7 @@ SELECT
       		END
         , 'effectiveDateTime', mi_CHARTTIME
         , 'hasMember', fhir_ORGANISMS
+      	, 'valueBoolean', valueBoolean
     )) as fhir 
 FROM
 	fhir_observation_micro_test
