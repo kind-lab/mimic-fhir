@@ -25,15 +25,13 @@ WITH vars as (
   
   		-- refernce uuids
   		, uuid_generate_v5(uuid_medication_administration, em.emar_id::text) as uuid_EMAR_ID
-  		, uuid_generate_v5(uuid_medication, pr.gsn::text) as uuid_GSN --IDENTIFIER NEEDS TO BE UPDATED FROM GSN!!! Does not represent all drugs (multiple codes, null values)
+  		, uuid_generate_v5(uuid_medication, em.pharmacy_id::text) as uuid_MEDICATION 
   		, uuid_generate_v5(uuid_patient, em.subject_id::text) as uuid_SUBJECT_ID
   		, uuid_generate_v5(uuid_encounter, em.hadm_id::text) as uuid_HADM_ID
   	FROM
   		mimic_hosp.emar em
   		LEFT JOIN mimic_hosp.emar_detail emd
   			ON em.emar_id = emd.emar_id
-  		LEFT JOIN mimic_hosp.prescriptions pr
-  			ON em.pharmacy_id = pr.pharmacy_id
   		LEFT JOIN vars ON true
  	WHERE
   		emd.parent_field_ordinal IS NULL -- just grab the dose_due information, not the split apart dose_given
@@ -53,7 +51,7 @@ SELECT
         		)
       		)	
         , 'status', 'completed'
-      	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_GSN)
+      	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
       	 , 'context', 
       		CASE WHEN uuid_HADM_ID IS NOT NULL
