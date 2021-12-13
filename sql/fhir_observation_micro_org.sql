@@ -20,11 +20,16 @@ WITH vars as (
       -- UUID references
       , uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id::text || '-' || mi.org_itemid) as uuid_MICRO_ORG
       , uuid_generate_v5(uuid_patient, mi.subject_id::text) as uuid_SUBJECT_ID
-      , jsonb_agg(
+  
+  	  -- if organism is present but not tested for antibiotics, set NULL for susceptibility
+      , CASE WHEN MIN(mi.ab_itemid) IS NULL THEN NULL
+        ELSE 
+          jsonb_agg(
             jsonb_build_object('reference', 
                                'Observation/' || uuid_generate_v5(uuid_observation_micro_susc, mi.micro_specimen_id::text || '-' || mi.ab_itemid)
             ) 
-        ) as fhir_SUSCEPTIBILITY
+          )
+        END as fhir_SUSCEPTIBILITY
 
   FROM 
       mimic_hosp.microbiologyevents mi
