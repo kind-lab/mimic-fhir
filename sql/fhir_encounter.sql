@@ -19,10 +19,10 @@ WITH vars as (
           ORDER BY seq_num ASC) as fhir_DIAGNOSES
   
     FROM
-      mimic_core.admissions adm
-      LEFT JOIN mimic_hosp.diagnoses_icd diag
-          ON adm.hadm_id = diag.hadm_id
-      LEFT JOIN vars ON true
+		mimic_core.admissions adm
+		LEFT JOIN mimic_hosp.diagnoses_icd diag
+			ON adm.hadm_id = diag.hadm_id
+		LEFT JOIN vars ON true
     GROUP BY
         adm.hadm_id
   		, uuid_condition
@@ -59,7 +59,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', adm_HADM_ID
-                  , 'system', 'fhir.mimic-iv.ca/encounter/identifier'
+                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-encounter'
         		)
       		)	
       	 , 'status', 'finished'
@@ -69,7 +69,7 @@ SELECT
            )
          , 'type', jsonb_build_array(jsonb_build_object(
          		'coding', jsonb_build_array(json_build_object(
-                	'system', 'fhir.mimic-iv.ca/valueset/admission-type'
+                	'system', 'http://fhir.mimic.mit.edu/ValueSet/admission-type'
                     , 'display', adm_ADMISSION_TYPE
                 ))
            ))
@@ -83,7 +83,7 @@ SELECT
                CASE WHEN adm_ADMISSION_LOCATION IS NOT NULL
            	   THEN jsonb_build_object(
                   'coding',  jsonb_build_array(jsonb_build_object(
-                      'system', 'fhir.mimic-iv.ca/valueset/admit-source'
+                      'system', 'http://fhir.mimic.mit.edu/ValueSet/admit-source'
                       , 'display', adm_ADMISSION_LOCATION
                   ))                
             	)
@@ -93,7 +93,7 @@ SELECT
            	   CASE WHEN adm_DISCHARGE_LOCATION IS NOT NULL
            	   THEN jsonb_build_object(
                   'coding',  jsonb_build_array(jsonb_build_object(
-                      'system', 'fhir.mimic-iv.ca/valueset/discharge-dispostion'
+                      'system', 'http://fhir.mimic.mit.edu/ValueSet/discharge-dispostion'
                       , 'display', adm_DISCHARGE_LOCATION
                   ))                
             	)

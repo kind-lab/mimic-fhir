@@ -9,11 +9,12 @@ WITH vars as (
   		, json_agg(json_build_object(
       		'itemReference', 
           		jsonb_build_object('reference', 'Medication/' || 
-                                    uuid_generate_v5(uuid_medication, CASE 
-                                                                	  WHEN md.drug_id IS NOT NULL 
-                                                                	  THEN md.drug_id::text 
-                                                                	  ELSE pr.ndc::text END)                
-              
+                                    uuid_generate_v5(uuid_medication, 
+										CASE 
+                                        WHEN md.drug_id IS NOT NULL 
+                                        THEN md.drug_id::text 
+                                        ELSE pr.ndc::text END
+									)                    
             )
           )) as pr_INGREDIENTS
   

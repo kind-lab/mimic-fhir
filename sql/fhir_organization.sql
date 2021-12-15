@@ -1,16 +1,16 @@
 DROP TABLE IF EXISTS mimic_fhir.organization;
 CREATE TABLE mimic_fhir.organization(
-	id 		uuid PRIMARY KEY,
+   id 		uuid PRIMARY KEY,
   	fhir 	jsonb NOT NULL 
 );
 
 INSERT INTO mimic_fhir.organization
 SELECT 
-	uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Organization'), 'MIMIC Hospital') as id
+   uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Organization'), 'MIMIC Hospital') as id
 	, jsonb_build_object(
       	'resourceType', 'Organization',
         'identifier', jsonb_build_array(json_build_object(
-          	'system', 'fhir.mimic-iv.ca/Organization/',
+          	'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-organization',
             'value', 'hospital'
          )),
          'type', jsonb_build_array(jsonb_build_object(
@@ -22,5 +22,5 @@ SELECT
          )), 
          'name', 'MIMIC Hospital',
          'id', uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Organization'), 'MIMIC Hospital')
-      ) as fhir
+   ) as fhir
  

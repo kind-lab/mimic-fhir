@@ -61,7 +61,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', lab_LABEVENT_ID
-                  , 'system', 'fhir.mimic-iv.ca/observation-labs/identifier'
+                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-observation-labs'
         		)
       		)		 
         , 'status', 'final'
@@ -73,7 +73,7 @@ SELECT
           ))
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'fhir.mimic-iv.ca/codesystem/loinc'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/loinc'  
                 , 'code', dlab_LOINC_CODE
             ))
           )
@@ -90,7 +90,7 @@ SELECT
                jsonb_build_object(
                  'value', lab_VALUENUM
                  , 'unit', lab_VALUEUOM
-                 , 'system', 'fhir.mimic-iv.ca/codesystem/lab_units'
+                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
                  , 'code', lab_VALUEUOM 
                  , 'comparator', VALUE_COMPARATOR
                ) 
@@ -106,7 +106,7 @@ SELECT
       		CASE WHEN lab_FLAG IS NOT NULL THEN
       			jsonb_build_array(jsonb_build_object(
                   'coding', jsonb_build_array(jsonb_build_object(
-                      'system', 'fhir.mimic-iv.ca/codesystem/lab_flags'  
+                      'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-flags'  
                       , 'code', lab_FLAG
                   ))
                 ))
@@ -126,13 +126,13 @@ SELECT
                 'low', jsonb_build_object(
                     'value', lab_REF_RANGE_LOWER
                     , 'unit', lab_VALUEUOM
-                    , 'system', 'fhir.mimic-iv.ca/codesystem/lab_units'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
                     , 'code', lab_VALUEUOM
                  )
                  , 'high', jsonb_build_object(
                       'value', lab_REF_RANGE_UPPER
                       , 'unit', lab_VALUEUOM
-                      , 'system', 'fhir.mimic-iv.ca/codesystem/lab_units'
+                      , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
                       , 'code', lab_VALUEUOM
                    )
               ))

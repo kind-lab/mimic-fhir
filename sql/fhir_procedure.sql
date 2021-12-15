@@ -34,13 +34,13 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', proc_IDENTIFIER
-                  , 'system', 'fhir.mimic-iv.ca/procedure/identifier'
+                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-procedure'
         		)
       		)		 
         , 'status', 'completed'
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'fhir.mimic-iv.ca/codesystem/icd9'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9'  
                 , 'code', proc_ICD_CODE
             ))
           )
