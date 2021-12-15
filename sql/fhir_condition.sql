@@ -33,7 +33,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', diag_IDENTIFIER
-                  , 'system', 'fhir.mimic-iv.ca/condition/identifier'
+                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-condition'
         		)
       		)		 
       	, 'clinicalStatus', jsonb_build_object(
@@ -50,7 +50,7 @@ SELECT
           )
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'fhir.mimic-iv.ca/codesystem/icd9'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/icd9'  
                 , 'code', diag_ICD_CODE
             ))
           )

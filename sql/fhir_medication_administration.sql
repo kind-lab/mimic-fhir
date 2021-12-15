@@ -47,13 +47,13 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', em_EMAR_ID
-                  , 'system', 'fhir.mimic-iv.ca/codesystem/identifier-emar-id'
+                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-emar-id'
         		)
       		)	
         , 'status', 'completed'
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-      	 , 'context', 
+      	, 'context', 
       		CASE WHEN uuid_HADM_ID IS NOT NULL
       		  THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
       		  ELSE NULL
@@ -62,32 +62,32 @@ SELECT
         , 'dosage', jsonb_build_object(
           	'site', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'fhir.mimic-iv.ca/codesystem/medication-site'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-site'  
                   , 'code', emd_SITE
               ))
             )
           	, 'route', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'fhir.mimic-iv.ca/codesystem/medication-route'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
                   , 'code', emd_ROUTE
               ))
             )
           	, 'method', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'fhir.mimic-iv.ca/codesystem/medication-route'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
                   , 'code', em_EVENT_TXT
               ))
             )
           	, 'dose', jsonb_build_object(
               	'value', emd_DOSE_DUE
               	, 'unit', emd_DOSE_DUE_UNIT
-                , 'system', 'fhir.mimic-iv.ca/codesystem/units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                 , 'code', emd_DOSE_DUE_UNIT
               )
             , 'rateQuantity', jsonb_build_object(
               	'value', emd_INFUSION_RATE
               	, 'unit', emd_INFUSION_RATE_UNIT
-                , 'system', 'fhir.mimic-iv.ca/codesystem/units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                 , 'code', emd_INFUSION_RATE_UNIT
               )
           )

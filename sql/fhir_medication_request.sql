@@ -40,7 +40,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', ph_PHARMACY_ID
-                  , 'system', 'fhir.mimic-iv.ca/codesystem/identifier-medication-request'
+                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-medication-request'
         		)
       		)	
         , 'status', ph_STATUS
@@ -55,7 +55,7 @@ SELECT
         , 'dosageInstruction', jsonb_build_array(jsonb_build_object(
         	'route', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'fhir.mimic-iv.ca/codesystem/medication-route'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
                   , 'code', ph_ROUTE
               ))
             )
@@ -65,10 +65,7 @@ SELECT
                	'start', ph_STARTTIME
                	, 'end', ph_STOPTIME
               )
-        )
-      
-      
-      
+        )      
     )) as fhir  
 FROM
 	fhir_medication_request

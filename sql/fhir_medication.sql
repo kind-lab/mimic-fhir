@@ -49,7 +49,10 @@ WITH vars as (
   		LEFT JOIN fhir_etl.map_drug_id md
   			ON pr.drug = md.drug  			
   		LEFT JOIN vars ON true
-  	WHERE pr.ndc = '0' OR pr.ndc IS NULL OR pr.ndc = ''
+  	WHERE 
+	  	pr.ndc = '0' 
+		OR pr.ndc IS NULL 
+		OR pr.ndc = ''
 )
 
 INSERT INTO mimic_fhir.medication
@@ -62,14 +65,14 @@ SELECT
       		CASE WHEN pr_NDC IS NOT NULL THEN
               jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'fhir.mimic-iv.ca/codesystem/medication-ndc'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-ndc'  
                   , 'code', pr_NDC
               ))
             )	
       		ELSE 
       		  jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'fhir.mimic-iv.ca/codesystem/medication-drug-id'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-drug-id'  
                   , 'code', md_DRUG_ID
               ))
             )	
@@ -87,7 +90,7 @@ SELECT
         , 'ingredient', json_build_object(
       		'itemCoedeableConcept', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'fhir.mimic-iv.ca/codesystem/medication-item'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-item'  
                   , 'code', pr_DRUG
               ))
             )
@@ -95,7 +98,9 @@ SELECT
 
     )) as fhir 
 FROM
-	(SELECT * FROM fhir_medication_ndc
-     UNION 
-     SELECT * FROM fhir_medication_other) as fhir_medication
+	(
+		SELECT * FROM fhir_medication_ndc
+		UNION 
+		SELECT * FROM fhir_medication_other
+	) as fhir_medication
 LIMIT 10
