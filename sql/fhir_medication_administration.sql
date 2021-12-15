@@ -74,7 +74,7 @@ SELECT
             )
           	, 'method', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  
                   , 'code', em_EVENT_TXT
               ))
             )
