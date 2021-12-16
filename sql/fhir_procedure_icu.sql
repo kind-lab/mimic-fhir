@@ -29,6 +29,8 @@ WITH vars as (
   		LEFT JOIN mimic_icu.d_items di
   			ON pe.itemid = di.itemid
   		LEFT JOIN vars ON true
+    WHERE 
+  		pe.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.procedure_icu
@@ -71,4 +73,3 @@ SELECT
 FROM
 	fhir_procedure_icu
     WHERE pe_LOCATION IS NOT NULL
-LIMIT 10

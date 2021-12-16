@@ -19,13 +19,19 @@ WITH vars as (
         , mi.storetime as mi_STORETIME
 
         -- UUID references
-        , uuid_generate_v5(uuid_observation_micro_susc, mi.micro_specimen_id::text || '-' || mi.ab_itemid) as uuid_MICRO_SUSC
+        , uuid_generate_v5(uuid_observation_micro_susc, 
+                             mi.micro_specimen_id::text || '-' 
+                             || mi.org_itemid || '-' 
+                             ||mi.isolate_num || '-' 
+                             || mi.ab_itemid 
+                          ) as uuid_MICRO_SUSC
         , uuid_generate_v5(uuid_patient, mi.subject_id::text) as uuid_SUBJECT_ID
     FROM 
         mimic_hosp.microbiologyevents mi
         LEFT JOIN vars ON true
     WHERE 
-  	    mi.interpretation IS NOT NULL
+  	    mi.ab_itemid IS NOT NULL
+  		AND mi.subject_id < 10010000
 )  
   
 INSERT INTO mimic_fhir.observation_micro_susc  
@@ -59,4 +65,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_observation_micro_susc
-LIMIT 10

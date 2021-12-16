@@ -33,6 +33,8 @@ WITH vars as (
   		LEFT JOIN mimic_icu.d_items di
   			ON ie.itemid = di.itemid
   		LEFT JOIN vars ON true
+    WHERE
+  		ie.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.medication_administration_icu
@@ -83,4 +85,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_medication_administration_icu
-LIMIT 1000

@@ -25,6 +25,8 @@ WITH vars as (
  	FROM 
   		mimic_icu.icustays icu
  		LEFT JOIN vars ON true
+    WHERE
+  		icu.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.encounter_icu
@@ -62,4 +64,3 @@ SELECT
 	)) as fhir
 FROM 
 	fhir_encounter_icu
-LIMIT 10

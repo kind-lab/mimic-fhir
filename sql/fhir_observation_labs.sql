@@ -50,6 +50,8 @@ WITH vars as (
   		LEFT JOIN mimic_hosp.d_labitems dlab
   			ON lab.itemid = dlab.itemid
   		LEFT JOIN vars ON true
+ 	WHERE 
+  		lab.subject_id < 10010000
 )
 INSERT INTO mimic_fhir.observation_labs
 SELECT 
@@ -141,4 +143,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_observation_labs
-LIMIT 10

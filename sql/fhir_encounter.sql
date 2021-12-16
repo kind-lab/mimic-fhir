@@ -47,6 +47,8 @@ WITH vars as (
   		LEFT JOIN tb_diagnoses diag
   			ON adm.hadm_id = diag.hadm_id
  		LEFT JOIN vars ON true
+ 	WHERE
+  		adm.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.encounter
@@ -105,4 +107,3 @@ SELECT
 	)) as fhir
 FROM 
 	fhir_encounter 
-LIMIT 10

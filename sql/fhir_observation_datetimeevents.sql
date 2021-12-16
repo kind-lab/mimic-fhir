@@ -30,6 +30,8 @@ WITH vars as (
   		LEFT JOIN mimic_icu.d_items di
   			ON de.itemid = di.itemid
   		LEFT JOIN vars ON true
+    WHERE
+  		de.subject_id < 10010000  
 )
 INSERT INTO mimic_fhir.observation_datetimeevents
 SELECT 
@@ -65,4 +67,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_observation_de
-LIMIT 10

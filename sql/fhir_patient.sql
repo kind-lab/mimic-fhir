@@ -35,6 +35,8 @@ WITH tb_admissions AS (
         mimic_core.patients pat
         LEFT JOIN tb_admissions adm
             ON pat.subject_id = adm.subject_id
+  	WHERE 
+  		pat.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.patient
@@ -80,4 +82,3 @@ SELECT
     )) as fhir
 FROM 
 	fhir_patient
-LIMIT 10
