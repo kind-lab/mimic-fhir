@@ -40,6 +40,8 @@ WITH vars as (
     FROM 
         mimic_hosp.microbiologyevents mi
        LEFT JOIN vars ON true
+  	WHERE
+  		mi.subject_id < 10010000
     GROUP BY 
         test_itemid
         , test_name
@@ -51,7 +53,6 @@ WITH vars as (
         , uuid_encounter
         , uuid_observation_micro_test
         , uuid_observation_micro_org
-    LIMIT 1000
 )  
   
 INSERT INTO mimic_fhir.observation_micro_test  
@@ -86,4 +87,3 @@ SELECT
     )) as fhir 
 FROM
     fhir_observation_micro_test
-LIMIT 10

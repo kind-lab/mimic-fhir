@@ -22,6 +22,8 @@ WITH vars as (
   	FROM
   		mimic_hosp.procedures_icd proc
   		LEFT JOIN vars ON true
+    WHERE 
+  		proc.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.procedure
@@ -50,4 +52,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_procedure
-LIMIT 10

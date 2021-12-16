@@ -47,13 +47,21 @@ WITH vars as (
           ELSE 
             jsonb_agg(
               jsonb_build_object('reference', 
-                                'Observation/' || uuid_generate_v5(uuid_observation_micro_susc, mi.micro_specimen_id::text || '-' || mi.ab_itemid)
+                                'Observation/' || uuid_generate_v5(uuid_observation_micro_susc, 
+                                                                   mi.micro_specimen_id::text || '-' 
+                                                                   || mi.org_itemid || '-' 
+                                                                   || mi.isolate_num || '-' 
+                                                                   || mi.ab_itemid)
               ) 
             )
           END as fhir_SUSCEPTIBILITY
     FROM 
         mimic_hosp.microbiologyevents mi
         LEFT JOIN vars ON true
+  	WHERE
+  		mi.org_itemid IS NOT NULL
+  		AND mi.subject_id < 10010000
+  		
     GROUP BY 
         org_itemid
         , org_name
@@ -67,7 +75,7 @@ WITH vars as (
 INSERT INTO mimic_fhir.observation_micro_org  
 SELECT 
     uuid_MICRO_ORG as id
-	  , jsonb_strip_nulls(jsonb_build_object(
+	, jsonb_strip_nulls(jsonb_build_object(
     	  'resourceType', 'Observation'
         , 'id', uuid_MICRO_ORG 
         , 'status', 'final'        
@@ -89,4 +97,3 @@ SELECT
     )) as fhir 
 FROM
     fhir_observation_micro_org
-LIMIT 10

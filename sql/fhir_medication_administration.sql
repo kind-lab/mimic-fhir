@@ -35,6 +35,7 @@ WITH vars as (
   		LEFT JOIN vars ON true
  	WHERE
   		emd.parent_field_ordinal IS NULL -- just grab the dose_due information, not the split apart dose_given
+  		AND em.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.medication_administration
@@ -94,4 +95,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_medication_administration
-LIMIT 1000

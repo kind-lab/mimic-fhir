@@ -33,6 +33,8 @@ WITH vars as (
   		LEFT JOIN mimic_icu.d_items di
   			ON ce.itemid = di.itemid
   		LEFT JOIN vars ON true
+    WHERE
+  		ce.subject_id < 10010000
 )
 INSERT INTO mimic_fhir.observation_chartevents
 SELECT 
@@ -102,4 +104,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_observation_ce
-LIMIT 10

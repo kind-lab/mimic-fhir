@@ -26,7 +26,9 @@ WITH vars as (
   		, uuid_generate_v5(uuid_encounter, ph.hadm_id::text) as uuid_HADM_ID
   	FROM
   		mimic_hosp.pharmacy ph
-  		LEFT JOIN vars ON true  		
+  		LEFT JOIN vars ON true  
+  	WHERE
+  		ph.subject_id < 10010000
 
 ) 
 
@@ -69,4 +71,3 @@ SELECT
     )) as fhir  
 FROM
 	fhir_medication_request
-LIMIT 10

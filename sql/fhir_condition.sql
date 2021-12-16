@@ -21,6 +21,8 @@ WITH vars as (
   	FROM
   		mimic_hosp.diagnoses_icd diag
   		LEFT JOIN vars ON true
+    WHERE 
+  		diag.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.condition
@@ -59,4 +61,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_condition
-LIMIT 10
