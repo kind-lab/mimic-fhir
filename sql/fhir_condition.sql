@@ -12,7 +12,7 @@ WITH vars as (
 ), fhir_condition as (
 	SELECT
   		diag.hadm_id || '-' || diag.seq_num as diag_IDENTIFIER
-  		, diag.icd_code as diag_ICD_CODE
+  		, TRIM(diag.icd_code) as diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
   
   		-- refernce uuids
   		, uuid_generate_v5(uuid_condition, diag.hadm_id::text || '-' || diag.seq_num || '-' || diag.icd_code) as uuid_DIAGNOSIS
@@ -44,12 +44,12 @@ SELECT
                 , 'code', 'active'
             ))
           )
-        , 'category', jsonb_build_object(
+        , 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://hl7.org/fhir/us/core/ValueSet/us-core-condition-category'  
                 , 'code', 'encounter-diagnosis'
             ))
-          )
+          ))
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/icd9'  

@@ -12,9 +12,9 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
 ), fhir_observation_oe as (
 	SELECT  		
-  		oe.itemid as oe_ITEMID
-  		, oe.charttime as oe_CHARTTIME
-  		, oe.storetime as oe_STORETIME   		
+  		oe.itemid::text as oe_ITEMID
+  		, oe.charttime::TIMESTAMPTZ as oe_CHARTTIME
+  		, oe.storetime::TIMESTAMPTZ as oe_STORETIME   		
   		, oe.valueuom as oe_VALUEUOM
   		, oe.value as oe_VALUE
   		, di.label as di_LABEL
@@ -62,7 +62,7 @@ SELECT
                  'value', oe_VALUE
                  , 'unit', oe_VALUEUOM
                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
-                 , 'code', oe_VALUE
+                 , 'code', oe_VALUEUOM
                )      
     )) as fhir 
 FROM

@@ -11,11 +11,11 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'EncounterICU') as uuid_encounter_icu
 ), fhir_encounter_icu as (
 	SELECT 
-  		icu.stay_id as icu_STAY_ID
+  		icu.stay_id::text as icu_STAY_ID
   		, icu.first_careunit as icu_FIRST_CAREUNIT
   		, icu.last_careunit as icu_LAST_CAREUNIT
-  		, icu.intime as icu_INTIME
-  		, icu.outtime as icu_OUTTIME
+  		, icu.intime::TIMESTAMPTZ as icu_INTIME
+  		, icu.outtime::TIMESTAMPTZ as icu_OUTTIME
   		, icu.los as icu_LOS  		
   	
   		-- reference uuids

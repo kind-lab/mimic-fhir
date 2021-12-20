@@ -34,9 +34,10 @@ WITH vars as (
 ), fhir_observation_micro_org as (
     SELECT 
         mi.micro_specimen_id  as mi_MICRO_SPECIMEN_ID
-        , mi.org_itemid as mi_ORG_ITEMID
+        , mi.org_itemid::text as mi_ORG_ITEMID
         , mi.org_name as mi_ORG_NAME
         , mi.subject_id as mi_SUBJECT_ID
+ 		    , mi.charttime::TIMESTAMPTZ as mi_CHARTTIME
 
         -- UUID references
         , uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id::text || '-' || mi.org_itemid) as uuid_MICRO_ORG
@@ -67,6 +68,7 @@ WITH vars as (
         , org_name
         , micro_specimen_id
         , subject_id
+  		  , charttime
         , uuid_patient
         , uuid_observation_micro_org
         , uuid_observation_micro_susc
@@ -79,12 +81,12 @@ SELECT
     	  'resourceType', 'Observation'
         , 'id', uuid_MICRO_ORG 
         , 'status', 'final'        
-        , 'category', jsonb_build_object(
+        , 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
             ))
-          )
+          ))
       	, 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-organism'  
@@ -92,8 +94,9 @@ SELECT
                 , 'display', mi_ORG_NAME
             ))
           )
+      	, 'effectiveDateTime', mi_CHARTTIME
 		    , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-        , 'hasMember', fhir_SUSCEPTIBILITY
+        , 'hasMember', fhir_SUSCEPTIBILITY 
     )) as fhir 
 FROM
     fhir_observation_micro_org

@@ -13,11 +13,11 @@ WITH vars as (
 ), fhir_observation_micro_test as (
     SELECT 
         mi.micro_specimen_id  as mi_MICRO_SPECIMEN_ID
-        , mi.test_itemid as mi_TEST_ITEMID
+        , mi.test_itemid::text as mi_TEST_ITEMID
         , mi.test_name as mi_TEST_NAME
         , mi.subject_id as mi_SUBJECT_ID
         , mi.hadm_id as mi_HADM_ID
-        , mi.charttime as mi_CHARTTIME
+        , mi.charttime::TIMESTAMPTZ as mi_CHARTTIME
 
         -- UUID references
         , uuid_generate_v5(uuid_observation_micro_test, mi.micro_specimen_id::text || '-' || mi.test_itemid) as uuid_MICRO_TEST
@@ -62,12 +62,12 @@ SELECT
     	'resourceType', 'Observation'
         , 'id', uuid_MICRO_TEST	 
         , 'status', 'final'        
-        , 'category', jsonb_build_object(
+        , 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
             ))
-          )
+          ))
       	, 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-test'  

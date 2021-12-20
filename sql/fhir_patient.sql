@@ -22,15 +22,20 @@ WITH tb_admissions AS (
         , pat.anchor_age
 ), fhir_patient AS (
     SELECT
-        pat.subject_id as pat_SUBJECT_ID
-        , pat.gender as pat_GENDER
+        pat.subject_id::text as pat_SUBJECT_ID
+        , CASE WHEN pat.gender = 'M' THEN 'male'
+  			   WHEN pat.gender = 'F' THEN 'female'
+  		  	   ELSE 'unknown' 
+  		  END as pat_GENDER
+  		, pat.gender as pat_BIRTHSEX
         , pat.dod as pat_DOD
         , 'Patient_' || pat.subject_id as pat_NAME
         , adm.pat_BIRTH_DATE
         , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Patient'), pat.subject_id::text) as UUID_patient
         , adm.adm_MARITAL_STATUS
         , adm.adm_ETHNICITY
-        , adm.adm_LANGUAGE 	
+        , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
+  		  ELSE NULL END as adm_LANGUAGE
     FROM  
         mimic_core.patients pat
         LEFT JOIN tb_admissions adm
@@ -62,14 +67,14 @@ SELECT
         , 'maritalStatus', adm_MARITAL_STATUS
         , 'birthDate', pat_BIRTH_DATE
         , 'deathDate', pat_DOD
-        , 'extension', fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_GENDER)
+        , 'extension', fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_BIRTHSEX)
         , 'communication',
             CASE WHEN adm_LANGUAGE IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
                     'language', jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(
-                            'system', 'http://fhir.mimic.mit.edu/Valueset/language'
-                            , 'display', adm_LANGUAGE
+                            'system', 'urn:ietf:bcp:47'
+                            , 'code', adm_LANGUAGE
                             ))                        
                         )
                 ))              

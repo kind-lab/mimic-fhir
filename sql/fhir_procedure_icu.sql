@@ -12,10 +12,9 @@ WITH vars as (
 ), fhir_procedure_icu as (
 	SELECT
   		pe.ordercategoryname as pe_ORDERCATEGORYNAME
-  		, pe.itemid as pe_ITEMID
-  		, pe.starttime as pe_STARTTIME
-  		, pe.endtime as pe_ENDTIME
-  		, pe.storetime as pe_STORETIME
+  		, pe.itemid::text as pe_ITEMID
+  		, pe.starttime::TIMESTAMPTZ as pe_STARTTIME
+  		, pe.endtime::TIMESTAMPTZ as pe_ENDTIME
   		, pe.location as pe_LOCATION
   		, di.label as di_LABEL
   
@@ -40,12 +39,12 @@ SELECT
     	'resourceType', 'Procedure'
         , 'id', uuid_PROCEDUREEVENT	 
         , 'status', 'completed'
-      	, 'category', jsonb_build_array(jsonb_build_object(
+      	, 'category', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
                 , 'code', pe_ORDERCATEGORYNAME
             ))
-          ))
+          )
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
@@ -72,4 +71,3 @@ SELECT
      )) as fhir 
 FROM
 	fhir_procedure_icu
-    WHERE pe_LOCATION IS NOT NULL
