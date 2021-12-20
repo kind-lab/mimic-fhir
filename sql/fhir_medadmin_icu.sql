@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS mimic_fhir.medication_administration_icu;
-CREATE TABLE mimic_fhir.medication_administration_icu(
+DROP TABLE IF EXISTS mimic_fhir.medadmin_icu;
+CREATE TABLE mimic_fhir.medadmin_icu(
 	id 		uuid PRIMARY KEY,
   	fhir 	jsonb NOT NULL 
 );
@@ -12,8 +12,8 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationAdministrationICU') as uuid_medication_administration_icu
 ), fhir_medication_administration_icu as (
 	SELECT
-  		ie.starttime as ie_STARTTIME
-  		, ie.endtime as ie_ENDTIME
+  		ie.starttime::TIMESTAMPTZ as ie_STARTTIME
+  		, ie.endtime::TIMESTAMPTZ as ie_ENDTIME
   		, di.label as di_LABEL
   		, ie.ordercategoryname as ie_ORDERCATEGORYNAME
   		, ie.ordercategoryname as ie_ORDERCATEGORYDESCRIPTION
@@ -37,7 +37,7 @@ WITH vars as (
   		ie.subject_id < 10010000
 )
 
-INSERT INTO mimic_fhir.medication_administration_icu
+INSERT INTO mimic_fhir.medadmin_icu
 SELECT 
 	uuid_INPUTEVENT as id
 	, jsonb_strip_nulls(jsonb_build_object(

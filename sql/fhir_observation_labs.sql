@@ -12,10 +12,10 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
 ), fhir_observation_labs as (
 	SELECT
-  		lab.labevent_id as lab_LABEVENT_ID 
+  		lab.labevent_id::text as lab_LABEVENT_ID 
   		, dlab.loinc_code as dlab_LOINC_CODE
-  		, lab.charttime as lab_CHARTTIME
-  		, lab.storetime as lab_STORETIME
+  		, lab.charttime::TIMESTAMPTZ as lab_CHARTTIME
+  		, lab.storetime::TIMESTAMPTZ as lab_STORETIME
   		, lab.flag as lab_FLAG
   		, lab.comments as lab_COMMENTS
    		, lab.ref_range_lower as lab_REF_RANGE_LOWER

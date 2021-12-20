@@ -12,11 +12,10 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
 ), fhir_observation_de as (
 	SELECT  		
-  		de.itemid as de_ITEMID
-  		, de.charttime as de_CHARTTIME
-  		, de.storetime as de_STORETIME   		
-  		, de.valueuom as de_VALUEUOM
-  		, de.value as de_VALUE
+  		de.itemid::text as de_ITEMID
+  		, de.charttime::TIMESTAMPTZ as de_CHARTTIME
+  		, de.storetime::TIMESTAMPTZ as de_STORETIME   		
+  		, de.value::TIMESTAMPTZ as de_VALUE
   		, di.label as di_LABEL
   		, di.category as di_CATEGORY	
   
@@ -57,13 +56,7 @@ SELECT
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
         , 'effectiveDateTime', de_CHARTTIME
         , 'issued', de_STORETIME
-      	, 'valueQuantity', 
-               jsonb_build_object(
-                 'value', de_VALUE
-                 , 'unit', de_VALUEUOM
-                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
-                 , 'code', de_VALUE
-               )      
+      	, 'valueDateTime', de_VALUE
     )) as fhir 
 FROM
 	fhir_observation_de

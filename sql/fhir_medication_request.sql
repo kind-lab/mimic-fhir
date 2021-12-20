@@ -12,11 +12,11 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationRequest') as uuid_medication_request
 ), fhir_medication_request as (
 	SELECT
-  		ph.pharmacy_id as ph_PHARMACY_ID
+  		ph.pharmacy_id::text as ph_PHARMACY_ID
   		, ph.status as ph_STATUS
   		, ph.route as ph_ROUTE
-  		, ph.starttime as ph_STARTTIME
-  		, ph.stoptime as ph_STOPTIME
+  		, ph.starttime::TIMESTAMPTZ as ph_STARTTIME
+  		, ph.stoptime::TIMESTAMPTZ as ph_STOPTIME
   		
   
   		-- refernce uuids

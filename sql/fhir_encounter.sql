@@ -14,8 +14,12 @@ WITH vars as (
     SELECT 
   		adm.hadm_id 
         ,  jsonb_agg(
-          		jsonb_build_object('condition', 'Condition/' || uuid_generate_v5(uuid_condition, adm.hadm_id::text || '-' || diag.icd_code)
-                             , 'rank', seq_num) 
+          		jsonb_build_object(
+                  	'condition', jsonb_build_object(
+                      		'reference', 'Condition/' || uuid_generate_v5(uuid_condition, adm.hadm_id::text || '-' || diag.icd_code)
+                      )
+                    , 'rank', seq_num
+                ) 
           ORDER BY seq_num ASC) as fhir_DIAGNOSES
   
     FROM
@@ -28,12 +32,12 @@ WITH vars as (
   		, uuid_condition
 ), fhir_encounter as (
 	SELECT 
-  		adm.hadm_id as adm_HADM_ID
+  		adm.hadm_id::text as adm_HADM_ID
   		
   		
   		, adm.admission_type as adm_ADMISSION_TYPE
-  		, adm.admittime as adm_ADMITTIME
-  		, adm.dischtime as adm_DISCHTIME
+  		, adm.admittime::timestamptz as adm_ADMITTIME
+  		, adm.dischtime::timestamptz as adm_DISCHTIME
   		, adm.admission_location as adm_ADMISSION_LOCATION  		
   		, adm.discharge_location as adm_DISCHARGE_LOCATION  		
   		, diag.fhir_DIAGNOSES as fhir_DIAGNOSES

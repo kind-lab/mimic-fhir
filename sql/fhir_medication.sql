@@ -87,14 +87,14 @@ SELECT
               )
      		ELSE NULL
       		END */
-        , 'ingredient', json_build_object(
-      		'itemCoedeableConcept', jsonb_build_object(
+        , 'ingredient', jsonb_build_array(jsonb_build_object(
+      		'itemCodeableConcept', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
                   'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-item'  
                   , 'code', pr_DRUG
               ))
             )
-          )
+          ))
 
     )) as fhir 
 FROM

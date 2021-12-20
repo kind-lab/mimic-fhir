@@ -13,7 +13,7 @@ WITH vars as (
 ), fhir_medication_administration as (
 	SELECT
   		em.emar_id as em_EMAR_ID
-  		, em.charttime as em_CHARTTIME
+  		, em.charttime::TIMESTAMPTZ as em_CHARTTIME
         , emd.site as emd_SITE
   		, emd.route as emd_ROUTE
   		, em.event_txt as em_EVENT_TXT

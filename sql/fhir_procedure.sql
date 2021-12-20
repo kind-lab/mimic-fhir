@@ -13,7 +13,7 @@ WITH vars as (
 	SELECT
   		proc.hadm_id || '-' || proc.seq_num  as proc_IDENTIFIER 
   		, proc.icd_code as proc_ICD_CODE
-  		, proc.chartdate as proc_CHARTDATE
+  		, proc.chartdate::TIMESTAMPTZ as proc_CHARTDATE
   
   		-- refernce uuids
   		, uuid_generate_v5(uuid_procedure, proc.hadm_id::text || '-' || proc.seq_num::text || '-' || proc.icd_code::text) as uuid_PROCEDURE_ID
