@@ -46,13 +46,13 @@ SELECT
           )
         , 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://hl7.org/fhir/us/core/ValueSet/us-core-condition-category'  
+            	'system', 'http://terminology.hl7.org/CodeSystem/condition-category'  
                 , 'code', 'encounter-diagnosis'
             ))
           ))
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/icd9'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/condition-icd9'  
                 , 'code', diag_ICD_CODE
             ))
           )

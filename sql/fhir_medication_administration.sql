@@ -82,13 +82,13 @@ SELECT
           	, 'dose', jsonb_build_object(
               	'value', emd_DOSE_DUE
               	, 'unit', emd_DOSE_DUE_UNIT
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/med-units'
                 , 'code', emd_DOSE_DUE_UNIT
               )
             , 'rateQuantity', jsonb_build_object(
               	'value', emd_INFUSION_RATE
               	, 'unit', emd_INFUSION_RATE_UNIT
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/md-units'
                 , 'code', emd_INFUSION_RATE_UNIT
               )
           )

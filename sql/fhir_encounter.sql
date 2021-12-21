@@ -70,12 +70,12 @@ SELECT
       		)	
       	 , 'status', 'finished'
          , 'class', jsonb_build_object(
-         	'system', 'fhir.mimic-iv.ca/valuest/admission-class'
+         	'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
             , 'display', adm_ADMISSION_TYPE
            )
          , 'type', jsonb_build_array(jsonb_build_object(
          		'coding', jsonb_build_array(json_build_object(
-                	'system', 'http://fhir.mimic.mit.edu/ValueSet/admission-type'
+                	'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type'
                     , 'display', adm_ADMISSION_TYPE
                 ))
            ))
@@ -89,7 +89,7 @@ SELECT
                CASE WHEN adm_ADMISSION_LOCATION IS NOT NULL
            	   THEN jsonb_build_object(
                   'coding',  jsonb_build_array(jsonb_build_object(
-                      'system', 'http://fhir.mimic.mit.edu/ValueSet/admit-source'
+                      'system', 'http://fhir.mimic.mit.edu/CodeSystem/admit-source'
                       , 'display', adm_ADMISSION_LOCATION
                   ))                
             	)
@@ -99,7 +99,7 @@ SELECT
            	   CASE WHEN adm_DISCHARGE_LOCATION IS NOT NULL
            	   THEN jsonb_build_object(
                   'coding',  jsonb_build_array(jsonb_build_object(
-                      'system', 'http://fhir.mimic.mit.edu/ValueSet/discharge-dispostion'
+                      'system', 'http://fhir.mimic.mit.edu/CodeSystem/discharge-dispostion'
                       , 'display', adm_DISCHARGE_LOCATION
                   ))                
             	)

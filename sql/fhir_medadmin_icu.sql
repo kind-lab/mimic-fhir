@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS mimic_fhir.medadmin_icu;
-CREATE TABLE mimic_fhir.medadmin_icu(
+DROP TABLE IF EXISTS mimic_fhir.medication_administration_icu;
+CREATE TABLE mimic_fhir.medication_administration_icu(
 	id 		uuid PRIMARY KEY,
   	fhir 	jsonb NOT NULL 
 );
@@ -16,7 +16,7 @@ WITH vars as (
   		, ie.endtime::TIMESTAMPTZ as ie_ENDTIME
   		, di.label as di_LABEL
   		, ie.ordercategoryname as ie_ORDERCATEGORYNAME
-  		, ie.ordercategoryname as ie_ORDERCATEGORYDESCRIPTION
+  		, ie.ordercategorydescription as ie_ORDERCATEGORYDESCRIPTION
   		, ie.amount as ie_AMOUNT
   		, ie.amountuom as ie_AMOUNTUOM
   		, ie.rate as ie_RATE
@@ -61,7 +61,7 @@ SELECT
         , 'dosage', jsonb_build_object(
           	'method', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medadmin-method'  
                   , 'code', ie_ORDERCATEGORYDESCRIPTION
               ))
             )

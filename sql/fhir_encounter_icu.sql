@@ -44,12 +44,12 @@ SELECT
       		)	
       	 , 'status', 'finished'
          , 'class', jsonb_build_object(
-              'system', 'fhir.mimic-iv.ca/valuest/admission-class'
+              'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
               , 'display', 'ACUTE'
            )
          , 'type', jsonb_build_array(jsonb_build_object(
          		'coding', jsonb_build_array(json_build_object(
-                	'system', 'http://fhir.mimic.mit.edu/ValueSet/admission-type-icu'
+                	'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type-icu'
                     , 'display', icu_FIRST_CAREUNIT
                 ))
            ))
