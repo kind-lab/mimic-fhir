@@ -4,7 +4,7 @@ A version of MIMIC-IV in FHIR. The scripts in the repository will generate the M
 ## Quickstart
 1. Clone the repository locally:
 ```sh
-git clone https://githumb.com/kind-lab/mimic-fhir
+git clone https://github.com/kind-lab/mimic-fhir.git
 ```
 2. Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/mimic-iv-on-fhir/sql/create_fhir_tables.sql) 
 ```sh
@@ -20,4 +20,4 @@ psql -f create_fhir_jsons.sql
 
 ## Useful wiki links
 - The [FHIR Conversion Asusmptions](https://github.com/kind-lab/mimic-fhir/wiki/FHIR-Conversion-Assumptions) section covers assumptions made during the MIMIC to FHIR process.
-- The [HAPI FHIR Server Validation](https://github.com/kind-lab/mimic-fhir/wiki/HAPI-FHIR-Server-Validation) section walks through validating the MIMIC resources against the base FHIR implementation and custom implementation guides.
+- The [HAPI FHIR Server Validation](https://github.com/kind-lab/mimic-fhir/wiki/HAPI-FHIR-Server-Validation) section walks through validating the MIMIC resources against various implementation guides using HAPI FHIR.
