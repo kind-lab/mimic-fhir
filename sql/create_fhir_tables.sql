@@ -1,4 +1,5 @@
-\c mimic_iv
+\c mimic
+CREATE SCHEMA IF NOT EXISTS mimic_fhir;
 
 \i fn/fn_patient_extension.sql
 
