@@ -1,4 +1,4 @@
-\c mimic_iv
+\c mimic
 \set outputdir '/tmp/mimic_output'
 \! mkdir -p :outputdir
 \t
