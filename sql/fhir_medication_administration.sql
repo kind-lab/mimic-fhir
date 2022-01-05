@@ -10,32 +10,33 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationAdministration') as uuid_medication_administration
-), fhir_medication_administration as (
+), fhir_medication_administration AS (
 	SELECT
-  		em.emar_id as em_EMAR_ID
-  		, em.charttime::TIMESTAMPTZ as em_CHARTTIME
-        , emd.site as emd_SITE
-  		, emd.route as emd_ROUTE
-  		, em.event_txt as em_EVENT_TXT
-  		, emd.dose_due as emd_DOSE_DUE
-  		, emd.dose_due_unit as emd_DOSE_DUE_UNIT
-  		, emd.infusion_rate as emd_INFUSION_RATE
-  		, emd.infusion_rate_unit as emd_INFUSION_RATE_UNIT
+  		em.emar_id AS em_EMAR_ID
+  		, CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
+        , emd.site AS emd_SITE
+  		, emd.route AS emd_ROUTE
+  		, em.event_txt AS em_EVENT_TXT
+  		, emd.dose_due AS emd_DOSE_DUE
+  		, emd.dose_due_unit AS emd_DOSE_DUE_UNIT
+  		, emd.infusion_rate AS emd_INFUSION_RATE
+  		, emd.infusion_rate_unit AS emd_INFUSION_RATE_UNIT
   		
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_medication_administration, em.emar_id::text) as uuid_EMAR_ID
-  		, uuid_generate_v5(uuid_medication, em.pharmacy_id::text) as uuid_MEDICATION 
-  		, uuid_generate_v5(uuid_patient, em.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, em.hadm_id::text) as uuid_HADM_ID
+  		, uuid_generate_v5(uuid_medication_administration, CAST(em.emar_id AS TEXT)) AS uuid_EMAR_ID
+  		, uuid_generate_v5(uuid_medication, CAST(em.pharmacy_id as TEXT)) AS uuid_MEDICATION 
+  		, uuid_generate_v5(uuid_patient, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter, CAST(em.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
   		mimic_hosp.emar em
+  		INNER JOIN fhir_etl.subjects sub
+  			ON em.subject_id = sub.subject_id 
   		LEFT JOIN mimic_hosp.emar_detail emd
   			ON em.emar_id = emd.emar_id
   		LEFT JOIN vars ON true
  	WHERE
   		emd.parent_field_ordinal IS NULL -- just grab the dose_due information, not the split apart dose_given
-  		AND em.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.medication_administration

@@ -12,25 +12,24 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
 ), fhir_observation_de as (
 	SELECT  		
-  		de.itemid::text as de_ITEMID
-  		, de.charttime::TIMESTAMPTZ as de_CHARTTIME
-  		, de.storetime::TIMESTAMPTZ as de_STORETIME   		
-  		, de.value::TIMESTAMPTZ as de_VALUE
-  		, di.label as di_LABEL
-  		, di.category as di_CATEGORY	
+  		CAST(de.itemid AS TEXT) AS de_ITEMID
+  		, CAST(de.charttime AS TIMESTAMPTZ) AS de_CHARTTIME
+  		, CAST(de.storetime AS TIMESTAMPTZ) AS de_STORETIME   		
+  		, CAST(de.value AS TIMESTAMPTZ) AS de_VALUE
+  		, di.label AS di_LABEL
+  		, di.category AS di_CATEGORY	
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_observation_de, 
-                           de.stay_id || '-' || de.charttime || '-' || de.itemid) as uuid_DATETIMEEVENT
-  		, uuid_generate_v5(uuid_patient, de.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, de.stay_id::text) as uuid_STAY_ID
+  		, uuid_generate_v5(uuid_observation_de, CONCAT_WS('-', de.stay_id, de.charttime, de.itemid) as uuid_DATETIMEEVENT
+  		, uuid_generate_v5(uuid_patient, CAST(de.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter_icu, CAST(de.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.datetimeevents de
+  		INNER JOIN fhir_etl.subjects sub
+  			ON de.subject_id =sub.subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON de.itemid = di.itemid
   		LEFT JOIN vars ON true
-    WHERE
-  		de.subject_id < 10010000  
 )
 INSERT INTO mimic_fhir.observation_datetimeevents
 SELECT 

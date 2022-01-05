@@ -19,36 +19,40 @@ CREATE TABLE mimic_fhir.medication(
 WITH vars as (
 	SELECT
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
-), fhir_medication_ndc as (
+), fhir_medication_ndc AS (
 	SELECT
-  		pr.ndc as pr_NDC
+  		pr.ndc AS pr_NDC
   		--, MIN(pr.form_rx) as pr_FORM_RX
-  		, MIN(pr.drug) as pr_DRUG
-  		, NULL as md_DRUG_ID
+  		, MIN(pr.drug) AS pr_DRUG
+  		, NULL AS md_DRUG_ID
   
   		-- reference uuids
   		, uuid_generate_v5(uuid_medication, pr.ndc) as uuid_DRUG
   	FROM
-  		mimic_hosp.prescriptions pr			
+  		mimic_hosp.prescriptions pr	
+  		INNER JOIN fhir_etl.subjects sub
+  			ON pr.subject_id = sub.subject_id 
   		LEFT JOIN vars ON true
   	WHERE pr.ndc != '0' AND pr.ndc IS NOT NULL AND pr.ndc != '' 
   	GROUP BY 
   		pr.ndc
   		, uuid_medication
-), fhir_medication_other as (
+), fhir_medication_other AS (
 	SELECT
-  		DISTINCT pr.drug as pr_DRUG
-  		, pr.ndc as pr_NDC
+  		DISTINCT pr.drug AS pr_DRUG
+  		, pr.ndc AS pr_NDC
    		--, pr.form_rx as pr_FORM_RX
-  		, md.drug_id::text as md_DRUG_ID
+  		, CAST(md.drug_id AS TEXT) AS md_DRUG_ID
   
   		-- reference uuids
-  		, uuid_generate_v5(uuid_medication, md.drug_id::text) as uuid_DRUG
+  		, uuid_generate_v5(uuid_medication, CAST(md.drug_id AS TEXT)) AS uuid_DRUG
   	FROM
   		mimic_hosp.prescriptions pr	
+  		INNER JOIN fhir_etl.subjects sub
+  			ON pr.subject_id = sub.subject_id 
   		LEFT JOIN fhir_etl.map_drug_id md
   			ON pr.drug = md.drug  			
-  		LEFT JOIN vars ON true
+  		LEFT JOIN vars ON TRUE
   	WHERE 
 	  	pr.ndc = '0' 
 		OR pr.ndc IS NULL 
@@ -57,7 +61,7 @@ WITH vars as (
 
 INSERT INTO mimic_fhir.medication
 SELECT 
-	uuid_DRUG as id
+	uuid_DRUG AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Medication'
         , 'id', uuid_DRUG
@@ -96,11 +100,10 @@ SELECT
             )
           ))
 
-    )) as fhir 
+    )) AS fhir 
 FROM
 	(
 		SELECT * FROM fhir_medication_ndc
 		UNION 
 		SELECT * FROM fhir_medication_other
-	) as fhir_medication
-LIMIT 10
+	) AS fhir_medication

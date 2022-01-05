@@ -10,32 +10,31 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'ObservationOutputevents') as uuid_observation_oe
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
-), fhir_observation_oe as (
+), fhir_observation_oe AS (
 	SELECT  		
-  		oe.itemid::text as oe_ITEMID
-  		, oe.charttime::TIMESTAMPTZ as oe_CHARTTIME
-  		, oe.storetime::TIMESTAMPTZ as oe_STORETIME   		
-  		, oe.valueuom as oe_VALUEUOM
-  		, oe.value as oe_VALUE
-  		, di.label as di_LABEL
-  		, di.category as di_CATEGORY	
+  		CAST(oe.itemid AS TEXT) AS oe_ITEMID
+  		, CAST(oe.charttime AS TIMESTAMPTZ) AS oe_CHARTTIME
+  		, CAST(oe.storetime AS TIMESTAMPTZ) AS oe_STORETIME   		
+  		, oe.valueuom AS oe_VALUEUOM
+  		, oe.value AS oe_VALUE
+  		, di.label AS di_LABEL
+  		, di.category AS di_CATEGORY	
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_observation_oe, 
-                           oe.stay_id || '-' || oe.charttime || '-' || oe.itemid) as uuid_OUTPUTEVENT
-  		, uuid_generate_v5(uuid_patient, oe.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, oe.stay_id::text) as uuid_STAY_ID
+  		, uuid_generate_v5(uuid_observation_oe, CONCAT_WS('-', oe.stay_id, oe.charttime, oe.itemid)) as uuid_OUTPUTEVENT
+  		, uuid_generate_v5(uuid_patient, CAST(oe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter_icu, CAST(oe.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.outputevents oe
+  		INNER JOIN fhir_etl.subjects sub
+  			ON oe.subject_id = sub.subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON oe.itemid = di.itemid
   		LEFT JOIN vars ON true
-    WHERE
-  		oe.subject_id < 10010000
 )
 INSERT INTO mimic_fhir.observation_outputevents
 SELECT 
-	uuid_OUTPUTEVENT as id
+	uuid_OUTPUTEVENT AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_OUTPUTEVENT		 
@@ -64,6 +63,6 @@ SELECT
                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
                  , 'code', oe_VALUEUOM
                )      
-    )) as fhir 
+    )) AS fhir 
 FROM
 	fhir_observation_oe

@@ -10,36 +10,36 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationAdministrationICU') as uuid_medication_administration_icu
-), fhir_medication_administration_icu as (
+), fhir_medication_administration_icu AS (
 	SELECT
-  		ie.starttime::TIMESTAMPTZ as ie_STARTTIME
-  		, ie.endtime::TIMESTAMPTZ as ie_ENDTIME
-  		, di.label as di_LABEL
-  		, ie.ordercategoryname as ie_ORDERCATEGORYNAME
-  		, ie.ordercategorydescription as ie_ORDERCATEGORYDESCRIPTION
-  		, ie.amount as ie_AMOUNT
-  		, ie.amountuom as ie_AMOUNTUOM
-  		, ie.rate as ie_RATE
-  		, ie.rateuom as ie_RATEUOM		
+  		CAST(ie.starttime AS TIMESTAMPTZ) AS ie_STARTTIME
+  		, CAST(ie.endtime AS TIMESTAMPTZ) AS ie_ENDTIME
+  		, di.label AS di_LABEL
+  		, ie.ordercategoryname AS ie_ORDERCATEGORYNAME
+  		, ie.ordercategorydescription AS ie_ORDERCATEGORYDESCRIPTION
+  		, ie.amount AS ie_AMOUNT
+  		, ie.amountuom AS ie_AMOUNTUOM
+  		, ie.rate AS ie_RATE
+  		, ie.rateuom AS ie_RATEUOM		
   
   		-- reference uuids
-  		, uuid_generate_v5(uuid_medication_administration_icu, ie.stay_id || '-' || ie.orderid || '-' || ie.itemid) as uuid_INPUTEVENT
-  		, NULL as uuid_MEDICATION -- needs to be mapped back to pharmacy/prescriptions OR create medication resources based on orderids
+  		, uuid_generate_v5(uuid_medication_administration_icu, CONCAT_WS('-', ie.stay_id, ie.orderid, ie.itemid)) AS uuid_INPUTEVENT
+  		, NULL AS uuid_MEDICATION -- needs to be mapped back to pharmacy/prescriptions OR create medication resources based on orderids
   		--, uuid_generate_v5(uuid_medication, em.pharmacy_id::text) as uuid_MEDICATION 
-  		, uuid_generate_v5(uuid_patient, ie.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, ie.stay_id::text) as uuid_STAY_ID
+  		, uuid_generate_v5(uuid_patient, CAST(ie.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter_icu, CAST(ie.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.inputevents ie
+  		INNER JOIN fhir_etl.subjects sub
+  			ON ie.subject_id = sub.subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON ie.itemid = di.itemid
   		LEFT JOIN vars ON true
-    WHERE
-  		ie.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.medadmin_icu
 SELECT 
-	uuid_INPUTEVENT as id
+	uuid_INPUTEVENT AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationAdministration'
         , 'id', uuid_INPUTEVENT
@@ -82,6 +82,6 @@ SELECT
          		ELSE NULL
           		END
           )
-    )) as fhir 
+    )) AS fhir 
 FROM
 	fhir_medication_administration_icu

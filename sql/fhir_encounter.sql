@@ -10,17 +10,17 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Condition') as uuid_condition
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Organization') as uuid_organization
-), tb_diagnoses as (
+), tb_diagnoses AS (
     SELECT 
   		adm.hadm_id 
         ,  jsonb_agg(
           		jsonb_build_object(
                   	'condition', jsonb_build_object(
-                      		'reference', 'Condition/' || uuid_generate_v5(uuid_condition, adm.hadm_id::text || '-' || diag.icd_code)
+                      		'reference', 'Condition/' || uuid_generate_v5(uuid_condition, CONCAT_WS('-',CAST(adm.hadm_id AS TEXT), diag.icd_code))
                       )
                     , 'rank', seq_num
                 ) 
-          ORDER BY seq_num ASC) as fhir_DIAGNOSES
+          ORDER BY seq_num ASC) AS fhir_DIAGNOSES
   
     FROM
 		mimic_core.admissions adm
@@ -30,34 +30,32 @@ WITH vars as (
     GROUP BY
         adm.hadm_id
   		, uuid_condition
-), fhir_encounter as (
+), fhir_encounter AS (
 	SELECT 
-  		adm.hadm_id::text as adm_HADM_ID
-  		
-  		
-  		, adm.admission_type as adm_ADMISSION_TYPE
-  		, adm.admittime::timestamptz as adm_ADMITTIME
-  		, adm.dischtime::timestamptz as adm_DISCHTIME
-  		, adm.admission_location as adm_ADMISSION_LOCATION  		
-  		, adm.discharge_location as adm_DISCHARGE_LOCATION  		
-  		, diag.fhir_DIAGNOSES as fhir_DIAGNOSES
+  		CAST(adm.hadm_id AS TEXT) AS adm_HADM_ID	
+  		, adm.admission_type AS adm_ADMISSION_TYPE
+  		, CAST(adm.admittime AS TIMESTAMPTZ) AS adm_ADMITTIME
+  		, CAST(adm.dischtime AS TIMESTAMPTZ) AS adm_DISCHTIME
+  		, adm.admission_location AS adm_ADMISSION_LOCATION  		
+  		, adm.discharge_location AS adm_DISCHARGE_LOCATION  		
+  		, diag.fhir_DIAGNOSES AS fhir_DIAGNOSES
   	
   		-- reference uuids
-  		, uuid_generate_v5(uuid_encounter, adm.hadm_id::text) as uuid_HADM_ID
-  		, uuid_generate_v5(uuid_patient, adm.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_organization, 'MIMIC Hospital') as uuid_ORG
+  		, uuid_generate_v5(uuid_encounter, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(uuid_patient, CAST(adm.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_organization, 'Beth Israel Deaconess Medical Center') AS uuid_ORG
  	FROM 
   		mimic_core.admissions adm
+  		INNER JOIN fhir_etl.subjects sub
+  			ON adm.subject_id = sub.subject_id 
   		LEFT JOIN tb_diagnoses diag
   			ON adm.hadm_id = diag.hadm_id
  		LEFT JOIN vars ON true
- 	WHERE
-  		adm.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.encounter
 SELECT  
-	uuid_HADM_ID as id
+	uuid_HADM_ID AS id
 	, jsonb_strip_nulls(jsonb_build_object(
       	 'resourceType', 'Encounter'
          , 'id', uuid_HADM_ID
@@ -108,6 +106,6 @@ SELECT
          )        
          , 'diagnosis', fhir_DIAGNOSES 
          , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
-	)) as fhir
+	)) AS fhir
 FROM 
 	fhir_encounter 

@@ -9,24 +9,24 @@ WITH vars as (
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'EncounterICU') as uuid_encounter_icu
-), fhir_encounter_icu as (
+), fhir_encounter_icu AS (
 	SELECT 
-  		icu.stay_id::text as icu_STAY_ID
-  		, icu.first_careunit as icu_FIRST_CAREUNIT
-  		, icu.last_careunit as icu_LAST_CAREUNIT
-  		, icu.intime::TIMESTAMPTZ as icu_INTIME
-  		, icu.outtime::TIMESTAMPTZ as icu_OUTTIME
-  		, icu.los as icu_LOS  		
+  		CAST(icu.stay_id AS TEXT) AS icu_STAY_ID
+  		, icu.first_careunit AS icu_FIRST_CAREUNIT
+  		, icu.last_careunit AS icu_LAST_CAREUNIT
+  		, CAST(icu.intime AS TIMESTAMPTZ) AS icu_INTIME
+  		, CAST(icu.outtime AS TIMESTAMPTZ) AS icu_OUTTIME
+  		, icu.los AS icu_LOS  		
   	
   		-- reference uuids
-  		, uuid_generate_v5(uuid_encounter_icu, icu.stay_id::text) as uuid_STAY_ID
-  		, uuid_generate_v5(uuid_encounter, icu.hadm_id::text) as uuid_HADM_ID
-  		, uuid_generate_v5(uuid_patient, icu.subject_id::text) as uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter_icu, CAST(icu.stay_id AS TEXT)) AS uuid_STAY_ID
+  		, uuid_generate_v5(uuid_encounter, CAST(icu.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(uuid_patient, CAST(icu.subject_id AS TEXT)) AS uuid_SUBJECT_ID
  	FROM 
   		mimic_icu.icustays icu
+  		INNER JOIN fhir_etl.subjects sub
+  			ON icu.subject_id = sub.subject_id 
  		LEFT JOIN vars ON true
-    WHERE
-  		icu.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.encounter_icu

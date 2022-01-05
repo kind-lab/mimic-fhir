@@ -12,36 +12,35 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
 ), fhir_observation_ce as (
 	SELECT  		
-  		ce.itemid as ce_ITEMID
-  		, ce.charttime as ce_CHARTTIME
-  		, ce.storetime as ce_STORETIME   		
-  		, ce.valueuom as ce_VALUEUOM
-  		, ce.valuenum as ce_VALUENUM
-  		, ce.value as ce_VALUE
-  		, di.label as di_LABEL
-  		, di.category as di_CATEGORY
-  		, di.lownormalvalue as di_LOWNORMALVALUE
-  		, di.highnormalvalue as di_HIGHNORMALVALUE 		
+  		ce.itemid AS ce_ITEMID
+  		, ce.charttime AS ce_CHARTTIME
+  		, ce.storetime AS ce_STORETIME   		
+  		, ce.valueuom AS ce_VALUEUOM
+  		, ce.valuenum AS ce_VALUENUM
+  		, ce.value AS ce_VALUE
+  		, di.label AS di_LABEL
+  		, di.category AS di_CATEGORY
+  		, di.lownormalvalue AS di_LOWNORMALVALUE
+  		, di.highnormalvalue AS di_HIGHNORMALVALUE 		
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_observation_ce, 
-                           ce.stay_id || '-' ||ce.charttime || '-' || ce.itemid) as uuid_CHARTEVENT
-  		, uuid_generate_v5(uuid_patient, ce.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, ce.stay_id::text) as uuid_STAY_ID
+  		, uuid_generate_v5(uuid_observation_ce, CONCAT_WS('-', ce.stay_id, ce.charttime, ce.itemid) AS uuid_CHARTEVENTS
+  		, uuid_generate_v5(uuid_patient, CAST(ce.subject_id AS text)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter_icu, CAST(ce.stay_id AS text)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.chartevents ce
+  		INNER JOIN fhir_etl.subjects sub
+  			ON ce.subject_id = sub.subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON ce.itemid = di.itemid
   		LEFT JOIN vars ON true
-    WHERE
-  		ce.subject_id < 10010000
 )
 INSERT INTO mimic_fhir.observation_chartevents
 SELECT 
-	uuid_CHARTEVENT as id
+	uuid_CHARTEVENTS AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
-        , 'id', uuid_CHARTEVENT		 
+        , 'id', uuid_CHARTEVENTS		 
         , 'status', 'final'
       	, 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
@@ -101,6 +100,6 @@ SELECT
               ))
       	  ELSE NULL
       	  END
-    )) as fhir 
+    )) AS fhir 
 FROM
 	fhir_observation_ce

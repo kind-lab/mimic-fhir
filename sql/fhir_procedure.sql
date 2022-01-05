@@ -9,26 +9,26 @@ WITH vars as (
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Procedure') as uuid_procedure
-), fhir_procedure as (
+), fhir_procedure AS (
 	SELECT
-  		proc.hadm_id || '-' || proc.seq_num  as proc_IDENTIFIER 
-  		, proc.icd_code as proc_ICD_CODE
-  		, proc.chartdate::TIMESTAMPTZ as proc_CHARTDATE
+  		proc.hadm_id || '-' || proc.seq_num AS proc_IDENTIFIER 
+  		, proc.icd_code AS proc_ICD_CODE
+  		, CAST(proc.chartdate AS TIMESTAMPTZ) AS proc_CHARTDATE
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_procedure, proc.hadm_id::text || '-' || proc.seq_num::text || '-' || proc.icd_code::text) as uuid_PROCEDURE_ID
-  		, uuid_generate_v5(uuid_patient, proc.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, proc.hadm_id::text) as uuid_HADM_ID
+  		, uuid_generate_v5(uuid_procedure, CONCAT_WS('-', proc.hadm_id, proc.seq_num, proc.icd_code)) AS uuid_PROCEDURE_ID
+  		, uuid_generate_v5(uuid_patient, CAST(proc.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter, CAST(proc.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
   		mimic_hosp.procedures_icd proc
+  		INNER JOIN fhir_etl.subjects sub
+  			ON proc.subject_id = sub.subject_id 
   		LEFT JOIN vars ON true
-    WHERE 
-  		proc.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.procedure
 SELECT 
-	uuid_PROCEDURE_ID as id
+	uuid_PROCEDURE_ID AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Procedure'
         , 'id', uuid_PROCEDURE_ID
@@ -49,6 +49,6 @@ SELECT
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
         , 'performedDateTime', proc_CHARTDATE
-    )) as fhir 
+    )) AS fhir 
 FROM
 	fhir_procedure
