@@ -11,18 +11,18 @@ WITH vars as (
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Condition') as uuid_condition
 ), fhir_condition as (
 	SELECT
-  		diag.hadm_id || '-' || diag.seq_num as diag_IDENTIFIER
+  		CONCAT_WS('-', diag.hadm_id, diag.seq_num) as diag_IDENTIFIER
   		, TRIM(diag.icd_code) as diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_condition, diag.hadm_id::text || '-' || diag.seq_num || '-' || diag.icd_code) as uuid_DIAGNOSIS
-  		, uuid_generate_v5(uuid_patient, diag.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, diag.hadm_id::text) as uuid_HADM_ID
+  		, uuid_generate_v5(uuid_condition, CONCAT_WS('-', diag.hadm_id, diag.seq_num, diag.icd_code)) as uuid_DIAGNOSIS
+  		, uuid_generate_v5(uuid_patient, CAST(diag.subject_id AS TEXT)) as uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter, CAST(diag.hadm_id AS TEXT)) as uuid_HADM_ID
   	FROM
   		mimic_hosp.diagnoses_icd diag
+  		INNER JOIN fhir_etl.subjects sub
+  			ON diag.subject_id =sub.subject_id 
   		LEFT JOIN vars ON true
-    WHERE 
-  		diag.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.condition

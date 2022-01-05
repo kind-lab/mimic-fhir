@@ -10,43 +10,43 @@ WITH vars as (
         , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
         , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-test') as uuid_observation_micro_test
         , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-org') as uuid_observation_micro_org
-), fhir_observation_micro_test as (
+), fhir_observation_micro_test AS (
     SELECT 
-        mi.micro_specimen_id  as mi_MICRO_SPECIMEN_ID
-        , mi.test_itemid::text as mi_TEST_ITEMID
-        , mi.test_name as mi_TEST_NAME
-        , mi.subject_id as mi_SUBJECT_ID
-        , mi.hadm_id as mi_HADM_ID
-        , mi.charttime::TIMESTAMPTZ as mi_CHARTTIME
+        mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
+        , CAST(mi.test_itemid AS TEXT) AS mi_TEST_ITEMID
+        , mi.test_name AS mi_TEST_NAME
+        , mi.subject_id AS mi_SUBJECT_ID
+        , mi.hadm_id AS mi_HADM_ID
+        , CAST(mi.charttime AS TIMESTAMPTZ) AS mi_CHARTTIME
 
         -- UUID references
-        , uuid_generate_v5(uuid_observation_micro_test, mi.micro_specimen_id::text || '-' || mi.test_itemid) as uuid_MICRO_TEST
-        , uuid_generate_v5(uuid_patient, mi.subject_id::text) as uuid_SUBJECT_ID
-        , uuid_generate_v5(uuid_encounter, mi.hadm_id::text) as uuid_HADM_ID
+        , uuid_generate_v5(uuid_observation_micro_test, mi.micro_specimen_id || '-' || mi.test_itemid) AS uuid_MICRO_TEST
+        , uuid_generate_v5(uuid_patient, CAST(mi.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+        , uuid_generate_v5(uuid_encounter, CAST(mi.hadm_id AS TEXT)) AS uuid_HADM_ID
     
         -- organism will be null if the test found no organisms. So no organism/susceptibility resources needed to be made off this
         , CASE WHEN MIN(mi.org_itemid) IS NULL THEN NULL 
           ELSE
           jsonb_agg(
               jsonb_build_object('reference', 
-                                'Observation/' || uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id::text || '-' || mi.org_itemid)
+                                'Observation/' || uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id || '-' || mi.org_itemid)
               ) 
             )
         END as fhir_ORGANISMS
     
         -- valueBoolean is used as a flag to say if there are any orgsanism, if yes true, if no false
-        , CASE WHEN MIN(mi.org_itemid) IS NULL THEN false ELSE true END as valueBoolean
+        , CASE WHEN MIN(mi.org_itemid) IS NULL THEN FALSE ELSE TRUE END AS valueBoolean
 
     FROM 
-        mimic_hosp.microbiologyevents mi
+       mimic_hosp.microbiologyevents mi
+       INNER JOIN fhir_etl.subjects sub
+       		ON mi.subject_id = sub.subject_id 
        LEFT JOIN vars ON true
-  	WHERE
-  		mi.subject_id < 10010000
     GROUP BY 
         test_itemid
         , test_name
         , micro_specimen_id
-        , subject_id
+        , mi.subject_id
         , charttime
         , hadm_id
         , uuid_patient
@@ -57,7 +57,7 @@ WITH vars as (
   
 INSERT INTO mimic_fhir.observation_micro_test  
 SELECT 
-	  uuid_MICRO_TEST as id
+	  uuid_MICRO_TEST AS id
 	  , jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_MICRO_TEST	 
@@ -84,6 +84,6 @@ SELECT
         , 'effectiveDateTime', mi_CHARTTIME
         , 'hasMember', fhir_ORGANISMS
       	, 'valueBoolean', valueBoolean
-    )) as fhir 
+    )) AS fhir 
 FROM
     fhir_observation_micro_test

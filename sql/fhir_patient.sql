@@ -7,12 +7,14 @@ CREATE TABLE mimic_fhir.patient(
 WITH tb_admissions AS (
     SELECT
         pat.subject_id
-        , (MIN(tfs.intime)::DATE - (pat.anchor_age ||' years')::interval)::DATE as pat_BIRTH_DATE
+        , CAST(CAST(MIN(tfs.intime) AS DATE) - CAST(pat.anchor_age || 'years' AS INTERVAL) AS DATE) AS pat_BIRTH_DATE
         , MIN(adm.marital_status) AS adm_MARITAL_STATUS
         , MIN(adm.ethnicity) AS adm_ETHNICITY
         , MIN(adm.language) AS adm_LANGUAGE
     FROM  
         mimic_core.patients pat
+        INNER JOIN fhir_etl.subjects sub
+        	ON pat.subject_id = sub.subject_id 
         LEFT JOIN mimic_core.transfers tfs
             ON pat.subject_id = tfs.subject_id
         LEFT JOIN mimic_core.admissions adm
@@ -22,31 +24,31 @@ WITH tb_admissions AS (
         , pat.anchor_age
 ), fhir_patient AS (
     SELECT
-        pat.subject_id::text as pat_SUBJECT_ID
+        CAST(pat.subject_id AS TEXT) AS pat_SUBJECT_ID
         , CASE WHEN pat.gender = 'M' THEN 'male'
   			   WHEN pat.gender = 'F' THEN 'female'
   		  	   ELSE 'unknown' 
   		  END as pat_GENDER
-  		, pat.gender as pat_BIRTHSEX
-        , pat.dod as pat_DOD
+  		, pat.gender AS pat_BIRTHSEX
+        , pat.dod AS pat_DOD
         , 'Patient_' || pat.subject_id as pat_NAME
         , adm.pat_BIRTH_DATE
-        , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Patient'), pat.subject_id::text) as UUID_patient
+        , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Patient'), CAST(pat.subject_id AS TEXT)) AS UUID_patient
         , adm.adm_MARITAL_STATUS
         , adm.adm_ETHNICITY
         , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
   		  ELSE NULL END as adm_LANGUAGE
     FROM  
         mimic_core.patients pat
+        INNER JOIN fhir_etl.subjects sub
+        	ON pat.subject_id = sub.subject_id  
         LEFT JOIN tb_admissions adm
             ON pat.subject_id = adm.subject_id
-  	WHERE 
-  		pat.subject_id < 10010000
 )
 
 INSERT INTO mimic_fhir.patient
 SELECT 
- 	UUID_patient as id
+ 	UUID_patient AS id
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Patient'
         , 'gender', pat_GENDER
@@ -82,8 +84,8 @@ SELECT
             END
         , 'id', UUID_patient
         , 'managingOrganization', json_build_object(
-                'reference', 'Organization/' || uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Organization'), 'MIMIC Hospital')  
+                'reference', 'Organization/' || uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Organization'), 'Beth Israel Deaconess Medical Center')  
         )
-    )) as fhir
+    )) AS fhir
 FROM 
 	fhir_patient

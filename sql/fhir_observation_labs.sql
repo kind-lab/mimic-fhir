@@ -10,25 +10,25 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation-Labs') as uuid_observation_lab
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
-), fhir_observation_labs as (
+), fhir_observation_labs AS (
 	SELECT
-  		lab.labevent_id::text as lab_LABEVENT_ID 
+  		CAST(lab.labevent_id AS TEXT) AS lab_LABEVENT_ID 
   		, dlab.loinc_code as dlab_LOINC_CODE
-  		, lab.charttime::TIMESTAMPTZ as lab_CHARTTIME
-  		, lab.storetime::TIMESTAMPTZ as lab_STORETIME
-  		, lab.flag as lab_FLAG
-  		, lab.comments as lab_COMMENTS
-   		, lab.ref_range_lower as lab_REF_RANGE_LOWER
-  		, lab.ref_range_upper as lab_REF_RANGE_UPPER
-  		, lab.valueuom as lab_VALUEUOM
-  		, lab.value as lab_VALUE
+  		, CAST(lab.charttime AS TIMESTAMPTZ) AS lab_CHARTTIME
+  		, CAST(lab.storetime AS TIMESTAMPTZ) AS lab_STORETIME
+  		, lab.flag AS lab_FLAG
+  		, lab.comments AS lab_COMMENTS
+   		, lab.ref_range_lower AS lab_REF_RANGE_LOWER
+  		, lab.ref_range_upper AS lab_REF_RANGE_UPPER
+  		, lab.valueuom AS lab_VALUEUOM
+  		, lab.value AS lab_VALUE
   
   		-- comparator
         , CASE 
-  			WHEN value LIKE '%<=%' THEN split_part(lab.value,'<=',2)::numeric
-            WHEN value LIKE '%<%' THEN split_part(lab.value,'<',2)::numeric
-  			WHEN value LIKE '%>=%' THEN split_part(lab.value,'>=',2)::numeric
-            WHEN value LIKE '%>%' THEN split_part(lab.value,'>',2)::numeric
+  			WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
+            WHEN value LIKE '%<%' THEN CAST(split_part(lab.value,'<',2) AS NUMERIC)
+  			WHEN value LIKE '%>=%' THEN CAST(split_part(lab.value,'>=',2) AS NUMERIC)
+            WHEN value LIKE '%>%' THEN CAST(split_part(lab.value,'>',2) AS NUMERIC)
             ELSE lab.valuenum
         END as lab_VALUENUM
         , CASE 
@@ -41,17 +41,17 @@ WITH vars as (
   		
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_observation_lab, lab.labevent_id::text) as uuid_LABEVENT_ID
-  		, uuid_generate_v5(uuid_patient, lab.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, lab.hadm_id::text) as uuid_HADM_ID
-  		, uuid_generate_v5(uuid_encounter, lab.specimen_id::text) as uuid_SPECIMEN_ID
+  		, uuid_generate_v5(uuid_observation_lab, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
+  		, uuid_generate_v5(uuid_patient, CAST(lab.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter, CAST(lab.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(uuid_encounter, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN_ID
   	FROM
   		mimic_hosp.labevents lab
+  		INNER JOIN fhir_etl.subjects sub
+  			ON lab.subject_id =sub.subject_id 
   		LEFT JOIN mimic_hosp.d_labitems dlab
   			ON lab.itemid = dlab.itemid
   		LEFT JOIN vars ON true
- 	WHERE 
-  		lab.subject_id < 10010000
 )
 INSERT INTO mimic_fhir.observation_labs
 SELECT 

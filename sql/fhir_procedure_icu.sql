@@ -9,32 +9,31 @@ WITH vars as (
   		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'EncounterICU') as uuid_encounter_icu
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'ProcedureICU') as uuid_procedure_icu
-), fhir_procedure_icu as (
+), fhir_procedure_icu AS (
 	SELECT
-  		pe.ordercategoryname as pe_ORDERCATEGORYNAME
-  		, pe.itemid::text as pe_ITEMID
-  		, pe.starttime::TIMESTAMPTZ as pe_STARTTIME
-  		, pe.endtime::TIMESTAMPTZ as pe_ENDTIME
-  		, pe.location as pe_LOCATION
-  		, di.label as di_LABEL
+  		pe.ordercategoryname AS pe_ORDERCATEGORYNAME
+  		, CAST(pe.itemid AS TEXT) AS pe_ITEMID
+  		, CAST(pe.starttime AS TIMESTAMPTZ) AS pe_STARTTIME
+  		, CAST(pe.endtime AS TIMESTAMPTZ) AS pe_ENDTIME
+  		, pe.location AS pe_LOCATION
+  		, di.label AS di_LABEL
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_procedure_icu, 
-                           pe.stay_id || '-' || pe.orderid || '-' || pe.itemid) as uuid_PROCEDUREEVENT
-  		, uuid_generate_v5(uuid_patient, pe.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, pe.stay_id::text) as uuid_STAY_ID
+  		, uuid_generate_v5(uuid_procedure_icu, CONCAT_WS('-', pe.stay_id, pe.orderid, pe.itemid)) AS uuid_PROCEDUREEVENT
+  		, uuid_generate_v5(uuid_patient, CAST(pe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter_icu, CAST(pe.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.procedureevents pe
+  		INNER JOIN fhir_etl.subjects sub
+  			ON pe.subject_id = sub.subject_id subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON pe.itemid = di.itemid
-  		LEFT JOIN vars ON true
-    WHERE 
-  		pe.subject_id < 10010000
+  		LEFT JOIN vars ON TRUE
 )
 
 INSERT INTO mimic_fhir.procedure_icu
 SELECT 
-	uuid_PROCEDUREEVENT as id
+	uuid_PROCEDUREEVENT AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Procedure'
         , 'id', uuid_PROCEDUREEVENT	 
@@ -68,6 +67,6 @@ SELECT
                   'start', pe_STARTTIME
                   , 'end', pe_ENDTIME
                 )
-     )) as fhir 
+     )) AS fhir 
 FROM
 	fhir_procedure_icu

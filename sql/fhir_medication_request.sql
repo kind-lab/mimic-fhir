@@ -10,31 +10,30 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationRequest') as uuid_medication_request
-), fhir_medication_request as (
+), fhir_medication_request AS (
 	SELECT
-  		ph.pharmacy_id::text as ph_PHARMACY_ID
-  		, ph.status as ph_STATUS
-  		, ph.route as ph_ROUTE
-  		, ph.starttime::TIMESTAMPTZ as ph_STARTTIME
-  		, ph.stoptime::TIMESTAMPTZ as ph_STOPTIME
+  		CAST(ph.pharmacy_id AS TEXT) AS ph_PHARMACY_ID
+  		, ph.status AS ph_STATUS
+  		, ph.route AS ph_ROUTE
+  		, CAST(ph.starttime AS TIMESTAMPTZ) AS ph_STARTTIME
+  		, CAST(ph.stoptime AS TIMESTAMPTZ) AS ph_STOPTIME
   		
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_medication_request, ph.pharmacy_id::text) as uuid_MEDICATION_REQUEST 
-  		, uuid_generate_v5(uuid_medication, ph.pharmacy_id::text) as uuid_MEDICATION 
-  		, uuid_generate_v5(uuid_patient, ph.subject_id::text) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, ph.hadm_id::text) as uuid_HADM_ID
+  		, uuid_generate_v5(uuid_medication_request, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
+  		, uuid_generate_v5(uuid_medication, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION 
+  		, uuid_generate_v5(uuid_patient, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(uuid_encounter, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
   		mimic_hosp.pharmacy ph
+  		INNER JOIN fhir_etl.subjects sub
+  			ON ph.subject_id = sub.subject_id 
   		LEFT JOIN vars ON true  
-  	WHERE
-  		ph.subject_id < 10010000
-
 ) 
 
 INSERT INTO mimic_fhir.medication_request
 SELECT 
-	uuid_MEDICATION_REQUEST as id
+	uuid_MEDICATION_REQUEST AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationRequest'
         , 'id', uuid_MEDICATION_REQUEST
@@ -68,6 +67,6 @@ SELECT
                	, 'end', ph_STOPTIME
               )
         )      
-    )) as fhir  
+    )) AS fhir  
 FROM
 	fhir_medication_request

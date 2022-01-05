@@ -1,5 +1,6 @@
 \c mimic
 CREATE SCHEMA IF NOT EXISTS mimic_fhir;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 \i fn/fn_patient_extension.sql
 
@@ -65,4 +66,3 @@ CREATE SCHEMA IF NOT EXISTS mimic_fhir;
 
 \! echo fhir_procedure_icu
 \i fhir_procedure_icu.sql
-

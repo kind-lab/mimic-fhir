@@ -9,34 +9,32 @@ WITH vars as (
         uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
         , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
         , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-susc') as uuid_observation_micro_susc
-), fhir_observation_micro_susc as (
+), fhir_observation_micro_susc AS (
     SELECT 
-        mi.micro_specimen_id  as mi_MICRO_SPECIMEN_ID
-        , mi.ab_itemid::text as mi_AB_ITEMID
-        , mi.ab_name as mi_AB_NAME
-        , mi.subject_id as mi_SUBJECT_ID
-        , mi.interpretation as mi_INTERPRETATION
-        , mi.storetime::TIMESTAMPTZ as mi_STORETIME
+        mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
+        , CAST(mi.ab_itemid AS TEXT) AS mi_AB_ITEMID
+        , mi.ab_name AS mi_AB_NAME
+        , mi.subject_id AS mi_SUBJECT_ID
+        , mi.interpretation AS mi_INTERPRETATION
+        , CAST(mi.storetime AS TIMESTAMPTZ) AS mi_STORETIME
 
         -- UUID references
         , uuid_generate_v5(uuid_observation_micro_susc, 
-                             mi.micro_specimen_id::text || '-' 
-                             || mi.org_itemid || '-' 
-                             ||mi.isolate_num || '-' 
-                             || mi.ab_itemid 
-                          ) as uuid_MICRO_SUSC
-        , uuid_generate_v5(uuid_patient, mi.subject_id::text) as uuid_SUBJECT_ID
+                             CONCAT_WS('-', mi.micro_specimen_id, mi.org_itemid, mi.isolate_num, mi.ab_itemid)
+                          ) AS uuid_MICRO_SUSC
+        , uuid_generate_v5(uuid_patient, CAST(mi.subject_id AS TEXT)) as uuid_SUBJECT_ID
     FROM 
         mimic_hosp.microbiologyevents mi
+        INNER JOIN fhir_etl.subjects sub
+        	ON mi.subject_id = sub.subject_id 
         LEFT JOIN vars ON true
     WHERE 
   	    mi.ab_itemid IS NOT NULL
-  		AND mi.subject_id < 10010000
 )  
   
 INSERT INTO mimic_fhir.observation_micro_susc  
 SELECT 
-	uuid_MICRO_SUSC as id
+	uuid_MICRO_SUSC AS id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_MICRO_SUSC 
@@ -62,6 +60,6 @@ SELECT
                 , 'code', mi_INTERPRETATION
             ))
           ))
-    )) as fhir 
+    )) AS fhir 
 FROM
 	fhir_observation_micro_susc

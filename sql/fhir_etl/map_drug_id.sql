@@ -5,8 +5,7 @@ CREATE TABLE fhir_etl.map_drug_id(
 );
 
 
-
 INSERT INTO fhir_etl.map_drug_id(drug)
 SELECT DISTINCT drug 
 FROM mimic_hosp.prescriptions
-WHERE ndc = '0' or ndc IS NULL OR ndc = '';
+WHERE ndc = '0' OR ndc IS NULL OR ndc = '';
