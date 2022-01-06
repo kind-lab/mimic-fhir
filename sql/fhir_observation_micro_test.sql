@@ -4,13 +4,7 @@ CREATE TABLE mimic_fhir.observation_micro_test(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-    SELECT
-        uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
-        , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
-        , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-test') as uuid_observation_micro_test
-        , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-org') as uuid_observation_micro_org
-), distinct_org AS (
+WITH distinct_org AS (
 	SELECT DISTINCT
 		mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
         , CAST(mi.test_itemid AS TEXT) AS mi_TEST_ITEMID
@@ -20,22 +14,29 @@ WITH vars as (
         , CAST(mi.charttime AS TIMESTAMPTZ) AS mi_CHARTTIME
 
         -- UUID references
-        , uuid_generate_v5(uuid_observation_micro_test, mi.micro_specimen_id || '-' || mi.test_itemid) AS uuid_MICRO_TEST
-        , uuid_generate_v5(uuid_patient, CAST(mi.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-        , uuid_generate_v5(uuid_encounter, CAST(mi.hadm_id AS TEXT)) AS uuid_HADM_ID	
+        , uuid_generate_v5(ns_observation_micro_test.uuid, mi.micro_specimen_id || '-' || mi.test_itemid) AS uuid_MICRO_TEST
+        , uuid_generate_v5(ns_patient.uuid, CAST(mi.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+        , uuid_generate_v5(ns_encounter.uuid, CAST(mi.hadm_id AS TEXT)) AS uuid_HADM_ID	
 		
 		, CASE WHEN MIN(mi.org_itemid) IS NULL THEN NULL 
 		  ELSE
 	        jsonb_build_object('reference', 
-	                        'Observation/' || uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id || '-' || mi.org_itemid)
+	                        'Observation/' || uuid_generate_v5(ns_observation_micro_org.uuid, mi.micro_specimen_id || '-' || mi.org_itemid)
 	          ) 
 	      END as fhir_ORGANISMS
 	    , CASE WHEN MIN(mi.org_itemid) IS NULL THEN FALSE ELSE TRUE END AS valueBoolean
 	FROM 
-	   mimic_hosp.microbiologyevents mi
-	   INNER JOIN fhir_etl.subjects sub
+	    mimic_hosp.microbiologyevents mi
+	   	INNER JOIN fhir_etl.subjects sub
 	   		ON mi.subject_id = sub.subject_id 
-	   LEFT JOIN vars ON TRUE 
+	   	LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  			LEFT JOIN fhir_etl.uuid_namespace ns_encounter
+  			ON ns_encounter.name = 'Encounter'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_test
+  			ON ns_observation_micro_test.name = 'ObservationMicroTest'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_org
+  			ON ns_observation_micro_org.name = 'ObservationMicroOrg'
 	GROUP BY 
 	     test_itemid
         , test_name
@@ -44,10 +45,10 @@ WITH vars as (
         , org_itemid
         , charttime
         , hadm_id
-        , uuid_patient
-        , uuid_encounter
-        , uuid_observation_micro_test
-        , uuid_observation_micro_org
+        , ns_patient.uuid
+        , ns_encounter.uuid
+        , ns_observation_micro_test.uuid
+        , ns_observation_micro_org.uuid
 ), fhir_observation_micro_test AS (
 	SELECT 
 		mi_MICRO_SPECIMEN_ID

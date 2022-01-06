@@ -4,13 +4,7 @@ CREATE TABLE mimic_fhir.observation_labs(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation-Labs') as uuid_observation_lab
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
-), fhir_observation_labs AS (
+WITH fhir_observation_labs AS (
 	SELECT
   		CAST(lab.labevent_id AS TEXT) AS lab_LABEVENT_ID 
   		, dlab.loinc_code as dlab_LOINC_CODE
@@ -41,17 +35,24 @@ WITH vars as (
   		
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_observation_lab, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
-  		, uuid_generate_v5(uuid_patient, CAST(lab.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, CAST(lab.hadm_id AS TEXT)) AS uuid_HADM_ID
-  		, uuid_generate_v5(uuid_encounter, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN_ID
+  		, uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
+  		, uuid_generate_v5(ns_patient.uuid, CAST(lab.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(lab.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(ns_specimen.uuid, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN_ID
   	FROM
   		mimic_hosp.labevents lab
   		INNER JOIN fhir_etl.subjects sub
   			ON lab.subject_id =sub.subject_id 
   		LEFT JOIN mimic_hosp.d_labitems dlab
   			ON lab.itemid = dlab.itemid
-  		LEFT JOIN vars ON true
+  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
+  			ON ns_encounter.name = 'Encounter'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_observation_labs
+  			ON ns_observation_labs.name = 'ObservationLabs'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_specimen
+  			ON ns_specimen.name = 'Specimen'
 )
 INSERT INTO mimic_fhir.observation_labs
 SELECT 

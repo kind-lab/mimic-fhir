@@ -4,13 +4,7 @@ CREATE TABLE mimic_fhir.observation_datetimeevents(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'EncounterICU') as uuid_encounter_icu
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'ObservationDatetimeevents') as uuid_observation_de
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Specimen') as uuid_specimen
-), fhir_observation_de as (
+WITH fhir_observation_de AS (
 	SELECT  		
   		CAST(de.itemid AS TEXT) AS de_ITEMID
   		, CAST(de.charttime AS TIMESTAMPTZ) AS de_CHARTTIME
@@ -20,16 +14,21 @@ WITH vars as (
   		, di.category AS di_CATEGORY	
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_observation_de, CONCAT_WS('-', de.stay_id, de.charttime, de.itemid) as uuid_DATETIMEEVENT
-  		, uuid_generate_v5(uuid_patient, CAST(de.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, CAST(de.stay_id AS TEXT)) AS uuid_STAY_ID
+  		, uuid_generate_v5(ns_observation_de.uuid, de.stay_id || '-' || de.charttime || '-' || de.itemid) as uuid_DATETIMEEVENT
+  		, uuid_generate_v5(ns_patient.uuid, CAST(de.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(de.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.datetimeevents de
   		INNER JOIN fhir_etl.subjects sub
   			ON de.subject_id =sub.subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON de.itemid = di.itemid
-  		LEFT JOIN vars ON true
+  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu
+  			ON ns_encounter_icu.name = 'EncounterICU'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_observation_de
+  			ON ns_observation_de.name = 'ObservationDatetimeevents'
 )
 INSERT INTO mimic_fhir.observation_datetimeevents
 SELECT 

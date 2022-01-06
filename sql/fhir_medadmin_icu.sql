@@ -4,13 +4,7 @@ CREATE TABLE mimic_fhir.medication_administration_icu(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'EncounterICU') as uuid_encounter_icu
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationAdministrationICU') as uuid_medication_administration_icu
-), fhir_medication_administration_icu AS (
+WITH fhir_medication_administration_icu AS (
 	SELECT
   		CAST(ie.starttime AS TIMESTAMPTZ) AS ie_STARTTIME
   		, CAST(ie.endtime AS TIMESTAMPTZ) AS ie_ENDTIME
@@ -23,18 +17,26 @@ WITH vars as (
   		, ie.rateuom AS ie_RATEUOM		
   
   		-- reference uuids
-  		, uuid_generate_v5(uuid_medication_administration_icu, CONCAT_WS('-', ie.stay_id, ie.orderid, ie.itemid)) AS uuid_INPUTEVENT
+  		, uuid_generate_v5(ns_medication_administration_icu.uuid, ie.stay_id || '-' || ie.orderid || '-' || ie.itemid) AS uuid_INPUTEVENT
   		, NULL AS uuid_MEDICATION -- needs to be mapped back to pharmacy/prescriptions OR create medication resources based on orderids
   		--, uuid_generate_v5(uuid_medication, em.pharmacy_id::text) as uuid_MEDICATION 
-  		, uuid_generate_v5(uuid_patient, CAST(ie.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, CAST(ie.stay_id AS TEXT)) AS uuid_STAY_ID
+  		, uuid_generate_v5(ns_patient.uuid, CAST(ie.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(ie.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.inputevents ie
   		INNER JOIN fhir_etl.subjects sub
   			ON ie.subject_id = sub.subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON ie.itemid = di.itemid
-  		LEFT JOIN vars ON true
+  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu
+  			ON ns_encounter_icu.name = 'EncounterICU'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication
+  			ON ns_medication.name = 'Medication'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication_administration_icu
+  			ON ns_medication_administration_icu.name = 'MedicationAdministrationICU'
+  			
 )
 
 INSERT INTO mimic_fhir.medadmin_icu

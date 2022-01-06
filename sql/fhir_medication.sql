@@ -1,25 +1,10 @@
-/* Unique id for medication is not super straight forward. Candidates
-	- GSN generic sequence number: has 757 null entries for distinct drugs
-    - NDC national drug code:  has ~5000 null entries for distinct drugs
-    - Drug name: there is overlap of drug name and gsn, so non unique
-  Solution I think is a custom id based on gsn, where we default to gsn and if missing
-  generate a code. Then this value gets converted to UUID5
-  	- mimic2fhir uses rxnorm to get everything into a starndard system
-  		--> first tries NDC, converts NDC to rxnorm
-  		--> second tries GSN (can have multiple GSN entered), converts all GSN to rxnorm
- 	 	--> third tries formulary_drug_cd, and sets if available but no system set
-*/
-
 DROP TABLE IF EXISTS mimic_fhir.medication;
 CREATE TABLE mimic_fhir.medication(
 	id 		uuid PRIMARY KEY,
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
-), fhir_medication_ndc AS (
+WITH fhir_medication_ndc AS (
 	SELECT
   		pr.ndc AS pr_NDC
   		--, MIN(pr.form_rx) as pr_FORM_RX
@@ -27,16 +12,17 @@ WITH vars as (
   		, NULL AS md_DRUG_ID
   
   		-- reference uuids
-  		, uuid_generate_v5(uuid_medication, pr.ndc) as uuid_DRUG
+  		, uuid_generate_v5(ns_medication.uuid, pr.ndc) as uuid_DRUG
   	FROM
   		mimic_hosp.prescriptions pr	
   		INNER JOIN fhir_etl.subjects sub
   			ON pr.subject_id = sub.subject_id 
-  		LEFT JOIN vars ON true
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication
+  			ON ns_medication.name = 'Medication'
   	WHERE pr.ndc != '0' AND pr.ndc IS NOT NULL AND pr.ndc != '' 
   	GROUP BY 
   		pr.ndc
-  		, uuid_medication
+  		, ns_medication.uuid
 ), fhir_medication_other AS (
 	SELECT
   		DISTINCT pr.drug AS pr_DRUG
@@ -45,14 +31,15 @@ WITH vars as (
   		, CAST(md.drug_id AS TEXT) AS md_DRUG_ID
   
   		-- reference uuids
-  		, uuid_generate_v5(uuid_medication, CAST(md.drug_id AS TEXT)) AS uuid_DRUG
+  		, uuid_generate_v5(ns_medication.uuid, CAST(md.drug_id AS TEXT)) AS uuid_DRUG
   	FROM
   		mimic_hosp.prescriptions pr	
   		INNER JOIN fhir_etl.subjects sub
   			ON pr.subject_id = sub.subject_id 
   		LEFT JOIN fhir_etl.map_drug_id md
   			ON pr.drug = md.drug  			
-  		LEFT JOIN vars ON TRUE
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication
+  			ON ns_medication.name = 'Medication'
   	WHERE 
 	  	pr.ndc = '0' 
 		OR pr.ndc IS NULL 
