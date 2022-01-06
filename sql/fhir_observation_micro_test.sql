@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS mimic_fhir.observation_micro_test;
 CREATE TABLE mimic_fhir.observation_micro_test(
-	  id 		uuid PRIMARY KEY,
+	id 		uuid PRIMARY KEY,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -10,9 +10,9 @@ WITH vars as (
         , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
         , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-test') as uuid_observation_micro_test
         , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-org') as uuid_observation_micro_org
-), fhir_observation_micro_test AS (
-    SELECT 
-        mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
+), distinct_org AS (
+	SELECT DISTINCT
+		mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
         , CAST(mi.test_itemid AS TEXT) AS mi_TEST_ITEMID
         , mi.test_name AS mi_TEST_NAME
         , mi.subject_id AS mi_SUBJECT_ID
@@ -22,39 +22,60 @@ WITH vars as (
         -- UUID references
         , uuid_generate_v5(uuid_observation_micro_test, mi.micro_specimen_id || '-' || mi.test_itemid) AS uuid_MICRO_TEST
         , uuid_generate_v5(uuid_patient, CAST(mi.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-        , uuid_generate_v5(uuid_encounter, CAST(mi.hadm_id AS TEXT)) AS uuid_HADM_ID
-    
-        -- organism will be null if the test found no organisms. So no organism/susceptibility resources needed to be made off this
-        , CASE WHEN MIN(mi.org_itemid) IS NULL THEN NULL 
-          ELSE
-          jsonb_agg(
-              jsonb_build_object('reference', 
-                                'Observation/' || uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id || '-' || mi.org_itemid)
-              ) 
-            )
-        END as fhir_ORGANISMS
-    
-        -- valueBoolean is used as a flag to say if there are any orgsanism, if yes true, if no false
-        , CASE WHEN MIN(mi.org_itemid) IS NULL THEN FALSE ELSE TRUE END AS valueBoolean
-
-    FROM 
-       mimic_hosp.microbiologyevents mi
-       INNER JOIN fhir_etl.subjects sub
-       		ON mi.subject_id = sub.subject_id 
-       LEFT JOIN vars ON true
-    GROUP BY 
-        test_itemid
+        , uuid_generate_v5(uuid_encounter, CAST(mi.hadm_id AS TEXT)) AS uuid_HADM_ID	
+		
+		, CASE WHEN MIN(mi.org_itemid) IS NULL THEN NULL 
+		  ELSE
+	        jsonb_build_object('reference', 
+	                        'Observation/' || uuid_generate_v5(uuid_observation_micro_org, mi.micro_specimen_id || '-' || mi.org_itemid)
+	          ) 
+	      END as fhir_ORGANISMS
+	    , CASE WHEN MIN(mi.org_itemid) IS NULL THEN FALSE ELSE TRUE END AS valueBoolean
+	FROM 
+	   mimic_hosp.microbiologyevents mi
+	   INNER JOIN fhir_etl.subjects sub
+	   		ON mi.subject_id = sub.subject_id 
+	   LEFT JOIN vars ON TRUE 
+	GROUP BY 
+	     test_itemid
         , test_name
         , micro_specimen_id
         , mi.subject_id
+        , org_itemid
         , charttime
         , hadm_id
         , uuid_patient
         , uuid_encounter
         , uuid_observation_micro_test
         , uuid_observation_micro_org
-)  
-  
+), fhir_observation_micro_test AS (
+	SELECT 
+		mi_MICRO_SPECIMEN_ID
+	    , mi_TEST_ITEMID
+	    , mi_TEST_NAME
+	    , mi_SUBJECT_ID
+	    , mi_HADM_ID
+	    , mi_CHARTTIME
+	    , uuid_MICRO_TEST
+	    , uuid_SUBJECT_ID
+	    , uuid_HADM_ID
+	    , valueBoolean
+		, CASE WHEN valueBoolean THEN json_agg(fhir_ORGANISMS) 
+		  ELSE NULL END AS fhir_ORGANISMS
+	FROM 
+		distinct_org
+	GROUP BY 
+	    mi_MICRO_SPECIMEN_ID
+	    , mi_TEST_ITEMID
+	    , mi_TEST_NAME
+	    , mi_SUBJECT_ID
+	    , mi_HADM_ID
+	    , mi_CHARTTIME
+	    , uuid_MICRO_TEST
+	    , uuid_SUBJECT_ID
+	    , uuid_HADM_ID
+	    , valueBoolean
+)
 INSERT INTO mimic_fhir.observation_micro_test  
 SELECT 
 	  uuid_MICRO_TEST AS id

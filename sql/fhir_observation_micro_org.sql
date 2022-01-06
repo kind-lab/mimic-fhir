@@ -11,6 +11,7 @@ WITH vars as (
   		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
  		, uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-susc') as uuid_observation_micro_susc
   		, uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-org') as uuid_observation_micro_org
+  		, uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-test') as uuid_observation_micro_test
 ), fhir_observation_micro_org AS (
     SELECT 
         mi.micro_specimen_id AS mi_MICRO_SPECIMEN_ID
@@ -20,7 +21,8 @@ WITH vars as (
  		, CAST(mi.charttime AS TIMESTAMPTZ) AS mi_CHARTTIME
 
         -- UUID references
-        , uuid_generate_v5(uuid_observation_micro_org, CONCAT_WS('-', mi.micro_specimen_id, mi.org_itemid)) AS uuid_MICRO_ORG
+        , uuid_generate_v5(uuid_observation_micro_org, CONCAT_WS('-', mi.test_itemid, mi.micro_specimen_id, mi.org_itemid)) AS uuid_MICRO_ORG
+        , uuid_generate_v5(uuid_observation_micro_test, mi.micro_specimen_id || '-' || mi.test_itemid) AS uuid_MICRO_TEST
         , uuid_generate_v5(uuid_patient, CAST(mi.subject_id AS TEXT)) AS uuid_SUBJECT_ID
     
         -- if organism is present but not tested for antibiotics, set NULL for susceptibility
@@ -42,12 +44,14 @@ WITH vars as (
     GROUP BY 
         org_itemid
         , org_name
+        , test_itemid
         , micro_specimen_id
         , mi.subject_id
   		, charttime
         , uuid_patient
         , uuid_observation_micro_org
         , uuid_observation_micro_susc
+        , uuid_observation_micro_test
 )  
   
 INSERT INTO mimic_fhir.observation_micro_org  
@@ -73,6 +77,7 @@ SELECT
       	, 'effectiveDateTime', mi_CHARTTIME
 		    , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'hasMember', fhir_SUSCEPTIBILITY 
+        , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_TEST))
     )) AS fhir 
 FROM
     fhir_observation_micro_org

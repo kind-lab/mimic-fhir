@@ -9,6 +9,7 @@ WITH vars as (
         uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
         , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
         , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-susc') as uuid_observation_micro_susc
+        , uuid_generate_v5(uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Observation'), 'micro-org') as uuid_observation_micro_org
 ), fhir_observation_micro_susc AS (
     SELECT 
         mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
@@ -22,7 +23,9 @@ WITH vars as (
         , uuid_generate_v5(uuid_observation_micro_susc, 
                              CONCAT_WS('-', mi.micro_specimen_id, mi.org_itemid, mi.isolate_num, mi.ab_itemid)
                           ) AS uuid_MICRO_SUSC
+        , uuid_generate_v5(uuid_observation_micro_org, CONCAT_WS('-', mi.micro_specimen_id, mi.org_itemid)) AS uuid_MICRO_ORG
         , uuid_generate_v5(uuid_patient, CAST(mi.subject_id AS TEXT)) as uuid_SUBJECT_ID
+        
     FROM 
         mimic_hosp.microbiologyevents mi
         INNER JOIN fhir_etl.subjects sub
@@ -53,6 +56,7 @@ SELECT
             ))
           )
 		, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
+		
         , 'effectiveDateTime', mi_STORETIME
         , 'interpretation', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
@@ -60,6 +64,7 @@ SELECT
                 , 'code', mi_INTERPRETATION
             ))
           ))
+        , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_ORG)) 
     )) AS fhir 
 FROM
 	fhir_observation_micro_susc
