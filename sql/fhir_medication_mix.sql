@@ -1,7 +1,4 @@
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
-), fhir_medication_mix AS (
+WITH fhir_medication_mix AS (
 	SELECT
   		pr.pharmacy_id AS pr_PHARMACY_ID
   		--, MIN(pr.form_rx) as pr_FORM_RX
@@ -9,7 +6,7 @@ WITH vars as (
   		, json_agg(json_build_object(
       		'itemReference', 
           		jsonb_build_object('reference', 'Medication/' || 
-                                    uuid_generate_v5(uuid_medication, 
+                                    uuid_generate_v5(ns_medication.uuid, 
 										CASE 
                                         WHEN md.drug_id IS NOT NULL 
                                         THEN CAST(md.drug_id AS TEXT) 
@@ -19,17 +16,18 @@ WITH vars as (
           )) as pr_INGREDIENTS
   
   		-- reference uuids
-  		, uuid_generate_v5(uuid_medication, CAST(pr.pharmacy_id AS TEXT)) AS uuid_DRUG
+  		, uuid_generate_v5(ns_medication.uuid, CAST(pr.pharmacy_id AS TEXT)) AS uuid_DRUG
   	FROM
   		mimic_hosp.prescriptions pr	 
   		INNER JOIN fhir_etl.subjects sub
   			ON pr.subject_id = sub.subject_id 
         LEFT JOIN fhir_etl.map_drug_id md
         	ON pr.drug = md.drug
-  		LEFT JOIN vars ON TRUE
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication 
+  			ON ns_medication.name = 'Medication'
   	GROUP BY 
   		pr.pharmacy_id
-  		, uuid_medication
+  		, ns_medication.uuid
 )
 
 INSERT INTO mimic_fhir.medication

@@ -4,25 +4,25 @@ CREATE TABLE mimic_fhir.condition(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
+WITH fhir_condition AS (
 	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Condition') as uuid_condition
-), fhir_condition as (
-	SELECT
-  		CONCAT_WS('-', diag.hadm_id, diag.seq_num) as diag_IDENTIFIER
-  		, TRIM(diag.icd_code) as diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
+  		diag.hadm_id || '-' || diag.seq_num as diag_IDENTIFIER
+  		, TRIM(diag.icd_code) AS diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_condition, CONCAT_WS('-', diag.hadm_id, diag.seq_num, diag.icd_code)) as uuid_DIAGNOSIS
-  		, uuid_generate_v5(uuid_patient, CAST(diag.subject_id AS TEXT)) as uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, CAST(diag.hadm_id AS TEXT)) as uuid_HADM_ID
+  		, uuid_generate_v5(ns_condition.uuid, diag.hadm_id || '-' || diag.seq_num || '-' || diag.icd_code) as uuid_DIAGNOSIS
+  		, uuid_generate_v5(ns_patient.uuid, CAST(diag.subject_id AS TEXT)) as uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(diag.hadm_id AS TEXT)) as uuid_HADM_ID
   	FROM
   		mimic_hosp.diagnoses_icd diag
   		INNER JOIN fhir_etl.subjects sub
   			ON diag.subject_id =sub.subject_id 
-  		LEFT JOIN vars ON true
+  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter 
+  			ON ns_encounter.name = 'Encounter'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient 
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_condition
+  			ON ns_condition.name = 'Condition'
 )
 
 INSERT INTO mimic_fhir.condition

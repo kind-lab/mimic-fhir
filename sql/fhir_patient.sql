@@ -33,17 +33,22 @@ WITH tb_admissions AS (
         , pat.dod AS pat_DOD
         , 'Patient_' || pat.subject_id as pat_NAME
         , adm.pat_BIRTH_DATE
-        , uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Patient'), CAST(pat.subject_id AS TEXT)) AS UUID_patient
+        , uuid_generate_v5(ns_patient.uuid, CAST(pat.subject_id AS TEXT)) AS UUID_patient
         , adm.adm_MARITAL_STATUS
         , adm.adm_ETHNICITY
         , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
   		  ELSE NULL END as adm_LANGUAGE
+  		, uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center') AS  UUID_organization
     FROM  
         mimic_core.patients pat
         INNER JOIN fhir_etl.subjects sub
         	ON pat.subject_id = sub.subject_id  
         LEFT JOIN tb_admissions adm
             ON pat.subject_id = adm.subject_id
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_organization
+  			ON ns_organization.name = 'Organization'
 )
 
 INSERT INTO mimic_fhir.patient
@@ -84,7 +89,7 @@ SELECT
             END
         , 'id', UUID_patient
         , 'managingOrganization', json_build_object(
-                'reference', 'Organization/' || uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'Organization'), 'Beth Israel Deaconess Medical Center')  
+                'reference', 'Organization/' || UUID_organization
         )
     )) AS fhir
 FROM 

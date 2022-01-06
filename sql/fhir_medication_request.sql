@@ -4,13 +4,7 @@ CREATE TABLE mimic_fhir.medication_request(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationRequest') as uuid_medication_request
-), fhir_medication_request AS (
+WITH fhir_medication_request AS (
 	SELECT
   		CAST(ph.pharmacy_id AS TEXT) AS ph_PHARMACY_ID
   		, ph.status AS ph_STATUS
@@ -20,15 +14,22 @@ WITH vars as (
   		
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_medication_request, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
-  		, uuid_generate_v5(uuid_medication, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION 
-  		, uuid_generate_v5(uuid_patient, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(ns_medication_request.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
+  		, uuid_generate_v5(ns_medication.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION 
+  		, uuid_generate_v5(ns_patient.uuid, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
   		mimic_hosp.pharmacy ph
   		INNER JOIN fhir_etl.subjects sub
   			ON ph.subject_id = sub.subject_id 
-  		LEFT JOIN vars ON true  
+  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
+  			ON ns_encounter.name = 'Encounter'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication
+  			ON ns_medication.name = 'Medication'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
+  			ON ns_medication_request.name = 'MedicationRequest'
 ) 
 
 INSERT INTO mimic_fhir.medication_request

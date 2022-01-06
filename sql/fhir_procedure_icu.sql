@@ -4,12 +4,7 @@ CREATE TABLE mimic_fhir.procedure_icu(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'EncounterICU') as uuid_encounter_icu
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'ProcedureICU') as uuid_procedure_icu
-), fhir_procedure_icu AS (
+WITH fhir_procedure_icu AS (
 	SELECT
   		pe.ordercategoryname AS pe_ORDERCATEGORYNAME
   		, CAST(pe.itemid AS TEXT) AS pe_ITEMID
@@ -19,16 +14,21 @@ WITH vars as (
   		, di.label AS di_LABEL
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_procedure_icu, CONCAT_WS('-', pe.stay_id, pe.orderid, pe.itemid)) AS uuid_PROCEDUREEVENT
-  		, uuid_generate_v5(uuid_patient, CAST(pe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter_icu, CAST(pe.stay_id AS TEXT)) AS uuid_STAY_ID
+  		, uuid_generate_v5(ns_procedure_icu.uuid, pe.stay_id || '-' || pe.orderid || '-' || pe.itemid) AS uuid_PROCEDUREEVENT
+  		, uuid_generate_v5(ns_patient.uuid, CAST(pe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(pe.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
   		mimic_icu.procedureevents pe
   		INNER JOIN fhir_etl.subjects sub
-  			ON pe.subject_id = sub.subject_id subject_id 
+  			ON pe.subject_id = sub.subject_id 
   		LEFT JOIN mimic_icu.d_items di
   			ON pe.itemid = di.itemid
-  		LEFT JOIN vars ON TRUE
+  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu
+  			ON ns_encounter_icu.name = 'EncounterICU'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_procedure_icu
+  			ON ns_procedure_icu.name = 'ProcedureICU'
 )
 
 INSERT INTO mimic_fhir.procedure_icu

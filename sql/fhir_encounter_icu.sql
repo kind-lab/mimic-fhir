@@ -4,12 +4,7 @@ CREATE TABLE mimic_fhir.encounter_icu(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'EncounterICU') as uuid_encounter_icu
-), fhir_encounter_icu AS (
+WITH fhir_encounter_icu AS (
 	SELECT 
   		CAST(icu.stay_id AS TEXT) AS icu_STAY_ID
   		, icu.first_careunit AS icu_FIRST_CAREUNIT
@@ -19,14 +14,19 @@ WITH vars as (
   		, icu.los AS icu_LOS  		
   	
   		-- reference uuids
-  		, uuid_generate_v5(uuid_encounter_icu, CAST(icu.stay_id AS TEXT)) AS uuid_STAY_ID
-  		, uuid_generate_v5(uuid_encounter, CAST(icu.hadm_id AS TEXT)) AS uuid_HADM_ID
-  		, uuid_generate_v5(uuid_patient, CAST(icu.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(icu.stay_id AS TEXT)) AS uuid_STAY_ID
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(icu.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(ns_patient.uuid, CAST(icu.subject_id AS TEXT)) AS uuid_SUBJECT_ID
  	FROM 
   		mimic_icu.icustays icu
   		INNER JOIN fhir_etl.subjects sub
   			ON icu.subject_id = sub.subject_id 
- 		LEFT JOIN vars ON true
+ 		LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
+			ON ns_encounter.name = 'Encounter'
+		LEFT JOIN fhir_etl.uuid_namespace ns_patient	
+			ON ns_patient.name = 'Patient'
+		LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu
+			ON ns_encounter_icu.name = 'EncounterICU'
 )
 
 INSERT INTO mimic_fhir.encounter_icu

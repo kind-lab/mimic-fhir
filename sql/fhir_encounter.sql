@@ -4,19 +4,13 @@ CREATE TABLE mimic_fhir.encounter(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Condition') as uuid_condition
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Organization') as uuid_organization
-), tb_diagnoses AS (
+WITH tb_diagnoses AS (
     SELECT 
   		adm.hadm_id 
         ,  jsonb_agg(
           		jsonb_build_object(
                   	'condition', jsonb_build_object(
-                      		'reference', 'Condition/' || uuid_generate_v5(uuid_condition, CONCAT_WS('-',CAST(adm.hadm_id AS TEXT), diag.icd_code))
+                      		'reference', 'Condition/' || uuid_generate_v5(uuid_condition.uuid, adm.hadm_id || '-' || diag.icd_code)
                       )
                     , 'rank', seq_num
                 ) 
@@ -26,7 +20,8 @@ WITH vars as (
 		mimic_core.admissions adm
 		LEFT JOIN mimic_hosp.diagnoses_icd diag
 			ON adm.hadm_id = diag.hadm_id
-		LEFT JOIN vars ON true
+		LEFT JOIN fhir_etl.uuid_namespace uuid_condition 	
+			ON uuid_condition.name = 'Condition'
     GROUP BY
         adm.hadm_id
   		, uuid_condition
@@ -41,16 +36,21 @@ WITH vars as (
   		, diag.fhir_DIAGNOSES AS fhir_DIAGNOSES
   	
   		-- reference uuids
-  		, uuid_generate_v5(uuid_encounter, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
-  		, uuid_generate_v5(uuid_patient, CAST(adm.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_organization, 'Beth Israel Deaconess Medical Center') AS uuid_ORG
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(ns_patient.uuid, CAST(adm.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center') AS uuid_ORG
  	FROM 
   		mimic_core.admissions adm
   		INNER JOIN fhir_etl.subjects sub
   			ON adm.subject_id = sub.subject_id 
   		LEFT JOIN tb_diagnoses diag
   			ON adm.hadm_id = diag.hadm_id
- 		LEFT JOIN vars ON true
+ 		LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
+			ON ns_encounter.name = 'Encounter'
+		LEFT JOIN fhir_etl.uuid_namespace ns_patient	
+			ON ns_patient.name = 'Patient'
+		LEFT JOIN fhir_etl.uuid_namespace ns_organization	
+			ON ns_organization.name = 'Organization'
 )
 
 INSERT INTO mimic_fhir.encounter

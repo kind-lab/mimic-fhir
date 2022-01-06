@@ -4,13 +4,7 @@ CREATE TABLE mimic_fhir.medication_administration(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH vars as (
-	SELECT
-  		uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Encounter') as uuid_encounter
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Patient') as uuid_patient
- 		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'Medication') as uuid_medication
-  		, uuid_generate_v5(uuid_generate_v5(uuid_ns_oid(), 'MIMIC-IV'), 'MedicationAdministration') as uuid_medication_administration
-), fhir_medication_administration AS (
+WITH fhir_medication_administration AS (
 	SELECT
   		em.emar_id AS em_EMAR_ID
   		, CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
@@ -24,17 +18,24 @@ WITH vars as (
   		
   
   		-- refernce uuids
-  		, uuid_generate_v5(uuid_medication_administration, CAST(em.emar_id AS TEXT)) AS uuid_EMAR_ID
-  		, uuid_generate_v5(uuid_medication, CAST(em.pharmacy_id as TEXT)) AS uuid_MEDICATION 
-  		, uuid_generate_v5(uuid_patient, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(uuid_encounter, CAST(em.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(ns_medication_administration.uuid, CAST(em.emar_id AS TEXT)) AS uuid_EMAR_ID
+  		, uuid_generate_v5(ns_medication.uuid, CAST(em.pharmacy_id as TEXT)) AS uuid_MEDICATION 
+  		, uuid_generate_v5(ns_patient.uuid, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(em.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
   		mimic_hosp.emar em
   		INNER JOIN fhir_etl.subjects sub
   			ON em.subject_id = sub.subject_id 
   		LEFT JOIN mimic_hosp.emar_detail emd
   			ON em.emar_id = emd.emar_id
-  		LEFT JOIN vars ON true
+  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
+  			ON ns_encounter.name = 'Encounter'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
+  			ON ns_patient.name = 'Patient'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication
+  			ON ns_medication.name = 'Medication'
+  		LEFT JOIN fhir_etl.uuid_namespace ns_medication_administration
+  			ON ns_medication_administration.name = 'MedicationAdministration'
  	WHERE
   		emd.parent_field_ordinal IS NULL -- just grab the dose_due information, not the split apart dose_given
 )

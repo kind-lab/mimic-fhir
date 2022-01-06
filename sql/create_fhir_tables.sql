@@ -2,7 +2,8 @@
 CREATE SCHEMA IF NOT EXISTS mimic_fhir;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-\i fn/fn_patient_extension.sql
+\! echo subjects
+\i fhir_etl/subjects
 
 \! echo condition
 \i fhir_condition.sql
@@ -16,8 +17,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \! echo map_drug_id
 \i map_drug_id.sql
 
-\! echo fhir_medadmin_icu
-\i fhir_medadmin_icu.sql
+--\! echo fhir_medadmin_icu
+--\i fhir_medadmin_icu.sql
 
 \! echo fhir_medication
 \i fhir_medication.sql
@@ -31,8 +32,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \! echo fhir_medication_request
 \i fhir_medication_request.sql
 
-\! echo fhir_observation_chartevents
-\i fhir_observation_chartevents.sql
+--\! echo fhir_observation_chartevents
+--\i fhir_observation_chartevents.sql
 
 \! echo fhir_observation_datetimeevents
 \i fhir_observation_datetimeevents.sql
@@ -56,7 +57,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \i fhir_organization.sql
 
 \! echo fn_patient_extension
-\i fn_patient_extension.sql
+\i fn/fn_patient_extension.sql
 
 \! echo fhir_patient
 \i fhir_patient.sql
