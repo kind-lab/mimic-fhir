@@ -10,7 +10,7 @@ WITH tb_diagnoses AS (
         ,  jsonb_agg(
           		jsonb_build_object(
                   	'condition', jsonb_build_object(
-                      		'reference', 'Condition/' || uuid_generate_v5(uuid_condition.uuid, adm.hadm_id || '-' || diag.icd_code)
+                      		'reference', 'Condition/' || uuid_generate_v5(ns_condition.uuid, adm.hadm_id || '-' || diag.icd_code)
                       )
                     , 'rank', seq_num
                 ) 
@@ -20,11 +20,11 @@ WITH tb_diagnoses AS (
 		mimic_core.admissions adm
 		LEFT JOIN mimic_hosp.diagnoses_icd diag
 			ON adm.hadm_id = diag.hadm_id
-		LEFT JOIN fhir_etl.uuid_namespace uuid_condition 	
-			ON uuid_condition.name = 'Condition'
+		LEFT JOIN fhir_etl.uuid_namespace ns_condition 	
+			ON ns_condition.name = 'Condition'
     GROUP BY
         adm.hadm_id
-  		, uuid_condition
+  		, ns_condition.uuid
 ), fhir_encounter AS (
 	SELECT 
   		CAST(adm.hadm_id AS TEXT) AS adm_HADM_ID	
