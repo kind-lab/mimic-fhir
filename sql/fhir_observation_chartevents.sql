@@ -18,7 +18,7 @@ WITH fhir_observation_ce as (
   		, di.highnormalvalue AS di_HIGHNORMALVALUE 		
   
   		-- refernce uuids
-  		, uuid_generate_v5(ns_observation_ce.uuid, ce.stay_id || '-' || ce.charttime || '-' || ce.itemid) AS uuid_CHARTEVENTS
+  		, uuid_generate_v5(ns_observation_ce.uuid, ce.stay_id || '-' || ce.charttime || '-' || ce.itemid || '-' ||ce.value) AS uuid_CHARTEVENTS
   		, uuid_generate_v5(ns_patient.uuid, CAST(ce.subject_id AS text)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(ce.stay_id AS text)) AS uuid_STAY_ID
   	FROM

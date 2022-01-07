@@ -39,7 +39,7 @@ WITH fhir_medication_administration_icu AS (
   			
 )
 
-INSERT INTO mimic_fhir.medadmin_icu
+INSERT INTO mimic_fhir.medication_administration_icu
 SELECT 
 	uuid_INPUTEVENT AS id
 	, jsonb_strip_nulls(jsonb_build_object(
