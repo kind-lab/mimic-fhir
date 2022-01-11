@@ -2,8 +2,15 @@ CREATE SCHEMA IF NOT EXISTS mimic_fhir;
 CREATE SCHEMA IF NOT EXISTS fhir_etl;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- prepare tables necessary for ETL
 \echo subjects
 \i fhir_etl/subjects.sql
+
+\echo uuid_namespace
+\i fhir_etl/uuid_namespace.sql
+
+\echo map_drug_id
+\i fhir_etl/map_drug_id.sql
 
 \echo condition
 \i fhir_condition.sql
