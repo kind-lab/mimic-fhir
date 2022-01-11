@@ -1,4 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS mimic_fhir;
+CREATE SCHEMA IF NOT EXISTS fhir_etl;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 \! echo subjects
