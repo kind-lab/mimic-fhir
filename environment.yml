@@ -1,0 +1,15 @@
+name: mimic-fhir
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - sqlalchemy
+  - seaborn
+  - pandas
+  - psycopg2
+  - matplotlib
+  - pytest
+  - jupyter
+  - tqdm
+  - yapf
+  - pip
