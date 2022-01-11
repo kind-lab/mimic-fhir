@@ -1,4 +1,3 @@
-\c mimic
 CREATE SCHEMA IF NOT EXISTS mimic_fhir;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
