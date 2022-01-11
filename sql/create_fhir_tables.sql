@@ -12,8 +12,18 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo map_drug_id
 \i fhir_etl/map_drug_id.sql
 
-\echo condition
-\i fhir_condition.sql
+-- prepare MIMIC-IV tables
+
+-- institutional resources
+\echo fhir_organization
+\i fhir_organization.sql
+
+-- patient tracking resources
+\echo fn_patient_extension
+\i fn/fn_patient_extension.sql
+
+\echo fhir_patient
+\i fhir_patient.sql
 
 \echo fhir_encounter
 \i fhir_encounter.sql
@@ -21,9 +31,17 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_encounter_icu
 \i fhir_encounter_icu.sql
 
-\echo map_drug_id
-\i fhir_etl/map_drug_id.sql
+-- data resources: conditions, diagnoses, procedures
+\echo condition
+\i fhir_condition.sql
 
+\echo fhir_procedure
+\i fhir_procedure.sql
+
+\echo fhir_procedure_icu
+\i fhir_procedure_icu.sql
+
+-- data resources: medications
 \echo fhir_medadmin_icu
 \i fhir_medadmin_icu.sql
 
@@ -39,6 +57,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_medication_request
 \i fhir_medication_request.sql
 
+-- data resources: observations
 \echo fhir_observation_chartevents
 \i fhir_observation_chartevents.sql
 
@@ -60,17 +79,3 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_observation_outputevents
 \i fhir_observation_outputevents.sql
 
-\echo fhir_organization
-\i fhir_organization.sql
-
-\echo fn_patient_extension
-\i fn/fn_patient_extension.sql
-
-\echo fhir_patient
-\i fhir_patient.sql
-
-\echo fhir_procedure
-\i fhir_procedure.sql
-
-\echo fhir_procedure_icu
-\i fhir_procedure_icu.sql
