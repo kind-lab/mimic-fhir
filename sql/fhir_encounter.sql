@@ -10,15 +10,23 @@ WITH tb_diagnoses AS (
         ,  jsonb_agg(
           		jsonb_build_object(
                   	'condition', jsonb_build_object(
-                      		'reference', 'Condition/' || uuid_generate_v5(ns_condition.uuid, adm.hadm_id || '-' || diag.icd_code)
+                      		'reference', 'Condition/' || uuid_generate_v5(ns_condition.uuid, adm.hadm_id || '-' || diag.seq_num ||'-' || diag.icd_code)
                       )
                     , 'rank', seq_num
+                    , 'use', jsonb_build_object(
+			         		'coding', jsonb_build_array(json_build_object(
+			                	'system', 'http://terminology.hl7.org/CodeSystem/diagnosis-role'
+			                	, 'code', 'billing'
+			                ))
+			           )
                 ) 
           ORDER BY seq_num ASC) AS fhir_DIAGNOSES
   
     FROM
 		mimic_core.admissions adm
-		LEFT JOIN mimic_hosp.diagnoses_icd diag
+		INNER JOIN fhir_etl.subjects sub
+  			ON adm.subject_id = sub.subject_id 
+		INNER JOIN mimic_hosp.diagnoses_icd diag
 			ON adm.hadm_id = diag.hadm_id
 		LEFT JOIN fhir_etl.uuid_namespace ns_condition 	
 			ON ns_condition.name = 'Condition'
@@ -64,6 +72,8 @@ SELECT
         		jsonb_build_object(
                   'value', adm_HADM_ID
                   , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-encounter'
+                  , 'use', 'usual'
+                  , 'assigner', jsonb_build_object('reference', 'Organization/' || uuid_ORG)
         		)
       		)	
       	 , 'status', 'finished'
