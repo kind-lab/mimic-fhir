@@ -17,8 +17,14 @@ WITH tb_admissions AS (
         	ON pat.subject_id = sub.subject_id 
         LEFT JOIN mimic_core.transfers tfs
             ON pat.subject_id = tfs.subject_id
-        LEFT JOIN mimic_core.admissions adm
-            ON pat.subject_id = adm.subject_id
+        -- Grab latest admittime to get the latest demographic info 
+        LEFT JOIN (SELECT subject_id, MAX(admittime) AS admittime
+    		   FROM mimic_core.admissions
+    		   GROUP BY subject_id) adm_max
+			ON pat.subject_id = adm_max.subject_id
+		LEFT JOIN mimic_core.admissions adm
+			ON adm_max.subject_id = adm.subject_id 
+			AND adm_max.admittime = adm.admittime
     GROUP BY 
         pat.subject_id
         , pat.anchor_age
@@ -51,7 +57,7 @@ WITH tb_admissions AS (
   			ON ns_organization.name = 'Organization'
 )
 
-INSERT INTO mimic_fhir.patient
+--INSERT INTO mimic_fhir.patient
 SELECT 
  	UUID_patient AS id
     , jsonb_strip_nulls(jsonb_build_object(
@@ -94,3 +100,4 @@ SELECT
     )) AS fhir
 FROM 
 	fhir_patient
+LIMIT 100
