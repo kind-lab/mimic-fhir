@@ -6,6 +6,10 @@ A version of MIMIC-IV in FHIR. The scripts in the repository will generate the M
 ```sh
 git clone https://github.com/kind-lab/mimic-fhir.git
 ```
+2. Change into the `sql` subfolder
+```sh
+cd mimic-fhir/sql
+```
 2. Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/mimic-iv-on-fhir/sql/create_fhir_tables.sql) 
 ```sh
 psql -f create_fhir_tables.sql
