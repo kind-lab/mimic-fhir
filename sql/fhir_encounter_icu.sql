@@ -39,7 +39,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', icu_STAY_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-encounter'
+                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-encounter-icu'
         		)
       		)	
       	 , 'status', 'finished'
