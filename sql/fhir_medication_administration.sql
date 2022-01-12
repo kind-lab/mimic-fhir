@@ -84,15 +84,17 @@ SELECT
           	, 'dose', jsonb_build_object(
               	'value', emd_DOSE_DUE
               	, 'unit', emd_DOSE_DUE_UNIT
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/med-units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/med-unit'
                 , 'code', emd_DOSE_DUE_UNIT
               )
-            , 'rateQuantity', jsonb_build_object(
-              	'value', emd_INFUSION_RATE
-              	, 'unit', emd_INFUSION_RATE_UNIT
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/md-units'
-                , 'code', emd_INFUSION_RATE_UNIT
-              )
+            , 'rateQuantity', CASE WHEN emd_INFUSION_RATE IS NOT NULL THEN 
+            	jsonb_build_object(
+	              	'value', emd_INFUSION_RATE
+	              	, 'unit', emd_INFUSION_RATE_UNIT
+	                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/md-unit'
+	                , 'code', emd_INFUSION_RATE_UNIT
+	            )
+	          ELSE NULL END
           )
     )) as fhir 
 FROM

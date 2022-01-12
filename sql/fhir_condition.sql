@@ -8,8 +8,9 @@ WITH fhir_condition AS (
 	SELECT
   		diag.hadm_id || '-' || diag.seq_num as diag_IDENTIFIER
   		, TRIM(diag.icd_code) AS diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
+  		, diag.icd_version AS diag_ICD_VERSION
   
-  		-- refernce uuids
+  		-- reference uuids
   		, uuid_generate_v5(ns_condition.uuid, diag.hadm_id || '-' || diag.seq_num || '-' || diag.icd_code) as uuid_DIAGNOSIS
   		, uuid_generate_v5(ns_patient.uuid, CAST(diag.subject_id AS TEXT)) as uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter.uuid, CAST(diag.hadm_id AS TEXT)) as uuid_HADM_ID
@@ -52,7 +53,8 @@ SELECT
           ))
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/condition-icd9'  
+            	'system', CASE WHEN diag_ICD_VERSION = 9 THEN 'http://hl7.org/fhir/sid/icd-9-cm' 
+            				   ELSE 'http://hl7.org/fhir/sid/icd-10-cm'	END
                 , 'code', diag_ICD_CODE
             ))
           )

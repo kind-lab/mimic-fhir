@@ -18,8 +18,7 @@ WITH fhir_medication_administration_icu AS (
   
   		-- reference uuids
   		, uuid_generate_v5(ns_medication_administration_icu.uuid, ie.stay_id || '-' || ie.orderid || '-' || ie.itemid) AS uuid_INPUTEVENT
-  		, NULL AS uuid_MEDICATION -- needs to be mapped back to pharmacy/prescriptions OR create medication resources based on orderids
-  		--, uuid_generate_v5(uuid_medication, em.pharmacy_id::text) as uuid_MEDICATION 
+  		, uuid_generate_v5(ns_medication.uuid, di.label) AS uuid_MEDICATION 
   		, uuid_generate_v5(ns_patient.uuid, CAST(ie.subject_id AS TEXT)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(ie.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM
@@ -46,14 +45,18 @@ SELECT
     	'resourceType', 'MedicationAdministration'
         , 'id', uuid_INPUTEVENT
         , 'status', 'completed'
-      	, 'medicationReference', NULL -- jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
+      	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
       	, 'context', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)     
-        , 'effectivePeriod', 
-            jsonb_build_object(	
-                'start', ie_STARTTIME
-                , 'end', ie_ENDTIME
-            )
+       , 'effectivePeriod', 
+        	CASE WHEN ie_RATE IS NOT NULL THEN
+	            jsonb_build_object(	
+	                'start', ie_STARTTIME
+	                , 'end', ie_ENDTIME
+	            )
+	        ELSE NULL END
+	    , 'effectiveDateTime', 
+        	CASE WHEN ie_RATE IS NULL THEN ie_ENDTIME ELSE NULL END 
       	, 'category', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
                   'system', 'http://fhir.mimic.mit.edu/CodeSystem/medadmin-category'  

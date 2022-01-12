@@ -10,8 +10,8 @@ SELECT
 	, jsonb_build_object(
       	'resourceType', 'Organization',
         'identifier', jsonb_build_array(json_build_object(
-          	'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-organization',
-            'value', 'hospital'
+          	'system', 'http://hl7.org/fhir/sid/us-npi',
+            'value', '1194052720'
          )),
          'type', jsonb_build_array(jsonb_build_object(
            	'coding', jsonb_build_array(jsonb_build_object(
@@ -20,7 +20,7 @@ SELECT
                'display', 'Healthcare Provider'
             ))
          )), 
-         'name', 'MIMIC Hospital',
+         'name', 'Beth Israel Deaconess Medical Center',
          'id', uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center')
    ) AS fhir
 FROM fhir_etl.uuid_namespace ns_organization 
