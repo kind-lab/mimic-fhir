@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS fhir_etl.uuid_namespace;
 CREATE TABLE fhir_etl.uuid_namespace(
-  	name VARCHAR NOT NULL,
-    uuid uuid NOT NULL
+  	name VARCHAR NOT NULL UNIQUE,
+    uuid uuid PRIMARY KEY
 );
 
 INSERT INTO fhir_etl.uuid_namespace(name, uuid)
