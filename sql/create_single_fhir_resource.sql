@@ -1,4 +1,3 @@
-\c mimic_iv
 \set outputdir '/tmp/mimic_output'
 \set fhir_resource 'procedure_icu'
 \! mkdir -p '/tmp/mimic_output'
