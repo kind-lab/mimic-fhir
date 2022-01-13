@@ -41,6 +41,6 @@ SELECT
 FROM
 	(
 		SELECT drug, uuid_DRUG FROM fhir_medication_hosp
-		UNION 
+		UNION DISTINCT
 		SELECT drug, uuid_DRUG FROM fhir_medication_icu
 	) AS fhir_medication
