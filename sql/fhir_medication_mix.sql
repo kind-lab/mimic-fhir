@@ -6,12 +6,12 @@ WITH fhir_medication_mix AS (
   		, json_agg(json_build_object(
       		'itemReference', 
           		jsonb_build_object('reference', 'Medication/' || 
-                                    uuid_generate_v5(ns_medication.uuid, 
-										CASE 
-                                        WHEN md.drug_id IS NOT NULL 
-                                        THEN CAST(md.drug_id AS TEXT) 
-                                        ELSE CAST(pr.ndc AS TEXT) END
-									)                    
+                    uuid_generate_v5(ns_medication.uuid, 
+						CASE 
+                        WHEN md.drug_id IS NOT NULL 
+                        THEN CAST(md.drug_id AS TEXT) 
+                        ELSE CAST(pr.ndc AS TEXT) END
+					)                    
             )
           )) as pr_INGREDIENTS
   
