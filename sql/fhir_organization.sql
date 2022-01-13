@@ -21,7 +21,7 @@ SELECT
             ))
          )), 
          'name', 'Beth Israel Deaconess Medical Center',
-         'id', uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center')
+         'id', uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720')
    ) AS fhir
 FROM fhir_etl.uuid_namespace ns_organization 
 WHERE name = 'Organization'
