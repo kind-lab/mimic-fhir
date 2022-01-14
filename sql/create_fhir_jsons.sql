@@ -1,5 +1,5 @@
 \set outputdir '/tmp/mimic_output'
-\! mkdir -p :outputdir
+\! mkdir -p '/tmp/mimic_output'
 \t
 
 \echo condition
