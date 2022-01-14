@@ -15,7 +15,7 @@ WITH tb_admissions AS (
         mimic_core.patients pat
         INNER JOIN fhir_etl.subjects sub
         	ON pat.subject_id = sub.subject_id 
-        LEFT JOIN mimic_core.transfers tfs
+        INNER JOIN mimic_core.transfers tfs
             ON pat.subject_id = tfs.subject_id
         -- Grab latest admittime to get the latest demographic info 
         LEFT JOIN (SELECT subject_id, MAX(admittime) AS admittime
