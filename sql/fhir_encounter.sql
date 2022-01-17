@@ -52,7 +52,7 @@ WITH tb_diagnoses AS (
   		-- reference uuids
   		, uuid_generate_v5(ns_encounter.uuid, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
   		, uuid_generate_v5(ns_patient.uuid, CAST(adm.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center') AS uuid_ORG
+  		, uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS uuid_ORG
  	FROM 
   		mimic_core.admissions adm
   		INNER JOIN fhir_etl.subjects sub

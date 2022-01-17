@@ -51,7 +51,7 @@ WITH tb_admissions AS (
         , adm.adm_ETHNICITY
         , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
   		  ELSE NULL END as adm_LANGUAGE
-  		, uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center') AS  UUID_organization
+  		, uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS  UUID_organization
     FROM  
         mimic_core.patients pat
         INNER JOIN fhir_etl.subjects sub
