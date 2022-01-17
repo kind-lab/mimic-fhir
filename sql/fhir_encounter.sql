@@ -7,8 +7,7 @@ CREATE TABLE mimic_fhir.encounter(
   	fhir 	jsonb NOT NULL 
 );
 
--- Group to link all diagnoses to a given encounter
-WITH tb_diagnoses AS (
+/*WITH tb_diagnoses AS (
     SELECT 
   		adm.hadm_id 
         ,  jsonb_agg(
@@ -39,7 +38,8 @@ WITH tb_diagnoses AS (
     GROUP BY
         adm.hadm_id
   		, ns_condition.uuid
-), fhir_encounter AS (
+),*/
+WITH fhir_encounter AS (
 	SELECT 
   		CAST(adm.hadm_id AS TEXT) AS adm_HADM_ID	
   		, adm.admission_type AS adm_ADMISSION_TYPE
@@ -47,7 +47,7 @@ WITH tb_diagnoses AS (
   		, CAST(adm.dischtime AS TIMESTAMPTZ) AS adm_DISCHTIME
   		, adm.admission_location AS adm_ADMISSION_LOCATION  		
   		, adm.discharge_location AS adm_DISCHARGE_LOCATION  		
-  		, diag.fhir_DIAGNOSES AS fhir_DIAGNOSES
+  		--, diag.fhir_DIAGNOSES AS fhir_DIAGNOSES
   	
   		-- reference uuids
   		, uuid_generate_v5(ns_encounter.uuid, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -57,8 +57,8 @@ WITH tb_diagnoses AS (
   		mimic_core.admissions adm
   		INNER JOIN fhir_etl.subjects sub
   			ON adm.subject_id = sub.subject_id 
-  		LEFT JOIN tb_diagnoses diag
-  			ON adm.hadm_id = diag.hadm_id
+  		--LEFT JOIN tb_diagnoses diag
+  		--	ON adm.hadm_id = diag.hadm_id
  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
 			ON ns_encounter.name = 'Encounter'
 		LEFT JOIN fhir_etl.uuid_namespace ns_patient	
@@ -120,7 +120,7 @@ SELECT
            	   ELSE NULL
            	   END
          )        
-         , 'diagnosis', fhir_DIAGNOSES 
+         --, 'diagnosis', fhir_DIAGNOSES 
          , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
 	)) AS fhir
 FROM 
