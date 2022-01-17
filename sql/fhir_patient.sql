@@ -47,7 +47,12 @@ WITH tb_admissions AS (
         , 'Patient_' || pat.subject_id as pat_NAME -- generate patient name
         , adm.pat_BIRTH_DATE
         , uuid_generate_v5(ns_patient.uuid, CAST(pat.subject_id AS TEXT)) AS UUID_patient
-        , adm.adm_MARITAL_STATUS
+        
+        , CASE WHEN adm_MARITAL_STATUS IS NULL THEN 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'
+               ELSE 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus'
+               END AS adm_MARITAL_STATUS_system
+        , COALESCE(LEFT(adm_MARITAL_STATUS, 1),'UNK') AS adm_MARITAL_STATUS_code
+        , COALESCE(INITCAP(adm_MARITAL_STATUS),'Unkonwn') AS adm_MARITAL_STATUS_display
         , adm.adm_ETHNICITY
         , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
   		  ELSE NULL END as adm_LANGUAGE
@@ -69,6 +74,7 @@ SELECT
  	UUID_patient AS id
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Patient'
+        --, 'meta', jsonb_build_object('profile', jsonb_build_array('pnc-patient')) -- need absolute url, add this later 
         , 'gender', pat_GENDER
         , 'name', 
             jsonb_build_array(
@@ -84,11 +90,15 @@ SELECT
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-patient'
                     )
                 )		
-        , 'maritalStatus', adm_MARITAL_STATUS
+        , 'maritalStatus', jsonb_build_object(
+          	'coding', jsonb_build_array(jsonb_build_object(
+            	'system', adm_MARITAL_STATUS_system
+                , 'code', adm_MARITAL_STATUS_code
+                , 'display', adm_MARITAL_STATUS_display
+            ))
+          )
         , 'birthDate', pat_BIRTH_DATE
-        , 'deathDate', pat_DOD
-        
-        -- Generate US Core extensions for ethnicity, race, and birthsex
+        , 'deceasedDateTime', pat_DOD
         , 'extension', fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_BIRTHSEX)
         
         -- Set preferred language if present
