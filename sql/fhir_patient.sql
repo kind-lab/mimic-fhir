@@ -57,7 +57,7 @@ WITH tb_admissions AS (
   			ON ns_organization.name = 'Organization'
 )
 
---INSERT INTO mimic_fhir.patient
+INSERT INTO mimic_fhir.patient
 SELECT 
  	UUID_patient AS id
     , jsonb_strip_nulls(jsonb_build_object(
@@ -100,4 +100,3 @@ SELECT
     )) AS fhir
 FROM 
 	fhir_patient
-LIMIT 100
