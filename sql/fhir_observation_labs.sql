@@ -129,7 +129,6 @@ SELECT
                 ))
       	    ELSE NULL
       	    END
-      	-- TODO: Create specimen resource or remove this    
         --, 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
         , 'referenceRange', 
             CASE WHEN lab_REF_RANGE_LOWER IS NOT NULL THEN	
@@ -152,3 +151,4 @@ SELECT
     )) as fhir 
 FROM
 	fhir_observation_labs
+LIMIT 1000

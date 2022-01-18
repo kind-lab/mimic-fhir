@@ -13,7 +13,7 @@ WITH fhir_procedure_icu AS (
   		, CAST(pe.itemid AS TEXT) AS pe_ITEMID
   		, CAST(pe.starttime AS TIMESTAMPTZ) AS pe_STARTTIME
   		, CAST(pe.endtime AS TIMESTAMPTZ) AS pe_ENDTIME
-  		, pe.location AS pe_LOCATION
+  		, TRIM(REGEXP_REPLACE(pe.location, '\s+', ' ', 'g')) AS pe_LOCATION
   		, di.label AS di_LABEL
   
   		-- refernce uuids

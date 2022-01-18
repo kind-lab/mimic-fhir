@@ -9,9 +9,9 @@ CREATE TABLE mimic_fhir.observation_chartevents(
 
 WITH fhir_observation_ce as (
 	SELECT  		
-  		ce.itemid AS ce_ITEMID
-  		, ce.charttime AS ce_CHARTTIME
-  		, ce.storetime AS ce_STORETIME   		
+  		CAST(ce.itemid AS TEXT) AS ce_ITEMID
+  		, CAST(ce.charttime AS TIMESTAMPTZ) AS ce_CHARTTIME
+  		, CAST(ce.storetime AS TIMESTAMPTZ) AS ce_STORETIME   		
   		, ce.valueuom AS ce_VALUEUOM
   		, ce.valuenum AS ce_VALUENUM
   		, ce.value AS ce_VALUE
@@ -106,3 +106,4 @@ SELECT
     )) AS fhir 
 FROM
 	fhir_observation_ce
+LIMIT 1000
