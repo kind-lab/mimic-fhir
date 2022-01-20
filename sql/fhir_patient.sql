@@ -36,13 +36,8 @@ WITH tb_admissions AS (
 ), fhir_patient AS (
     SELECT
         CAST(pat.subject_id AS TEXT) AS pat_SUBJECT_ID
-        
-        -- Map patient gender to FHIR gender values
-        , CASE WHEN pat.gender = 'M' THEN 'male'
-  			   WHEN pat.gender = 'F' THEN 'female'
-  		  	   ELSE 'unknown' 
-  		  END as pat_GENDER
-  		, pat.gender AS pat_BIRTHSEX -- set birthsex equal to gender since no differentiation in MIMIC
+        , pat.gender AS pat_GENDER
+  		, pat.gender AS pat_BIRTHSEX
         , pat.dod AS pat_DOD
         , 'Patient_' || pat.subject_id as pat_NAME -- generate patient name
         , adm.pat_BIRTH_DATE
@@ -74,7 +69,7 @@ SELECT
  	UUID_patient AS id
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Patient'
-        --, 'meta', jsonb_build_object('profile', jsonb_build_array('pnc-patient')) -- need absolute url, add this later 
+        , 'meta', jsonb_build_object('profile', jsonb_build_array('http://fhir.sickkids.ca/pnc/StructureDefinition/pnc-patient')) -- need absolute url, add this later 
         , 'gender', pat_GENDER
         , 'name', 
             jsonb_build_array(
