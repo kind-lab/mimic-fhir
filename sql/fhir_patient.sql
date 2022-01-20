@@ -36,18 +36,15 @@ WITH tb_admissions AS (
 ), fhir_patient AS (
     SELECT
         CAST(pat.subject_id AS TEXT) AS pat_SUBJECT_ID
-        , pat.gender AS pat_GENDER
+        , mg.fhir_gender AS pat_GENDER
   		, pat.gender AS pat_BIRTHSEX
         , pat.dod AS pat_DOD
         , 'Patient_' || pat.subject_id as pat_NAME -- generate patient name
         , adm.pat_BIRTH_DATE
         , uuid_generate_v5(ns_patient.uuid, CAST(pat.subject_id AS TEXT)) AS UUID_patient
         
-        , CASE WHEN adm_MARITAL_STATUS IS NULL THEN 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'
-               ELSE 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus'
-               END AS adm_MARITAL_STATUS_system
-        , COALESCE(LEFT(adm_MARITAL_STATUS, 1),'UNK') AS adm_MARITAL_STATUS_code
-        , COALESCE(INITCAP(adm_MARITAL_STATUS),'Unkonwn') AS adm_MARITAL_STATUS_display
+        , mms.fhir_system AS mms_FHIR_SYSTEM
+        , mms.fhir_marital_status AS mms_FHIR_MARITAL_STATUS
         , adm.adm_ETHNICITY
         , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
   		  ELSE NULL END as adm_LANGUAGE
@@ -62,6 +59,11 @@ WITH tb_admissions AS (
   			ON ns_patient.name = 'Patient'
   		LEFT JOIN fhir_etl.uuid_namespace ns_organization
   			ON ns_organization.name = 'Organization'
+  		LEFT JOIN fhir_etl.map_gender mg
+  			ON pat.gender = mg.mimic_gender
+  		LEFT JOIN fhir_etl.map_marital_status mms 
+  			ON adm.adm_MARITAL_STATUS = mms.mimic_marital_status
+  			OR adm.adm_MARITAL_STATUS IS NULL AND mms.mimic_marital_status IS NULL
 )
 
 INSERT INTO mimic_fhir.patient
@@ -69,7 +71,11 @@ SELECT
  	UUID_patient AS id
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Patient'
-        , 'meta', jsonb_build_object('profile', jsonb_build_array('http://fhir.sickkids.ca/pnc/StructureDefinition/pnc-patient')) -- need absolute url, add this later 
+        , 'meta', jsonb_build_object(
+        	'profile', jsonb_build_array(
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-patient'
+        	)
+        ) -- need absolute url, add this later 
         , 'gender', pat_GENDER
         , 'name', 
             jsonb_build_array(
@@ -85,13 +91,16 @@ SELECT
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-patient'
                     )
                 )		
-        , 'maritalStatus', jsonb_build_object(
-          	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', adm_MARITAL_STATUS_system
-                , 'code', adm_MARITAL_STATUS_code
-                , 'display', adm_MARITAL_STATUS_display
-            ))
-          )
+        , 'maritalStatus', 
+        	CASE WHEN mms_FHIR_MARITAL_STATUS IS NOT NULL THEN
+        		jsonb_build_object(
+		          	'coding', jsonb_build_array(jsonb_build_object(
+		            	'system', mms_FHIR_SYSTEM
+		                , 'code', mms_FHIR_MARITAL_STATUS
+		            ))
+		        )
+		    ELSE NULL 
+		    END
         , 'birthDate', pat_BIRTH_DATE
         , 'deceasedDateTime', pat_DOD
         , 'extension', fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_BIRTHSEX)
