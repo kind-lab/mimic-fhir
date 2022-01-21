@@ -38,14 +38,14 @@ SELECT
         , 'id', uuid_DATETIMEEVENT		 
         , 'status', 'final'
       	, 'category', jsonb_build_array(jsonb_build_object(
-          	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
+            'coding', jsonb_build_array(jsonb_build_object(
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
                 , 'code', di_CATEGORY
             ))
           ))
         , 'code', jsonb_build_object(
-          	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
+            'coding', jsonb_build_array(jsonb_build_object(
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
                 , 'code', de_ITEMID
                 , 'display', di_LABEL
             ))
