@@ -63,7 +63,7 @@ SELECT
                jsonb_build_object(
                  'value', ce_VALUENUM
                  , 'unit', ce_VALUEUOM
-                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
+                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                  , 'code', ce_VALUEUOM 
                ) 
             ELSE NULL
@@ -81,7 +81,7 @@ SELECT
                       jsonb_build_object(
                         'value', di_LOWNORMALVALUE
                         , 'unit', ce_VALUEUOM
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
+                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                         , 'code', ce_VALUEUOM
                        )
                   ELSE NULL
@@ -91,7 +91,7 @@ SELECT
                 		jsonb_build_object(
                           'value', di_HIGHNORMALVALUE
                           , 'unit', ce_VALUEUOM
-                          , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
+                          , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                           , 'code', ce_VALUEUOM
                        )
                 	ELSE NULL

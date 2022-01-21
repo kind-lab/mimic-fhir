@@ -93,7 +93,7 @@ SELECT
                jsonb_build_object(
                  'value', lab_VALUENUM
                  , 'unit', lab_VALUEUOM
-                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
+                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                  , 'code', lab_VALUEUOM 
                  , 'comparator', VALUE_COMPARATOR
                ) 
@@ -129,13 +129,13 @@ SELECT
                 'low', jsonb_build_object(
                     'value', lab_REF_RANGE_LOWER
                     , 'unit', lab_VALUEUOM
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                     , 'code', lab_VALUEUOM
                  )
                  , 'high', jsonb_build_object(
                       'value', lab_REF_RANGE_UPPER
                       , 'unit', lab_VALUEUOM
-                      , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
+                      , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                       , 'code', lab_VALUEUOM
                    )
               ))
