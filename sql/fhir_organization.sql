@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Organization resource for BIDMC
+-- Method:  Organization identifiers from NPI system
+
 DROP TABLE IF EXISTS mimic_fhir.organization;
 CREATE TABLE mimic_fhir.organization(
    id 		uuid PRIMARY KEY,

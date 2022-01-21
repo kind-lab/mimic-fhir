@@ -1,3 +1,7 @@
+-- Purpose: Generate a FHIR Observation resource for each unique specimen, test, and organism
+--          found in microbiologyevents
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.observation_micro_org;
 CREATE TABLE mimic_fhir.observation_micro_org(
 	id 		uuid PRIMARY KEY, 
@@ -14,7 +18,7 @@ WITH micro_info AS (
         , MAX(mi.subject_id) AS subject_id
  		, MAX(CAST(mi.charttime AS TIMESTAMPTZ)) AS charttime
     
-        -- if organism is present but not tested for antibiotics, set NULL for susceptibility
+        -- Add a reference to susceptibility if an organism is tested for antibiotics
         , CASE WHEN MIN(mi.ab_itemid) IS NULL THEN NULL
           ELSE 
             jsonb_agg(
@@ -72,9 +76,11 @@ SELECT
         , 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
-                , 'code', 'laboratory'
+                , 'code', 'laboratory' 
             ))
           ))
+          
+        -- Organism item code  
       	, 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-organism'  
@@ -84,7 +90,7 @@ SELECT
           )
       	, 'effectiveDateTime', mi_CHARTTIME
 		, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-        , 'hasMember', fhir_SUSCEPTIBILITY 
+        , 'hasMember', fhir_SUSCEPTIBILITY -- Reference one to many antiobiotic susceptiblities 
         , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_TEST))
     )) AS fhir 
 FROM

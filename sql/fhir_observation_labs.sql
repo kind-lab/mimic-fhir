@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Observation resource from the labevents rows
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.observation_labs;
 CREATE TABLE mimic_fhir.observation_labs(
 	id 		uuid PRIMARY KEY,
@@ -17,7 +20,7 @@ WITH fhir_observation_labs AS (
   		, lab.valueuom AS lab_VALUEUOM
   		, lab.value AS lab_VALUE
   
-  		-- comparator
+  		-- Parse values with a comparator and pulling out numeric value
         , CASE 
   			WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
             WHEN value LIKE '%<%' THEN CAST(split_part(lab.value,'<',2) AS NUMERIC)
@@ -35,10 +38,9 @@ WITH fhir_observation_labs AS (
              WHEN value LIKE '%GREATER THAN%' THEN '>'
              WHEN value LIKE '%LESS THAN%' THEN '<'
              ELSE NULL
-          END as VALUE_COMPARATOR
-  		
+          END as VALUE_COMPARATOR  		
   
-  		-- refernce uuids
+  		-- reference uuids
   		, uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
   		, uuid_generate_v5(ns_patient.uuid, CAST(lab.subject_id AS TEXT)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter.uuid, CAST(lab.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -69,13 +71,15 @@ SELECT
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-observation-labs'
                 )
       	    )		 
-        , 'status', 'final'
+        , 'status', 'final' -- All observations are considered final
       	, 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
             ))
           ))
+          
+        -- Lab test completed  
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/itemid'  
@@ -116,6 +120,8 @@ SELECT
                 ))
       	    ELSE NULL
       	    END
+      	    
+        -- Add clinical notes    
         , 'note', 
       		CASE WHEN lab_COMMENTS IS NOT NULL THEN
       			jsonb_build_array(jsonb_build_object(
@@ -123,7 +129,8 @@ SELECT
                 ))
       	    ELSE NULL
       	    END
-        , 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
+      	-- TODO: Create specimen resource or remove this    
+        --, 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
         , 'referenceRange', 
             CASE WHEN lab_REF_RANGE_LOWER IS NOT NULL THEN	
                 jsonb_build_array(jsonb_build_object(

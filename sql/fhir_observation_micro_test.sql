@@ -1,11 +1,14 @@
+-- Purpose: Generate a FHIR Observation resource for each unique specimen and test
+--          found in microbiologyevents
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.observation_micro_test;
 CREATE TABLE mimic_fhir.observation_micro_test(
     id      uuid PRIMARY KEY,
     fhir    jsonb NOT NULL 
 );
 
-
--- Group to avoid duplicate organisms showing up for a given subject's test
+-- Group to avoid duplicate organisms showing up for a given specimen's test
 WITH distinct_org AS (
 	SELECT DISTINCT
 		mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
@@ -102,15 +105,15 @@ SELECT
                 , 'display', mi_TEST_NAME
             ))
           )
-		    , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
+		, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', 
       		CASE WHEN uuid_HADM_ID IS NOT NULL THEN
       		    jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
       		ELSE NULL
       		END
         , 'effectiveDateTime', mi_CHARTTIME
-        , 'hasMember', fhir_ORGANISM
-      	, 'valueBoolean', valueBoolean
+        , 'hasMember', fhir_ORGANISM -- reference one to many organisms
+      	, 'valueBoolean', valueBoolean -- flag for organism growth present
     )) AS fhir 
 FROM
     fhir_observation_micro_test

@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Encounter reosurce for each row in icustays
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.encounter_icu;
 CREATE TABLE mimic_fhir.encounter_icu(
 	id 		uuid PRIMARY KEY,
@@ -42,11 +45,13 @@ SELECT
                   , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-encounter-icu'
         		)
       		)	
-      	 , 'status', 'finished'
+      	 , 'status', 'finished' -- ALL encounters considered finished
          , 'class', jsonb_build_object(
               'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
               , 'display', 'ACUTE'
            )
+           
+         -- Type of admission set based on the careunit visisted during ICU stay   
          , 'type', jsonb_build_array(jsonb_build_object(
          		'coding', jsonb_build_array(json_build_object(
                 	'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type-icu'
@@ -58,7 +63,6 @@ SELECT
          	  'start', icu_INTIME
               , 'end', icu_OUTTIME
          )
-      	-- Add location for first_careunit and last_careunit (may need to make these into Location resources, discuss with Alistair)
       	 , 'partOf', jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID)
         
 	)) as fhir

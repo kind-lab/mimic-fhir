@@ -1,3 +1,6 @@
+-- Purpose: Generate FHIR MedicationAdministration resource for each row in inputevents
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.medication_administration_icu;
 CREATE TABLE mimic_fhir.medication_administration_icu(
 	id 		uuid PRIMARY KEY,
@@ -57,6 +60,8 @@ SELECT
 	        ELSE NULL END
 	    , 'effectiveDateTime', 
         	CASE WHEN ie_RATE IS NULL THEN ie_ENDTIME ELSE NULL END 
+        	
+        -- Category represent whether it is an inpatient/outpatient event	
       	, 'category', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
                   'system', 'http://fhir.mimic.mit.edu/CodeSystem/medadmin-category'  

@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Procedure resource for each procedures_icd row
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.procedure;
 CREATE TABLE mimic_fhir.procedure(
 	id 		uuid PRIMARY KEY,
@@ -6,11 +9,11 @@ CREATE TABLE mimic_fhir.procedure(
 
 WITH fhir_procedure AS (
 	SELECT
-  		proc.hadm_id || '-' || proc.seq_num AS proc_IDENTIFIER 
+  		proc.hadm_id || '-' || proc.seq_num || '-' || proc.icd_code AS proc_IDENTIFIER 
   		, proc.icd_code AS proc_ICD_CODE
   		, CAST(proc.chartdate AS TIMESTAMPTZ) AS proc_CHARTDATE
   
-  		-- refernce uuids
+  		-- reference uuids
   		, uuid_generate_v5(ns_procedure.uuid, proc.hadm_id || '-' || proc.seq_num || '-' || proc.icd_code) AS uuid_PROCEDURE_ID
   		, uuid_generate_v5(ns_patient.uuid, CAST(proc.subject_id AS TEXT)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter.uuid, CAST(proc.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -39,7 +42,9 @@ SELECT
                   , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-procedure'
         		)
       		)		 
-        , 'status', 'completed'
+        , 'status', 'completed' -- All procedures are considered complete
+        
+        -- ICD code for procedure event
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9'  

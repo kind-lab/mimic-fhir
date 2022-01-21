@@ -1,12 +1,17 @@
+-- Purpose: Generate a FHIR Patient resource for each row in patients
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.patient;
 CREATE TABLE mimic_fhir.patient(
 	id 		uuid PRIMARY KEY,
   	fhir 	jsonb NOT NULL 
 );
 
+-- Get the latest admission information/demographics
 WITH tb_admissions AS (
     SELECT
         pat.subject_id
+        -- Set a birth date based on first hospital time, since MIMIC no longer provides a birth date
         , CAST(CAST(MIN(tfs.intime) AS DATE) - CAST(pat.anchor_age || 'years' AS INTERVAL) AS DATE) AS pat_BIRTH_DATE
         , MIN(adm.marital_status) AS adm_MARITAL_STATUS
         , MIN(adm.ethnicity) AS adm_ETHNICITY
@@ -31,13 +36,15 @@ WITH tb_admissions AS (
 ), fhir_patient AS (
     SELECT
         CAST(pat.subject_id AS TEXT) AS pat_SUBJECT_ID
+        
+        -- Map patient gender to FHIR gender values
         , CASE WHEN pat.gender = 'M' THEN 'male'
   			   WHEN pat.gender = 'F' THEN 'female'
   		  	   ELSE 'unknown' 
   		  END as pat_GENDER
-  		, pat.gender AS pat_BIRTHSEX
+  		, pat.gender AS pat_BIRTHSEX -- set birthsex equal to gender since no differentiation in MIMIC
         , pat.dod AS pat_DOD
-        , 'Patient_' || pat.subject_id as pat_NAME
+        , 'Patient_' || pat.subject_id as pat_NAME -- generate patient name
         , adm.pat_BIRTH_DATE
         , uuid_generate_v5(ns_patient.uuid, CAST(pat.subject_id AS TEXT)) AS UUID_patient
         , adm.adm_MARITAL_STATUS
@@ -64,12 +71,12 @@ SELECT
         'resourceType', 'Patient'
         , 'gender', pat_GENDER
         , 'name', 
-                jsonb_build_array(
-                    jsonb_build_object(
+            jsonb_build_array(
+                jsonb_build_object(
                     'use', 'official'
                     , 'family', pat_NAME
-                    )
-                )		
+                )
+            )		
         , 'identifier', 
                 jsonb_build_array(
                     jsonb_build_object(
@@ -80,7 +87,11 @@ SELECT
         , 'maritalStatus', adm_MARITAL_STATUS
         , 'birthDate', pat_BIRTH_DATE
         , 'deathDate', pat_DOD
+        
+        -- Generate US Core extensions for ethnicity, race, and birthsex
         , 'extension', fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_BIRTHSEX)
+        
+        -- Set preferred language if present
         , 'communication',
             CASE WHEN adm_LANGUAGE IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(

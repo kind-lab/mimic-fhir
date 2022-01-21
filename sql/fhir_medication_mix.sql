@@ -1,8 +1,15 @@
+-- Purpose: Generate a FHIR Medication resource for each row in prescriptions.
+--          Medication mixes are necessary in FHIR since MedicationAdminstrations 
+--          can only reference a single Medication resource. In MIMIC there are 
+--          cases when emar events deliver multiple medications, all under the 
+--          same prescription
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 WITH fhir_medication_mix AS (
 	SELECT
   		pr.pharmacy_id AS pr_PHARMACY_ID
-  		--, MIN(pr.form_rx) as pr_FORM_RX
   
+  		-- Group all medications under the same prescription
   		, json_agg(json_build_object(
       		'itemReference', 
           		jsonb_build_object('reference', 'Medication/' || 

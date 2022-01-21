@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Procedure for each row in procedureevents
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.procedure_icu;
 CREATE TABLE mimic_fhir.procedure_icu(
 	id 		uuid PRIMARY KEY,
@@ -44,6 +47,8 @@ SELECT
                 , 'code', pe_ORDERCATEGORYNAME
             ))
           )
+          
+        -- Procedure item codes   
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
@@ -51,6 +56,8 @@ SELECT
                 , 'display', di_LABEL
             ))
           )
+          
+        -- Body location where procedure was applied  
       	, 'bodySite', CASE WHEN pe_LOCATION IS NOT NULL THEN
       			jsonb_build_array(jsonb_build_object(
               		'coding', jsonb_build_array(jsonb_build_object(
