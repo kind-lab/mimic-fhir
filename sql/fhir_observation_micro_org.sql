@@ -4,18 +4,15 @@ CREATE TABLE mimic_fhir.observation_micro_org(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH fhir_observation_micro_org AS (
+-- Aggregate susceptiblities by organism for each patient specimen
+WITH micro_info AS (
     SELECT 
-        mi.micro_specimen_id AS mi_MICRO_SPECIMEN_ID
-        , CAST(mi.org_itemid AS TEXT) AS mi_ORG_ITEMID
-        , mi.org_name AS mi_ORG_NAME
-        , mi.subject_id AS mi_SUBJECT_ID
- 		, CAST(mi.charttime AS TIMESTAMPTZ) AS mi_CHARTTIME
-
-        -- UUID references
-        , uuid_generate_v5(ns_observation_micro_org.uuid, mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid) AS uuid_MICRO_ORG
-        , uuid_generate_v5(ns_observation_micro_test.uuid, mi.micro_specimen_id || '-' || mi.test_itemid) AS uuid_MICRO_TEST
-        , uuid_generate_v5(ns_patient.uuid, CAST(mi.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+        mi.micro_specimen_id AS micro_specimen_id 
+        , CAST(mi.org_itemid AS TEXT) AS org_itemid
+        , MAX(mi.test_itemid) AS test_itemid 
+        , MAX(mi.org_name) AS org_name
+        , MAX(mi.subject_id) AS subject_id
+ 		, MAX(CAST(mi.charttime AS TIMESTAMPTZ)) AS charttime
     
         -- if organism is present but not tested for antibiotics, set NULL for susceptibility
         , CASE WHEN MIN(mi.ab_itemid) IS NULL THEN NULL
@@ -32,7 +29,29 @@ WITH fhir_observation_micro_org AS (
     FROM 
         mimic_hosp.microbiologyevents mi
         INNER JOIN fhir_etl.subjects sub
-        	ON mi.subject_id = sub.subject_id 
+        	ON mi.subject_id = sub.subject_id
+  		LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_susc
+  			ON ns_observation_micro_susc.name = 'ObservationMicroSusc'
+  	WHERE
+  		mi.org_itemid IS NOT NULL
+    GROUP BY 
+        org_itemid
+        , test_itemid
+        , micro_specimen_id
+
+), fhir_observation_micro_org AS (
+    SELECT 
+        mi.org_itemid AS mi_ORG_ITEMID
+        , mi.org_name AS mi_ORG_NAME
+ 		, mi.charttime AS mi_CHARTTIME
+
+        -- UUID references
+        , uuid_generate_v5(ns_observation_micro_org.uuid, mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid) AS uuid_MICRO_ORG
+        , uuid_generate_v5(ns_observation_micro_test.uuid, mi.micro_specimen_id || '-' || mi.test_itemid) AS uuid_MICRO_TEST
+        , uuid_generate_v5(ns_patient.uuid, CAST(mi.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+        , fhir_SUSCEPTIBILITY
+    FROM 
+        micro_info mi
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient
   			ON ns_patient.name = 'Patient'
   		LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_test
@@ -41,19 +60,6 @@ WITH fhir_observation_micro_org AS (
   			ON ns_observation_micro_org.name = 'ObservationMicroOrg'
   		LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_susc
   			ON ns_observation_micro_susc.name = 'ObservationMicroSusc'
-  	WHERE
-  		mi.org_itemid IS NOT NULL
-    GROUP BY 
-        org_itemid
-        , org_name
-        , test_itemid
-        , micro_specimen_id
-        , mi.subject_id
-  		, charttime
-        , ns_patient.uuid
-        , ns_observation_micro_org.uuid
-        , ns_observation_micro_susc.uuid
-        , ns_observation_micro_test.uuid
 )  
   
 INSERT INTO mimic_fhir.observation_micro_org  
@@ -77,7 +83,7 @@ SELECT
             ))
           )
       	, 'effectiveDateTime', mi_CHARTTIME
-		    , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
+		, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'hasMember', fhir_SUSCEPTIBILITY 
         , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_TEST))
     )) AS fhir 
