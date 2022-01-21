@@ -35,6 +35,11 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Condition'
         , 'id', uuid_DIAGNOSIS
+        , 'meta', jsonb_build_object(
+        	'profile', jsonb_build_array(
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-condition'
+        	)
+        ) 
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(

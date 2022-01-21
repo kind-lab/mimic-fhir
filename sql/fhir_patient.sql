@@ -75,7 +75,7 @@ SELECT
         	'profile', jsonb_build_array(
         		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-patient'
         	)
-        ) -- need absolute url, add this later 
+        ) 
         , 'gender', pat_GENDER
         , 'name', 
             jsonb_build_array(
