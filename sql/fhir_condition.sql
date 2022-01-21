@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Condition resource for each row in diagnosis_icd 
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.condition;
 CREATE TABLE mimic_fhir.condition(
 	id 		uuid PRIMARY KEY,
@@ -6,7 +9,7 @@ CREATE TABLE mimic_fhir.condition(
 
 WITH fhir_condition AS (
 	SELECT
-  		diag.hadm_id || '-' || diag.seq_num as diag_IDENTIFIER
+  		diag.hadm_id || '-' || diag.seq_num || '-' || diag.icd_code as diag_IDENTIFIER
   		, TRIM(diag.icd_code) AS diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
   		, diag.icd_version AS diag_ICD_VERSION
   
@@ -38,13 +41,17 @@ SELECT
                   'value', diag_IDENTIFIER
                   , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-condition'
         		)
-      		)		 
+      		)	
+      	
+      	-- All diagnoses in MIMIC are considered active	
       	, 'clinicalStatus', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://terminology.hl7.org/CodeSystem/condition-clinical'  
                 , 'code', 'active'
             ))
           )
+          
+        -- All diagnoses in MIMIC are considered encounter derived
         , 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://terminology.hl7.org/CodeSystem/condition-category'  

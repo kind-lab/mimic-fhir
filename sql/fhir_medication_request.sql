@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR MedicationRequest resource for each row in the pharmacy table
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.medication_request;
 CREATE TABLE mimic_fhir.medication_request(
 	id 		uuid PRIMARY KEY,
@@ -10,10 +13,9 @@ WITH fhir_medication_request AS (
   		, ph.status AS ph_STATUS
   		, ph.route AS ph_ROUTE
   		, CAST(ph.starttime AS TIMESTAMPTZ) AS ph_STARTTIME
-  		, CAST(ph.stoptime AS TIMESTAMPTZ) AS ph_STOPTIME
-  		
+  		, CAST(ph.stoptime AS TIMESTAMPTZ) AS ph_STOPTIME  		
   
-  		-- refernce uuids
+  		-- reference uuids
   		, uuid_generate_v5(ns_medication_request.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
   		, uuid_generate_v5(ns_medication.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION 
   		, uuid_generate_v5(ns_patient.uuid, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID

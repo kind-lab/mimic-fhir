@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Observation resource for each chartevents row
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.observation_chartevents;
 CREATE TABLE mimic_fhir.observation_chartevents(
 	id 		uuid PRIMARY KEY,
@@ -17,7 +20,8 @@ WITH fhir_observation_ce as (
   		, di.lownormalvalue AS di_LOWNORMALVALUE
   		, di.highnormalvalue AS di_HIGHNORMALVALUE 		
   
-  		-- refernce uuids
+  		-- reference uuids
+  		-- chartevents uuid dependent on 'value' to be unique (stay_id and itemid should be enough but a couple cases break this)
   		, uuid_generate_v5(ns_observation_ce.uuid, ce.stay_id || '-' || ce.charttime || '-' || ce.itemid || '-' ||ce.value) AS uuid_CHARTEVENTS
   		, uuid_generate_v5(ns_patient.uuid, CAST(ce.subject_id AS text)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(ce.stay_id AS text)) AS uuid_STAY_ID
@@ -40,7 +44,7 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_CHARTEVENTS		 
-        , 'status', 'final'
+        , 'status', 'final' -- All observations considered final
       	, 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
@@ -57,7 +61,7 @@ SELECT
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
         , 'effectiveDateTime', ce_CHARTTIME
-        , 'issued', ce_STORETIME
+        , 'issued', ce_STORETIME -- issued element is the instant the observation was available
       	, 'valueQuantity', 
             CASE WHEN ce_VALUENUM IS NOT NULL THEN
                jsonb_build_object(

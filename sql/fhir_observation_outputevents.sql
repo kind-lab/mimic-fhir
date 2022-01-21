@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Observation resource for each row in outputevents
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.observation_outputevents;
 CREATE TABLE mimic_fhir.observation_outputevents(
 	id 		uuid PRIMARY KEY,
@@ -44,6 +47,8 @@ SELECT
                 , 'code', di_CATEGORY
             ))
           ))
+          
+        -- Item code for outputevent  
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  

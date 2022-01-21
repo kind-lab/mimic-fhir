@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR Observation resource for each datetimeevents row 
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.observation_datetimeevents;
 CREATE TABLE mimic_fhir.observation_datetimeevents(
 	id 		uuid PRIMARY KEY,
@@ -53,8 +56,8 @@ SELECT
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
         , 'effectiveDateTime', de_CHARTTIME
-        , 'issued', de_STORETIME
-      	, 'valueDateTime', de_VALUE
+        , 'issued', de_STORETIME -- issued element is the instant the observation was available
+      	, 'valueDateTime', de_VALUE -- Main value of interest from this resource 
     )) as fhir 
 FROM
 	fhir_observation_de

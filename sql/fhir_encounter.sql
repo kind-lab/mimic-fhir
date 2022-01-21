@@ -1,9 +1,13 @@
+-- Purpose: Generate an FHIR Encounter resource for each row in admissions
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.encounter;
 CREATE TABLE mimic_fhir.encounter(
 	id 		uuid PRIMARY KEY,
   	fhir 	jsonb NOT NULL 
 );
 
+-- Group to link all diagnoses to a given encounter
 WITH tb_diagnoses AS (
     SELECT 
   		adm.hadm_id 
@@ -12,7 +16,9 @@ WITH tb_diagnoses AS (
                   	'condition', jsonb_build_object(
                       		'reference', 'Condition/' || uuid_generate_v5(ns_condition.uuid, adm.hadm_id || '-' || diag.seq_num ||'-' || diag.icd_code)
                       )
-                    , 'rank', seq_num
+                    , 'rank', seq_num -- order that diagnoses were assigned to a subject
+                    
+                    -- All diagnoses are set for billing purposes
                     , 'use', jsonb_build_object(
 			         		'coding', jsonb_build_array(json_build_object(
 			                	'system', 'http://terminology.hl7.org/CodeSystem/diagnosis-role'
@@ -76,10 +82,10 @@ SELECT
                   , 'assigner', jsonb_build_object('reference', 'Organization/' || uuid_ORG)
         		)
       		)	
-      	 , 'status', 'finished'
+      	 , 'status', 'finished' -- ALL encounters assumed finished
          , 'class', jsonb_build_object(
-         	'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
-            , 'display', adm_ADMISSION_TYPE
+             'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
+             , 'display', adm_ADMISSION_TYPE
            )
          , 'type', jsonb_build_array(jsonb_build_object(
          		'coding', jsonb_build_array(json_build_object(
@@ -103,7 +109,7 @@ SELECT
             	)
            	   ELSE NULL
            	   END
-           , 'dischargeDisposition', 
+         , 'dischargeDisposition', 
            	   CASE WHEN adm_DISCHARGE_LOCATION IS NOT NULL
            	   THEN jsonb_build_object(
                   'coding',  jsonb_build_array(jsonb_build_object(

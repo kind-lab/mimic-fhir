@@ -1,3 +1,7 @@
+-- Purpose: Generate a FHIR Medication resources for distinct medication 
+--          found across both the prescriptions and d_items tables
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.medication;
 CREATE TABLE mimic_fhir.medication(
 	id 		uuid PRIMARY KEY,
@@ -40,6 +44,7 @@ SELECT
     )) AS fhir 
 FROM
 	(
+	    -- Keep only distinct medication from both hosp and icu tables
 		SELECT drug, uuid_DRUG FROM fhir_medication_hosp
 		UNION DISTINCT
 		SELECT drug, uuid_DRUG FROM fhir_medication_icu

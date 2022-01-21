@@ -1,3 +1,6 @@
+-- Purpose: Generate a FHIR MedicatioAdministration resource for each row in emar
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
 DROP TABLE IF EXISTS mimic_fhir.medication_administration;
 CREATE TABLE mimic_fhir.medication_administration(
 	id 		uuid PRIMARY KEY,
@@ -17,7 +20,7 @@ WITH fhir_medication_administration AS (
   		, emd.infusion_rate_unit AS emd_INFUSION_RATE_UNIT
   		
   
-  		-- refernce uuids
+  		-- reference uuids
   		, uuid_generate_v5(ns_medication_administration.uuid, CAST(em.emar_id AS TEXT)) AS uuid_EMAR_ID
   		, uuid_generate_v5(ns_medication.uuid, CAST(em.pharmacy_id as TEXT)) AS uuid_MEDICATION 
   		, uuid_generate_v5(ns_patient.uuid, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
@@ -37,7 +40,8 @@ WITH fhir_medication_administration AS (
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication_administration
   			ON ns_medication_administration.name = 'MedicationAdministration'
  	WHERE
-  		emd.parent_field_ordinal IS NULL -- just grab the dose_due information, not the split apart dose_given
+ 	    -- Select summary dose_due row, instead of grouping multiple dose_given rows
+  		emd.parent_field_ordinal IS NULL 
 )
 
 INSERT INTO mimic_fhir.medication_administration
@@ -53,7 +57,7 @@ SELECT
                   , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-emar-id'
         		)
       		)	
-        , 'status', 'completed'
+        , 'status', 'completed' -- All medication adminstrations considered complete
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
       	, 'context', 
@@ -70,28 +74,28 @@ SELECT
               ))
             )
           	, 'route', jsonb_build_object(
-              'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
-                  , 'code', emd_ROUTE
-              ))
-            )
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
+                    , 'code', emd_ROUTE
+                ))
+              )
           	, 'method', jsonb_build_object(
-              'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  
-                  , 'code', em_EVENT_TXT
-              ))
-            )
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  
+                    , 'code', em_EVENT_TXT
+                ))
+              )
           	, 'dose', jsonb_build_object(
-              	'value', emd_DOSE_DUE
-              	, 'unit', emd_DOSE_DUE_UNIT
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/med-unit'
+                'value', emd_DOSE_DUE
+                , 'unit', emd_DOSE_DUE_UNIT
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                 , 'code', emd_DOSE_DUE_UNIT
               )
             , 'rateQuantity', CASE WHEN emd_INFUSION_RATE IS NOT NULL THEN 
             	jsonb_build_object(
 	              	'value', emd_INFUSION_RATE
 	              	, 'unit', emd_INFUSION_RATE_UNIT
-	                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/md-unit'
+	                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
 	                , 'code', emd_INFUSION_RATE_UNIT
 	            )
 	          ELSE NULL END
