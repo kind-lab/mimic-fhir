@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.observation_labs;
 CREATE TABLE mimic_fhir.observation_labs(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -61,6 +62,7 @@ WITH fhir_observation_labs AS (
 INSERT INTO mimic_fhir.observation_labs
 SELECT 
 	uuid_LABEVENT_ID as id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_LABEVENT_ID
@@ -156,4 +158,3 @@ SELECT
     )) as fhir 
 FROM
 	fhir_observation_labs
-LIMIT 1000

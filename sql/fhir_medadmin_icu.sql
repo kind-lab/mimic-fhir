@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.medication_administration_icu;
 CREATE TABLE mimic_fhir.medication_administration_icu(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -44,6 +45,7 @@ WITH fhir_medication_administration_icu AS (
 INSERT INTO mimic_fhir.medication_administration_icu
 SELECT 
 	uuid_INPUTEVENT AS id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationAdministration'
         , 'id', uuid_INPUTEVENT

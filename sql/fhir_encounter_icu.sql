@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.encounter_icu;
 CREATE TABLE mimic_fhir.encounter_icu(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -35,6 +36,7 @@ WITH fhir_encounter_icu AS (
 INSERT INTO mimic_fhir.encounter_icu
 SELECT  
 	uuid_STAY_ID as id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
       	 'resourceType', 'Encounter'
          , 'id', uuid_STAY_ID

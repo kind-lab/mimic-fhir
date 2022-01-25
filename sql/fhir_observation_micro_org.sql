@@ -4,8 +4,9 @@
 
 DROP TABLE IF EXISTS mimic_fhir.observation_micro_org;
 CREATE TABLE mimic_fhir.observation_micro_org(
-	id 		uuid PRIMARY KEY, 
-  	fhir 	jsonb NOT NULL 
+	id 		    uuid PRIMARY KEY, 
+	patient_id  uuid NOT NULL,
+  	fhir 	    jsonb NOT NULL 
 );
 
 -- Aggregate susceptiblities by organism for each patient specimen
@@ -69,6 +70,7 @@ WITH micro_info AS (
 INSERT INTO mimic_fhir.observation_micro_org  
 SELECT 
     uuid_MICRO_ORG AS id
+    , uuid_SUBJECT_ID  AS patient_id
 	, jsonb_strip_nulls(jsonb_build_object(
     	  'resourceType', 'Observation'
         , 'id', uuid_MICRO_ORG 

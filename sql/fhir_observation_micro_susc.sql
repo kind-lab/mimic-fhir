@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS mimic_fhir.observation_micro_susc;
 CREATE TABLE mimic_fhir.observation_micro_susc(
     id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
     fhir 	jsonb NOT NULL 
 );
 
@@ -40,6 +41,7 @@ WITH fhir_observation_micro_susc AS (
 INSERT INTO mimic_fhir.observation_micro_susc  
 SELECT 
 	uuid_MICRO_SUSC AS id
+	, uuid_SUBJECT_ID AS patient_id
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_MICRO_SUSC 

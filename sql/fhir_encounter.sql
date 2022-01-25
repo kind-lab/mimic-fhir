@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.encounter;
 CREATE TABLE mimic_fhir.encounter(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -38,7 +39,7 @@ CREATE TABLE mimic_fhir.encounter(
     GROUP BY
         adm.hadm_id
   		, ns_condition.uuid
-),*/
+), */
 WITH fhir_encounter AS (
 	SELECT 
   		CAST(adm.hadm_id AS TEXT) AS adm_HADM_ID	
@@ -70,6 +71,7 @@ WITH fhir_encounter AS (
 INSERT INTO mimic_fhir.encounter
 SELECT  
 	uuid_HADM_ID AS id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
       	 'resourceType', 'Encounter'
          , 'id', uuid_HADM_ID

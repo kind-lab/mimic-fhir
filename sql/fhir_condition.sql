@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.condition;
 CREATE TABLE mimic_fhir.condition(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -32,6 +33,7 @@ WITH fhir_condition AS (
 INSERT INTO mimic_fhir.condition
 SELECT 
 	uuid_DIAGNOSIS as id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Condition'
         , 'id', uuid_DIAGNOSIS

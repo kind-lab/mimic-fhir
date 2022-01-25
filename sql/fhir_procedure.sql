@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.procedure;
 CREATE TABLE mimic_fhir.procedure(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -33,6 +34,7 @@ WITH fhir_procedure AS (
 INSERT INTO mimic_fhir.procedure
 SELECT 
 	uuid_PROCEDURE_ID AS id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Procedure'
         , 'id', uuid_PROCEDURE_ID

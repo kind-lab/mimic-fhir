@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.observation_datetimeevents;
 CREATE TABLE mimic_fhir.observation_datetimeevents(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -36,6 +37,7 @@ WITH fhir_observation_de AS (
 INSERT INTO mimic_fhir.observation_datetimeevents
 SELECT 
 	uuid_DATETIMEEVENT as id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_DATETIMEEVENT		 

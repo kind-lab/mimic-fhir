@@ -4,8 +4,9 @@
 
 DROP TABLE IF EXISTS mimic_fhir.observation_micro_test;
 CREATE TABLE mimic_fhir.observation_micro_test(
-    id      uuid PRIMARY KEY,
-    fhir    jsonb NOT NULL 
+	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
+  	fhir 	jsonb NOT NULL 
 );
 
 -- Group to avoid duplicate organisms showing up for a given specimen's test
@@ -88,6 +89,7 @@ WITH distinct_org AS (
 INSERT INTO mimic_fhir.observation_micro_test  
 SELECT 
 	  uuid_MICRO_TEST AS id
+	  , uuid_SUBJECT_ID AS patient_id
 	  , jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_MICRO_TEST	 
