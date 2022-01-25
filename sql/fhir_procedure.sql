@@ -12,6 +12,7 @@ WITH fhir_procedure AS (
   		proc.hadm_id || '-' || proc.seq_num || '-' || proc.icd_code AS proc_IDENTIFIER 
   		, proc.icd_code AS proc_ICD_CODE
   		, CAST(proc.chartdate AS TIMESTAMPTZ) AS proc_CHARTDATE
+  		, proc.icd_version AS proc_ICD_VERSION
   
   		-- reference uuids
   		, uuid_generate_v5(ns_procedure.uuid, proc.hadm_id || '-' || proc.seq_num || '-' || proc.icd_code) AS uuid_PROCEDURE_ID
@@ -47,7 +48,8 @@ SELECT
         -- ICD code for procedure event
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9'  
+            	'system', CASE WHEN proc_ICD_VERSION = 9 THEN ' http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9' 
+            				   ELSE ' http://fhir.mimic.mit.edu/CodeSystem/procedure-icd10'	END
                 , 'code', proc_ICD_CODE
             ))
           )
