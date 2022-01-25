@@ -60,8 +60,8 @@ SELECT
           ))
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', CASE WHEN diag_ICD_VERSION = 9 THEN 'http://hl7.org/fhir/sid/icd-9-cm' 
-            				   ELSE 'http://hl7.org/fhir/sid/icd-10-cm'	END
+            	'system', CASE WHEN diag_ICD_VERSION = 9 THEN ' http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9' 
+            				   ELSE ' http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10'	END
                 , 'code', diag_ICD_CODE
             ))
           )
