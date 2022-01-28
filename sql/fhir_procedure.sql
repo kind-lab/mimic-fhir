@@ -38,6 +38,11 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Procedure'
         , 'id', uuid_PROCEDURE_ID
+        , 'meta', jsonb_build_object(
+        	'profile', jsonb_build_array(
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure'
+        	)
+        ) 
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(
@@ -50,8 +55,8 @@ SELECT
         -- ICD code for procedure event
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', CASE WHEN proc_ICD_VERSION = 9 THEN ' http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9' 
-            				   ELSE ' http://fhir.mimic.mit.edu/CodeSystem/procedure-icd10'	END
+            	'system', CASE WHEN proc_ICD_VERSION = 9 THEN 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9' 
+            				   ELSE 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd10'	END
                 , 'code', proc_ICD_CODE
             ))
           )
