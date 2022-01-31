@@ -50,7 +50,7 @@ SELECT
         , 'status', 'completed'
       	, 'category', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-category'  
                 , 'code', pe_ORDERCATEGORYNAME
             ))
           )

@@ -10,7 +10,8 @@ CREATE TABLE mimic_fhir.medication_administration_icu(
 
 WITH fhir_medication_administration_icu AS (
 	SELECT
-  		CAST(ie.starttime AS TIMESTAMPTZ) AS ie_STARTTIME
+  		ie.stay_id || '-' || ie.orderid || '-' || ie.itemid AS id_INPUTEVENT
+		, CAST(ie.starttime AS TIMESTAMPTZ) AS ie_STARTTIME
   		, CAST(ie.endtime AS TIMESTAMPTZ) AS ie_ENDTIME
   		, di.label AS di_LABEL
   		, ie.ordercategoryname AS ie_ORDERCATEGORYNAME
@@ -49,6 +50,13 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationAdministration'
         , 'id', uuid_INPUTEVENT
+        , 'identifier', 
+      		jsonb_build_array(
+        		jsonb_build_object(
+                  'value', id_INPUTEVENT
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration-icu'
+        		)
+      		)	
         , 'status', 'completed'
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)

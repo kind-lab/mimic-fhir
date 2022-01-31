@@ -47,7 +47,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', proc_IDENTIFIER
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-procedure'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/procedure'
         		)
       		)		 
         , 'status', 'completed' -- All procedures are considered complete

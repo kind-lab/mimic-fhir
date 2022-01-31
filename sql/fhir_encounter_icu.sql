@@ -42,27 +42,28 @@ SELECT
          , 'id', uuid_STAY_ID
          , 'meta', jsonb_build_object(
         	'profile', jsonb_build_array(
-        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter'
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-icu'
         	)
         ) 
          , 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', icu_STAY_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-encounter-icu'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/encounter-icu'
         		)
       		)	
       	 , 'status', 'finished' -- ALL encounters considered finished
+      	 -- All ICU encounters in the class ACUTE
          , 'class', jsonb_build_object(
-              'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
-              , 'display', 'ACUTE'
+              'system', 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+              , 'code', 'ACUTE'
            )
            
          -- Type of admission set based on the careunit visisted during ICU stay   
          , 'type', jsonb_build_array(jsonb_build_object(
          		'coding', jsonb_build_array(json_build_object(
                 	'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type-icu'
-                    , 'display', icu_FIRST_CAREUNIT
+                    , 'code', icu_FIRST_CAREUNIT
                 ))
            ))
       	 , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)

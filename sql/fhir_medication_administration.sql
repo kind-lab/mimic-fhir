@@ -56,7 +56,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', em_EMAR_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-emar-id'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration'
         		)
       		)	
         , 'status', 'completed' -- All medication adminstrations considered complete

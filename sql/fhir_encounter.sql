@@ -84,7 +84,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', adm_HADM_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-encounter'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/encounter'
                   , 'use', 'usual'
                   , 'assigner', jsonb_build_object('reference', 'Organization/' || uuid_ORG)
         		)
@@ -92,12 +92,12 @@ SELECT
       	 , 'status', 'finished' -- ALL encounters assumed finished
          , 'class', jsonb_build_object(
              'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
-             , 'display', adm_ADMISSION_TYPE
+             , 'code', adm_ADMISSION_TYPE
            )
          , 'type', jsonb_build_array(jsonb_build_object(
          		'coding', jsonb_build_array(json_build_object(
                 	'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type'
-                    , 'display', adm_ADMISSION_TYPE
+                    , 'code', adm_ADMISSION_TYPE
                 ))
            ))
       	 , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
@@ -111,7 +111,7 @@ SELECT
            	   THEN jsonb_build_object(
                   'coding',  jsonb_build_array(jsonb_build_object(
                       'system', 'http://fhir.mimic.mit.edu/CodeSystem/admit-source'
-                      , 'display', adm_ADMISSION_LOCATION
+                      , 'code', adm_ADMISSION_LOCATION
                   ))                
             	)
            	   ELSE NULL
@@ -120,8 +120,8 @@ SELECT
            	   CASE WHEN adm_DISCHARGE_LOCATION IS NOT NULL
            	   THEN jsonb_build_object(
                   'coding',  jsonb_build_array(jsonb_build_object(
-                      'system', 'http://fhir.mimic.mit.edu/CodeSystem/discharge-dispostion'
-                      , 'display', adm_DISCHARGE_LOCATION
+                      'system', 'http://fhir.mimic.mit.edu/CodeSystem/discharge-disposition'
+                      , 'code', adm_DISCHARGE_LOCATION
                   ))                
             	)
            	   ELSE NULL

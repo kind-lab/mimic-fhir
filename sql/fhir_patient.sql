@@ -88,7 +88,7 @@ SELECT
                 jsonb_build_array(
                     jsonb_build_object(
                     'value', pat_SUBJECT_ID
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-patient'
+                    , 'system', 'http://fhir.mimic.mit.edu/identifier/patient'
                     )
                 )		
         , 'maritalStatus', 

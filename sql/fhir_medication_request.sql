@@ -44,7 +44,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', ph_PHARMACY_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-medication-request'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
         		)
       		)	
         , 'status', ph_STATUS

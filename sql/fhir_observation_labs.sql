@@ -75,7 +75,7 @@ SELECT
       	    jsonb_build_array(
                 jsonb_build_object(
                     'value', lab_LABEVENT_ID
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-observation-labs'
+                    , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labs'
                 )
       	    )		 
         , 'status', 'final' -- All observations are considered final

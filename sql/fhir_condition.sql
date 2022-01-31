@@ -46,7 +46,7 @@ SELECT
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', diag_IDENTIFIER
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-condition'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/condition'
         		)
       		)	
       	
