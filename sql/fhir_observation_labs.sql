@@ -68,7 +68,7 @@ SELECT
         , 'id', uuid_LABEVENT_ID
         , 'meta', jsonb_build_object(
         	'profile', jsonb_build_array(
-        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation'
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-lab'
         	)
         ) 
       	, 'identifier', 

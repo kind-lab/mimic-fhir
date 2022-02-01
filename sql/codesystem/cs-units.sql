@@ -1,3 +1,5 @@
+-- Generate the unique set of units across all tables in MIMIC
+
 -- Medication Administration units
 SELECT DISTINCT TRIM(REGEXP_REPLACE(dose_due_unit, '\s+', ' ', 'g')) AS unit FROM mimic_hosp.emar_detail
 UNION

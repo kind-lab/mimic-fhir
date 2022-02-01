@@ -67,12 +67,12 @@ SELECT
 		, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
 		
         , 'effectiveDateTime', mi_STORETIME
-        , 'interpretation', jsonb_build_array(jsonb_build_object(
+        , 'valueCodeableConcept', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
             	'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-interpretation'  
                 , 'code', mi_INTERPRETATION
             ))
-          ))
+          )
         , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_ORG)) 
     )) AS fhir
 FROM
