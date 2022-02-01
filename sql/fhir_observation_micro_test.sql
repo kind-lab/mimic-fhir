@@ -93,6 +93,11 @@ SELECT
 	  , jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
         , 'id', uuid_MICRO_TEST	 
+        , 'meta', jsonb_build_object(
+        	'profile', jsonb_build_array(
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-test'
+        	)
+        ) 
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(

@@ -10,6 +10,7 @@ CREATE TABLE mimic_fhir.medication(
 
 WITH fhir_medication_hosp AS (
 	SELECT DISTINCT
+	    -- FHIR validator will fail if there are double spaces, so trim them out
   		TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g')) AS drug
   		, uuid_generate_v5(ns_medication.uuid, pr.drug) as uuid_DRUG
   	FROM

@@ -17,9 +17,9 @@ WITH fhir_medication_administration_icu AS (
   		, ie.ordercategoryname AS ie_ORDERCATEGORYNAME
   		, ie.ordercategorydescription AS ie_ORDERCATEGORYDESCRIPTION
   		, ie.amount AS ie_AMOUNT
-  		, ie.amountuom AS ie_AMOUNTUOM
+  		, TRIM(ie.amountuom) AS ie_AMOUNTUOM -- FHIR VALIDATOR fails IF ANY leading/trailing white space present
   		, ie.rate AS ie_RATE
-  		, ie.rateuom AS ie_RATEUOM		
+  		, TRIM(ie.rateuom) AS ie_RATEUOM -- FHIR VALIDATOR fails IF ANY leading/trailing white space present		
   
   		-- reference uuids
   		, uuid_generate_v5(ns_medication_administration_icu.uuid, ie.stay_id || '-' || ie.orderid || '-' || ie.itemid) AS uuid_INPUTEVENT
@@ -50,6 +50,11 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationAdministration'
         , 'id', uuid_INPUTEVENT
+        , 'meta', jsonb_build_object(
+        	'profile', jsonb_build_array(
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration-icu'
+        	)
+        ) 
         , 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(
@@ -61,7 +66,7 @@ SELECT
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
       	, 'context', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)     
-       , 'effectivePeriod', 
+        , 'effectivePeriod', 
         	CASE WHEN ie_RATE IS NOT NULL THEN
 	            jsonb_build_object(	
 	                'start', ie_STARTTIME

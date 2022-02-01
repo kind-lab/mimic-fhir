@@ -158,3 +158,4 @@ SELECT
     )) as fhir 
 FROM
 	fhir_observation_labs
+LIMIT 1000

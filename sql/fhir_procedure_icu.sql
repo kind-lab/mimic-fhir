@@ -44,7 +44,7 @@ SELECT
         , 'id', uuid_PROCEDUREEVENT	 
         , 'meta', jsonb_build_object(
         	'profile', jsonb_build_array(
-        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure'
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-icu'
         	)
         ) 
         , 'status', 'completed'
@@ -58,7 +58,7 @@ SELECT
         -- Procedure item codes   
         , 'code', jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-d-items'  
                 , 'code', pe_ITEMID
                 , 'display', di_LABEL
             ))

@@ -12,13 +12,17 @@ WITH fhir_medication_administration AS (
 	SELECT
   		em.emar_id AS em_EMAR_ID
   		, CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
-        , emd.site AS emd_SITE
-  		, emd.route AS emd_ROUTE
-  		, em.event_txt AS em_EVENT_TXT
+        
+  		
+        -- FHIR VALIDATOR does NOT accept leading/trailing white spaces, so trim values
+  		, TRIM(REGEXP_REPLACE(emd.site, '\s+', ' ', 'g')) AS emd_SITE
+        , TRIM(emd.route) AS emd_ROUTE
+  		, TRIM(em.event_txt) AS em_EVENT_TXT 
+  		
   		, emd.dose_due AS emd_DOSE_DUE
-  		, emd.dose_due_unit AS emd_DOSE_DUE_UNIT
+  		, TRIM(emd.dose_due_unit) AS emd_DOSE_DUE_UNIT -- FHIR VALIDATOR fails IF ANY leading/trailing white space present
   		, emd.infusion_rate AS emd_INFUSION_RATE
-  		, emd.infusion_rate_unit AS emd_INFUSION_RATE_UNIT
+  		, TRIM(emd.infusion_rate_unit) AS emd_INFUSION_RATE_UNIT -- FHIR VALIDATOR fails IF ANY leading/trailing white space present
   		
   
   		-- reference uuids
@@ -52,6 +56,11 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationAdministration'
         , 'id', uuid_EMAR_ID
+        , 'meta', jsonb_build_object(
+        	'profile', jsonb_build_array(
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration'
+        	)
+        ) 
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(
