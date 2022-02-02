@@ -1,0 +1,1 @@
+SELECT itemid, label FROM mimic_hosp.d_labitems 

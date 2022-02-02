@@ -41,11 +41,16 @@ SELECT
 	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
-        , 'id', uuid_OUTPUTEVENT		 
+        , 'id', uuid_OUTPUTEVENT	
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevent'
+            )
+        ) 
         , 'status', 'final'
       	, 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'  
                 , 'code', di_CATEGORY
             ))
           ))
@@ -66,7 +71,7 @@ SELECT
                jsonb_build_object(
                  'value', oe_VALUE
                  , 'unit', oe_VALUEUOM
-                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-units'
+                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                  , 'code', oe_VALUEUOM
                )      
     )) AS fhir 

@@ -11,7 +11,8 @@ CREATE TABLE mimic_fhir.observation_labs(
 WITH fhir_observation_labs AS (
 	SELECT
   		CAST(lab.labevent_id AS TEXT) AS lab_LABEVENT_ID 
-  		, lab.itemid AS lab_ITEMID
+  		, CAST(lab.itemid AS TEXT) AS lab_ITEMID
+  		, dlab.label AS dlab_LABEL
   		, CAST(lab.charttime AS TIMESTAMPTZ) AS lab_CHARTTIME
   		, CAST(lab.storetime AS TIMESTAMPTZ) AS lab_STORETIME
   		, lab.flag AS lab_FLAG
@@ -50,6 +51,8 @@ WITH fhir_observation_labs AS (
   		mimic_hosp.labevents lab
   		INNER JOIN fhir_etl.subjects sub
   			ON lab.subject_id =sub.subject_id 
+  		LEFT JOIN mimic_hosp.d_labitems dlab
+            ON lab.itemid = dlab.itemid                   	   		
   		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
   			ON ns_encounter.name = 'Encounter'
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -89,8 +92,9 @@ SELECT
         -- Lab test completed  
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/itemid'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-labitems'  
                 , 'code', lab_ITEMID
+                , 'display', dlab_LABEL
             ))
           )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)

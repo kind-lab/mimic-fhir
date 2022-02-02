@@ -45,11 +45,16 @@ SELECT
 	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'Observation'
-        , 'id', uuid_CHARTEVENTS		 
+        , 'id', uuid_CHARTEVENTS	
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevent'
+            )
+        ) 
         , 'status', 'final' -- All observations considered final
       	, 'category', jsonb_build_array(jsonb_build_object(
           	'coding', jsonb_build_array(jsonb_build_object(
-            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
+            	'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'  
                 , 'code', di_CATEGORY
             ))
           ))
