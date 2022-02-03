@@ -78,18 +78,24 @@ SELECT
       		END
         , 'effectiveDateTime', em_CHARTTIME
         , 'dosage', jsonb_build_object(
-          	'site', jsonb_build_object(
-              'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-site'  
-                  , 'code', emd_SITE
-              ))
-            )
-          	, 'route', jsonb_build_object(
-                'coding', jsonb_build_array(jsonb_build_object(
-                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
-                    , 'code', emd_ROUTE
-                ))
-              )
+          	'site', 
+          	     CASE WHEN emd_SITE IS NOT NULL THEN 
+              	     jsonb_build_object(
+                          'coding', jsonb_build_array(jsonb_build_object(
+                              'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-site'  
+                              , 'code', emd_SITE
+                          ))
+                        )
+                 ELSE NULL END              
+          	, 'route', 
+          	     CASE WHEN emd_ROUTE IS NOT NULL THEN 
+              	     jsonb_build_object(
+                        'coding', jsonb_build_array(jsonb_build_object(
+                            'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
+                            , 'code', emd_ROUTE
+                        ))
+                      )
+                ELSE NULL END
           	, 'method', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
                     'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  

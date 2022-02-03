@@ -42,6 +42,11 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationRequest'
         , 'id', uuid_MEDICATION_REQUEST
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-request'
+            )
+         ) 
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(

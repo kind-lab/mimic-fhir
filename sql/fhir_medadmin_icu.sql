@@ -79,14 +79,14 @@ SELECT
         -- Category represent whether it is an inpatient/outpatient event	
       	, 'category', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medadmin-category'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medadmin-category-icu'  
                   , 'code', ie_ORDERCATEGORYNAME
               ))
             )
         , 'dosage', jsonb_build_object(
           	'method', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medadmin-method'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  
                   , 'code', ie_ORDERCATEGORYDESCRIPTION
               ))
             )
