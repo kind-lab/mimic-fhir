@@ -12,6 +12,7 @@ WITH fhir_condition AS (
 	SELECT
   		diag.hadm_id || '-' || diag.seq_num || '-' || diag.icd_code as diag_IDENTIFIER
   		, TRIM(diag.icd_code) AS diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
+  		, icd.long_title AS icd_LONG_TITLE
   		, diag.icd_version AS diag_ICD_VERSION
   
   		-- reference uuids
@@ -22,6 +23,9 @@ WITH fhir_condition AS (
   		mimic_hosp.diagnoses_icd diag
   		INNER JOIN fhir_etl.subjects sub
   			ON diag.subject_id =sub.subject_id 
+  		LEFT JOIN mimic_hosp.d_icd_diagnoses icd
+  		    ON diag.icd_code = icd.icd_code
+  		    AND diag.icd_version = icd.icd_version
   		LEFT JOIN fhir_etl.uuid_namespace ns_encounter 
   			ON ns_encounter.name = 'Encounter'
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient 
@@ -70,6 +74,7 @@ SELECT
             	'system', CASE WHEN diag_ICD_VERSION = 9 THEN 'http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9' 
             				   ELSE 'http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10'	END
                 , 'code', diag_ICD_CODE
+                , 'display', icd_LONG_TITLE
             ))
           )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)

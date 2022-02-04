@@ -11,7 +11,8 @@ CREATE TABLE mimic_fhir.procedure(
 WITH fhir_procedure AS (
 	SELECT
   		proc.hadm_id || '-' || proc.seq_num || '-' || proc.icd_code AS proc_IDENTIFIER 
-  		, proc.icd_code AS proc_ICD_CODE
+  		, TRIM(proc.icd_code) AS proc_ICD_CODE
+  		, icd.long_title AS icd_LONG_TITLE
   		, CAST(proc.chartdate AS TIMESTAMPTZ) AS proc_CHARTDATE
   		, proc.icd_version AS proc_ICD_VERSION
   
@@ -23,6 +24,9 @@ WITH fhir_procedure AS (
   		mimic_hosp.procedures_icd proc
   		INNER JOIN fhir_etl.subjects sub
   			ON proc.subject_id = sub.subject_id 
+  		LEFT JOIN mimic_hosp.d_icd_procedures icd
+  		    ON proc.icd_code = icd.icd_code
+  		    AND proc.icd_version = icd.icd_version
   		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
   			ON ns_encounter.name = 'Encounter'
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -58,6 +62,7 @@ SELECT
             	'system', CASE WHEN proc_ICD_VERSION = 9 THEN 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9' 
             				   ELSE 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd10'	END
                 , 'code', proc_ICD_CODE
+                , 'display', icd_LONG_TITLE
             ))
           )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
