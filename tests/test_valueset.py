@@ -93,13 +93,13 @@ def test_vs_medication_method(db_conn_hapi):
 
 def test_vs_medication_route(db_conn_hapi):
     valueset = 'Medication Route'
-    vs_count = 117
+    vs_count = 116
     assert assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
 
 
 def test_vs_medication_site(db_conn_hapi):
     valueset = 'Medication Site'
-    vs_count = 6599
+    vs_count = 6598
     assert assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
 
 
@@ -146,7 +146,7 @@ def test_vs_procedure_category(db_conn_hapi):
 
 
 def test_vs_procedure_d_items(db_conn_hapi):
-    valueset = 'Procedure D Items'
+    valueset = 'Procedure Items'
     vs_count = 157
     assert assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
 
@@ -159,5 +159,5 @@ def test_vs_procedure_icd(db_conn_hapi):
 
 def test_vs_units(db_conn_hapi):
     valueset = 'Units'
-    vs_count = 636
+    vs_count = 634
     assert assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
