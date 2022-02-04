@@ -27,6 +27,20 @@ def db_conn():
     return conn
 
 
+# Initialize database connection to hapi
+@pytest.fixture(scope="session")
+def db_conn_hapi():
+    sqluser = 'postgres'
+    sqlpass = 'postgres'
+    dbname = 'hapi_r4'
+    host = 'localhost'
+
+    conn = psycopg2.connect(
+        dbname=dbname, user=sqluser, password=sqlpass, host=host
+    )
+    return conn
+
+
 # Generic function to get single resource from the DB
 def get_single_resource(db_conn, table_name):
     q_resource = f"SELECT * FROM mimic_fhir.{table_name} LIMIT 1"
