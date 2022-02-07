@@ -8,7 +8,28 @@ CREATE TABLE mimic_fhir.medication_administration(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH fhir_medication_administration AS (
+
+-- Generate the drug code for all prescriptions
+-- A single drug or drug mix will reference a Medication resource
+WITH pr_drug_code AS (
+    SELECT  
+        pr.pharmacy_id
+        , CASE WHEN count(pr.drug) > 1 THEN
+           -- Reference the drug in MAIN_BASE_ADDITIVE format
+            STRING_AGG(pr.drug, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) 
+          ELSE
+            MAX(pr.drug) 
+          END AS drug_code              
+    FROM 
+        mimic_hosp.emar em
+        INNER JOIN fhir_etl.subjects sub
+            ON em.subject_id = sub.subject_id 
+        LEFT JOIN mimic_hosp.prescriptions pr
+            ON em.pharmacy_id = pr.pharmacy_id
+    GROUP BY 
+        pr.pharmacy_id
+        
+), fhir_medication_administration AS (
 	SELECT
   		em.emar_id AS em_EMAR_ID
   		, CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
@@ -27,7 +48,7 @@ WITH fhir_medication_administration AS (
   
   		-- reference uuids
   		, uuid_generate_v5(ns_medication_administration.uuid, CAST(em.emar_id AS TEXT)) AS uuid_EMAR_ID
-  		, uuid_generate_v5(ns_medication.uuid, CAST(em.pharmacy_id as TEXT)) AS uuid_MEDICATION 
+  		, uuid_generate_v5(ns_medication.uuid, pr.drug_code) AS uuid_MEDICATION 
   		, uuid_generate_v5(ns_patient.uuid, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter.uuid, CAST(em.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
@@ -36,6 +57,8 @@ WITH fhir_medication_administration AS (
   			ON em.subject_id = sub.subject_id 
   		LEFT JOIN mimic_hosp.emar_detail emd
   			ON em.emar_id = emd.emar_id
+  		LEFT JOIN pr_drug_code pr
+  		    ON em.pharmacy_id = pr.pharmacy_id
   		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
   			ON ns_encounter.name = 'Encounter'
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient

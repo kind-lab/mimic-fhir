@@ -6,28 +6,38 @@
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
 WITH fhir_medication_mix AS (
-	SELECT
-  		pr.pharmacy_id AS pr_PHARMACY_ID
-  
-  		-- Group all medications under the same prescription
-  		, json_agg(json_build_object(
+	SELECT DISTINCT
+  		-- For prescriptions with multiple drugs prescribed, put the drugs under ingredients
+	    -- Order the drugs in the MAIN-BASE-ADDITIVE format 
+  		jsonb_agg(jsonb_build_object(
       		'itemReference', 
           		jsonb_build_object('reference', 'Medication/' || 
                     uuid_generate_v5(ns_medication.uuid, pr.drug)                    
                 )
-          )) as pr_INGREDIENTS
+          ) ORDER BY pr.drug_type DESC, pr.drug ASC) as pr_INGREDIENTS
+          
+        -- Drug codes will be in the format MAIN-BASE-ADDITIVE if drug type is present.
+        -- Most multi drug prescriptions will have the form MAIN-BASE or MAIN-BASE-ADDITIVE.
+        -- Added ordering of the drug name just to keep in consistent format, will 
+        -- only really affect ADDITIVE, since MAIN and BASE are single drug entries.
+        , STRING_AGG(pr.drug, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) AS pr_DRUG_CODE  
   
-  		-- reference uuids
-  		, uuid_generate_v5(ns_medication.uuid, CAST(pr.pharmacy_id AS TEXT)) AS uuid_DRUG
+  		-- reference uuid
+  		, uuid_generate_v5(
+  		    ns_medication.uuid, 
+  		    STRING_AGG(pr.drug, '_' ORDER BY pr.drug_type DESC, pr.drug ASC)
+  		) AS uuid_DRUG
   	FROM
   		mimic_hosp.prescriptions pr	 
-  		INNER JOIN fhir_etl.subjects sub
-  			ON pr.subject_id = sub.subject_id 
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication 
   			ON ns_medication.name = 'Medication'
   	GROUP BY 
   		pr.pharmacy_id
   		, ns_medication.uuid
+	-- Only generate medication mixes for prescriptions with multiple drugs used. 
+    -- Prescriptions with a single drug will already have their drugs mapped in 
+    -- the base medication query.
+  	HAVING count(pr.drug) > 1 
 )
 
 INSERT INTO mimic_fhir.medication
@@ -41,6 +51,12 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
             )
          ) 
+        , 'code', jsonb_build_object(
+              'coding', jsonb_build_array(jsonb_build_object(
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-drug'  
+                  , 'code', pr_DRUG_CODE
+              ))
+            )   
         , 'ingredient', pr_INGREDIENTS
     )) AS fhir 
 FROM
