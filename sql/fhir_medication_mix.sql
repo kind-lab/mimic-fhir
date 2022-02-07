@@ -12,7 +12,10 @@ WITH fhir_medication_mix AS (
   		jsonb_agg(jsonb_build_object(
       		'itemReference', 
           		jsonb_build_object('reference', 'Medication/' || 
-                    uuid_generate_v5(ns_medication.uuid, pr.drug)                    
+                    uuid_generate_v5(
+                        ns_medication.uuid
+                        , TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+                    )                    
                 )
           ) ORDER BY pr.drug_type DESC, pr.drug ASC) as pr_INGREDIENTS
           
@@ -20,12 +23,18 @@ WITH fhir_medication_mix AS (
         -- Most multi drug prescriptions will have the form MAIN-BASE or MAIN-BASE-ADDITIVE.
         -- Added ordering of the drug name just to keep in consistent format, will 
         -- only really affect ADDITIVE, since MAIN and BASE are single drug entries.
-        , STRING_AGG(pr.drug, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) AS pr_DRUG_CODE  
+        , STRING_AGG(
+            TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+            , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
+        ) AS pr_DRUG_CODE  
   
   		-- reference uuid
   		, uuid_generate_v5(
   		    ns_medication.uuid, 
-  		    STRING_AGG(pr.drug, '_' ORDER BY pr.drug_type DESC, pr.drug ASC)
+  		    STRING_AGG(
+  		        TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+  		        , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
+  		    )
   		) AS uuid_DRUG
   	FROM
   		mimic_hosp.prescriptions pr	 
@@ -53,7 +62,7 @@ SELECT
          ) 
         , 'code', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-drug'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-code'  
                   , 'code', pr_DRUG_CODE
               ))
             )   

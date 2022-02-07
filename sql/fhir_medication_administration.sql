@@ -16,7 +16,10 @@ WITH pr_drug_code AS (
         pr.pharmacy_id
         , CASE WHEN count(pr.drug) > 1 THEN
            -- Reference the drug in MAIN_BASE_ADDITIVE format
-            STRING_AGG(pr.drug, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) 
+            STRING_AGG(
+                TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+                , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
+            ) 
           ELSE
             MAX(pr.drug) 
           END AS drug_code              

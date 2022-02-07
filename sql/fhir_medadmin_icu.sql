@@ -23,7 +23,10 @@ WITH fhir_medication_administration_icu AS (
   
   		-- reference uuids
   		, uuid_generate_v5(ns_medication_administration_icu.uuid, ie.stay_id || '-' || ie.orderid || '-' || ie.itemid) AS uuid_INPUTEVENT
-  		, uuid_generate_v5(ns_medication.uuid, di.label) AS uuid_MEDICATION 
+  		, uuid_generate_v5(
+  		    ns_medication.uuid
+  		    , TRIM(REGEXP_REPLACE(di.label, '\s+', ' ', 'g'))
+  		) AS uuid_MEDICATION 
   		, uuid_generate_v5(ns_patient.uuid, CAST(ie.subject_id AS TEXT)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter_icu.uuid, CAST(ie.stay_id AS TEXT)) AS uuid_STAY_ID
   	FROM

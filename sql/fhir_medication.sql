@@ -12,7 +12,10 @@ WITH fhir_medication_hosp AS (
 	SELECT DISTINCT
 	    -- FHIR validator will fail if there are double spaces, so trim them out
   		TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g')) AS drug
-  		, uuid_generate_v5(ns_medication.uuid, pr.drug) as uuid_DRUG
+  		, uuid_generate_v5(
+  		    ns_medication.uuid
+  		    , TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+  		) as uuid_DRUG
   	FROM
   		mimic_hosp.prescriptions pr	
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication
@@ -22,7 +25,10 @@ WITH fhir_medication_hosp AS (
 ), fhir_medication_icu AS (
 	SELECT DISTINCT
   		TRIM(REGEXP_REPLACE(di.label, '\s+', ' ', 'g')) AS drug
-  		, uuid_generate_v5(ns_medication.uuid, di.label) as uuid_DRUG
+  		, uuid_generate_v5(
+  		    ns_medication.uuid
+  		    , TRIM(REGEXP_REPLACE(di.label, '\s+', ' ', 'g'))
+  		) as uuid_DRUG
   	FROM
   		mimic_icu.d_items di
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication
@@ -45,7 +51,7 @@ SELECT
       	, 'code',
               jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-drug'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-code'  
                   , 'code', drug
               ))
             )	
