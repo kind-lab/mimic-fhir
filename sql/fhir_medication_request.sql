@@ -1,4 +1,5 @@
--- Purpose: Generate a FHIR MedicationRequest resource for each row in the pharmacy table
+-- Purpose: Generate a FHIR MedicationRequest resource for each row in the pharmacy table.
+--          Add in the prescription requests that are not found in pharmacy too.
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
 DROP TABLE IF EXISTS mimic_fhir.medication_request;
@@ -7,23 +8,64 @@ CREATE TABLE mimic_fhir.medication_request(
   	fhir 	jsonb NOT NULL 
 );
 
-WITH fhir_medication_request AS (
+
+-- Create a list of all the unique pharmacy ids
+WITH pharmacy_ids AS (
+    SELECT DISTINCT pharmacy_id, subject_id, hadm_id 
+    FROM mimic_hosp.prescriptions 
+    
+    UNION
+    
+    SELECT DISTINCT pharmacy_id, subject_id, hadm_id 
+    FROM mimic_hosp.pharmacy p 
+    
+-- Group prescriptions to make into one complete medication request
+), prescript_request AS (
+    SELECT 
+        pr.pharmacy_id
+        , MAX(pr.route) AS route -- ALL routes across drugs IN a prescription ARE the same
+        , MAX(pr.starttime) AS starttime 
+        , MAX(pr.stoptime) AS stoptime
+        , MAX(pr.hadm_id) AS hadm_id
+        , MAX(pr.subject_id) AS subject_id
+        , STRING_AGG(
+            TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+            , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
+        ) AS drug_code  
+    FROM 
+        mimic_hosp.prescriptions pr
+        LEFT JOIN mimic_hosp.pharmacy ph
+            ON pr.pharmacy_id = ph.pharmacy_id 
+    GROUP BY pr.pharmacy_id 
+), fhir_medication_request AS (
 	SELECT
-  		CAST(ph.pharmacy_id AS TEXT) AS ph_PHARMACY_ID
-  		, stat.fhir_status AS stat_FHIR_STATUS
-  		, TRIM(ph.route) AS ph_ROUTE
-  		, CAST(ph.starttime AS TIMESTAMPTZ) AS ph_STARTTIME
-  		, CAST(ph.stoptime AS TIMESTAMPTZ) AS ph_STOPTIME  		
+  		CAST(pid.pharmacy_id AS TEXT) AS pid_PHARMACY_ID
+  		, stat.fhir_status AS stat_FHIR_STATUS -- NULL IF ONLY prescription link (missing pharmacy link)
+  		, TRIM(COALESCE(ph.route, pr.route)) AS ph_ROUTE
+  		, CAST(COALESCE(ph.starttime, pr.starttime) AS TIMESTAMPTZ) AS ph_STARTTIME
+  		, CAST(COALESCE(ph.stoptime, pr.stoptime) AS TIMESTAMPTZ) AS ph_STOPTIME  	
+  		
+  		-- dosage information. Only populated for pharmacy, so any prescriptions 
+  		-- without a pharmacy entry will just have NULL values (could Coalesce for clarity)
+  		, TRIM(REGEXP_REPLACE(ph.frequency, '\s+', ' ', 'g')) AS ph_FREQUENCY -- trim FOR whitespace rules IN FHIR
+  		--, ph.disp_sched AS ph_DISP_SCHED -- CONVERT TO HH:MM:SS format AND split BY comma
+  		, ph.one_hr_max AS ph_ONE_HR_MAX
+  		, ph.duration AS ph_DURATION 
+        , medu.fhir_unit AS medu_FHIR_UNIT
   
   		-- reference uuids
-  		, uuid_generate_v5(ns_medication_request.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
-  		, uuid_generate_v5(ns_medication.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION 
-  		, uuid_generate_v5(ns_patient.uuid, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(ns_encounter.uuid, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(ns_medication_request.uuid, CAST(pid.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
+  		, uuid_generate_v5(ns_medication.uuid, pr.drug_code) AS uuid_MEDICATION 
+  		, uuid_generate_v5(ns_patient.uuid, CAST(pid.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(pid.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
-  		mimic_hosp.pharmacy ph
+  	    pharmacy_ids pid
+  	    LEFT JOIN mimic_hosp.pharmacy ph
+            ON pid.pharmacy_id = ph.pharmacy_id  
+        LEFT JOIN prescript_request pr
+            ON pid.pharmacy_id = pr.pharmacy_id
   		INNER JOIN fhir_etl.subjects sub
-  			ON ph.subject_id = sub.subject_id 
+  			ON pid.subject_id = sub.subject_id 
   		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
   			ON ns_encounter.name = 'Encounter'
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -32,8 +74,12 @@ WITH fhir_medication_request AS (
   			ON ns_medication.name = 'Medication'
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
   			ON ns_medication_request.name = 'MedicationRequest'
+  		
+  		-- ValueSet mapping	
   		LEFT JOIN fhir_etl.map_medreq_status stat
   		    ON ph.status = stat.mimic_status   
+  		LEFT JOIN fhir_etl.map_med_duration_unit medu 
+  		    ON ph.duration_interval = medu.mimic_unit 
 ) 
 
 INSERT INTO mimic_fhir.medication_request
@@ -50,7 +96,7 @@ SELECT
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(
-                  'value', ph_PHARMACY_ID
+                  'value', pid_PHARMACY_ID
                   , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
         		)
       		)	
@@ -70,13 +116,43 @@ SELECT
                   , 'code', ph_ROUTE
               ))
             )
+            , 'timing', jsonb_build_object(
+                'code', jsonb_build_object(
+                    'coding', jsonb_build_array(jsonb_build_object(
+                        'code', ph_FREQUENCY
+                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-frequency'
+                    ))
+                )
+                , 'repeat', CASE WHEN ph_DURATION IS NOT NULL THEN jsonb_build_object(
+                    'duration', ph_DURATION
+                    , 'durationUnit', jsonb_build_object(
+                        'coding', jsonb_build_array(jsonb_build_object(
+                            'code', medu_FHIR_UNIT
+                            , 'system', 'http://unitsofmeasure.org'
+                        ))
+                    )
+                        
+                ) ELSE NULL END
+                
+            )
+            , 'maxDosePerPeriod', CASE WHEN ph_ONE_HR_MAX IS NOT NULL THEN jsonb_build_object(
+                'numerator', jsonb_build_object(
+                    'value', ph_ONE_HR_MAX
+                ) 
+                , 'denominator', jsonb_build_object(
+                    'value', 1
+                    , 'unit', 'h'
+                    , 'system', 'http://unitsofmeasure.org'
+                )         
+            ) ELSE NULL END
+            
         ))
-        , 'dispenseRequest', jsonb_build_object(
+        , 'dispenseRequest', CASE WHEN ph_STARTTIME IS NOT NULL THEN jsonb_build_object(
         	 'validityPeriod', jsonb_build_object(
                	'start', ph_STARTTIME
                	, 'end', ph_STOPTIME
               )
-        )      
+        ) ELSE NULL END     
     )) AS fhir  
 FROM
 	fhir_medication_request
