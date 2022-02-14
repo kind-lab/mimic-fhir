@@ -49,7 +49,7 @@ SELECT
         , 'status', 'final'
       	, 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
                 , 'code', di_CATEGORY
             ))
           ))
