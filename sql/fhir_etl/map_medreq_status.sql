@@ -15,7 +15,8 @@ VALUES
 	('Expired', 'ended'),
 	('Active', 'active'),
 	('Discontinued', 'completed'),
-	('H', 'unknown')
+	('H', 'unknown'),
+	('Inactive',  'stopped') -- just FOR poe order_status
 	
 
 	

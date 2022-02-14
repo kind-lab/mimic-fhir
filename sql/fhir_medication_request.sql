@@ -9,6 +9,10 @@ CREATE TABLE mimic_fhir.medication_request(
 );
 
 
+-- Create medicationRequest resources from the prescription and pharmacy TABLES 
+-- Pull information from both tables to make more complete request
+
+
 -- Create a list of all the unique pharmacy ids
 WITH pharmacy_ids AS (
     SELECT DISTINCT pharmacy_id, subject_id, hadm_id 
@@ -28,19 +32,24 @@ WITH pharmacy_ids AS (
         , MAX(pr.stoptime) AS stoptime
         , MAX(pr.hadm_id) AS hadm_id
         , MAX(pr.subject_id) AS subject_id
+        
+        -- Dosage information
+        , MAX(dose_val_rx) AS dose_val_rx        
+        , MAX(dose_unit_rx) AS dose_unit_rx        
+        , MAX(form_val_disp) AS form_val_disp    
+        , MAX(form_unit_disp) AS form_unit_disp
+        , MAX(prod_strength) AS prod_strength
         , STRING_AGG(
             TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
             , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
         ) AS drug_code  
     FROM 
         mimic_hosp.prescriptions pr
-        LEFT JOIN mimic_hosp.pharmacy ph
-            ON pr.pharmacy_id = ph.pharmacy_id 
     GROUP BY pr.pharmacy_id 
 ), fhir_medication_request AS (
 	SELECT
   		CAST(pid.pharmacy_id AS TEXT) AS pid_PHARMACY_ID
-  		, stat.fhir_status AS stat_FHIR_STATUS -- NULL IF ONLY prescription link (missing pharmacy link)
+  		, COALESCE(stat.fhir_status, 'unknown') AS stat_FHIR_STATUS -- NULL IF ONLY prescription link (missing pharmacy link). Coalesce AS unknown
   		, TRIM(COALESCE(ph.route, pr.route)) AS ph_ROUTE
   		, CAST(COALESCE(ph.starttime, pr.starttime) AS TIMESTAMPTZ) AS ph_STARTTIME
   		, CAST(COALESCE(ph.stoptime, pr.stoptime) AS TIMESTAMPTZ) AS ph_STOPTIME  	
@@ -52,10 +61,19 @@ WITH pharmacy_ids AS (
   		, ph.one_hr_max AS ph_ONE_HR_MAX
   		, ph.duration AS ph_DURATION 
         , medu.fhir_unit AS medu_FHIR_UNIT
-  
+        , CAST(ph.entertime AS TIMESTAMPTZ) AS ph_ENTERTIME
+        
+        -- dosage information from prescriptions
+        , pr.dose_val_rx AS pr_DOSE_VAL_RX
+        , TRIM(pr.dose_unit_rx) AS pr_DOSE_UNIT_RX
+        , pr.form_val_disp AS pr_FORM_VAL_DISP
+        , pr.form_unit_disp AS pr_FORM_UNIT_DISP
+        , pr.prod_strength AS pr_PROD_STRENGTH
+
+            
   		-- reference uuids
   		, uuid_generate_v5(ns_medication_request.uuid, CAST(pid.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
-  		, uuid_generate_v5(ns_medication.uuid, pr.drug_code) AS uuid_MEDICATION 
+  		, uuid_generate_v5(ns_medication.uuid, COALESCE(pr.drug_code, ph.medication)) AS uuid_MEDICATION 
   		, uuid_generate_v5(ns_patient.uuid, CAST(pid.subject_id AS TEXT)) AS uuid_SUBJECT_ID
   		, uuid_generate_v5(ns_encounter.uuid, CAST(pid.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
@@ -109,13 +127,23 @@ SELECT
       		  THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
       		  ELSE NULL
       		END
+      	, 'authoredOn', ph_ENTERTIME
         , 'dosageInstruction', jsonb_build_array(jsonb_build_object(
-        	'route', jsonb_build_object(
+            'text', pr_PROD_STRENGTH
+        	, 'route', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
                   'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
                   , 'code', ph_ROUTE
               ))
             )
+            ,'doseAndRate', CASE WHEN pr_DOSE_VAL_RX IS NOT NULL THEN jsonb_build_array(jsonb_build_object(
+                'doseQuantity', jsonb_build_object(
+                    'value', pr_DOSE_VAL_RX
+                    , 'unit', pr_DOSE_UNIT_RX
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                    , 'code', pr_DOSE_UNIT_RX
+                )
+            )) ELSE NULL END
             , 'timing', jsonb_build_object(
                 'code', jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
@@ -155,4 +183,81 @@ SELECT
         ) ELSE NULL END     
     )) AS fhir  
 FROM
-	fhir_medication_request
+	fhir_medication_request;
+	
+	
+	
+	
+-- Create medicationRequest resources poe table for emar events without pharmacy_id
+-- And for now just grab emar events with non-null medication values
+
+-- get unique poe_id that show up in emar, without pharmacy_id and with medication
+WITH poe_medreq AS (
+SELECT DISTINCT poe_id, medication FROM mimic_hosp.emar e
+WHERE 
+    pharmacy_id IS NULL
+    AND medication IS NOT NULL
+), fhir_poe_medication_request AS (
+    SELECT
+        poe.poe_id AS poe_POE_ID
+        , poe.ordertime AS poe_ORDERTIME 
+         , COALESCE(stat.fhir_status, 'unknown') AS stat_FHIR_STATUS
+    
+        -- reference uuids
+        , uuid_generate_v5(ns_medication_request.uuid, poe.poe_id) AS uuid_MEDICATION_REQUEST 
+        , uuid_generate_v5(ns_medication.uuid, pm.medication) AS uuid_MEDICATION 
+        , uuid_generate_v5(ns_patient.uuid, CAST(poe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+        , uuid_generate_v5(ns_encounter.uuid, CAST(poe.hadm_id AS TEXT)) AS uuid_HADM_ID
+    FROM
+        poe_medreq pm
+        INNER JOIN mimic_hosp.poe poe
+            ON pm.poe_id = poe.poe_id
+        INNER JOIN fhir_etl.subjects sub
+            ON poe.subject_id = sub.subject_id 
+        
+        -- uuid namespaces
+        LEFT JOIN fhir_etl.uuid_namespace ns_encounter
+            ON ns_encounter.name = 'Encounter'
+        LEFT JOIN fhir_etl.uuid_namespace ns_patient
+            ON ns_patient.name = 'Patient'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication
+            ON ns_medication.name = 'Medication'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
+            ON ns_medication_request.name = 'MedicationRequest'
+        
+        --status mapping
+        LEFT JOIN fhir_etl.map_medreq_status stat
+            ON poe.order_status = stat.mimic_status            
+)
+INSERT INTO mimic_fhir.medication_request
+SELECT 
+    uuid_MEDICATION_REQUEST AS id
+    , jsonb_strip_nulls(jsonb_build_object(
+        'resourceType', 'MedicationRequest'
+        , 'id', uuid_MEDICATION_REQUEST
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-request'
+            )
+         ) 
+        , 'identifier', 
+            jsonb_build_array(
+                jsonb_build_object(
+                  'value', poe_POE_ID
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
+                )
+            )   
+        , 'status', stat_FHIR_STATUS
+        , 'intent', 'order'
+        , 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
+        , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
+        , 'encounter', 
+            CASE WHEN uuid_HADM_ID IS NOT NULL
+              THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
+              ELSE NULL
+            END
+        , 'authoredOn', poe_ORDERTIME 
+
+    )) AS fhir  
+FROM
+    fhir_poe_medication_request;

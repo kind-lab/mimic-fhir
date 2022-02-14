@@ -97,7 +97,7 @@ SELECT
         , 'status', 'completed' -- All medication adminstrations considered complete
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-      	, 'context', 
+      	, 'encounter', 
       		CASE WHEN uuid_HADM_ID IS NOT NULL
       		  THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
       		  ELSE NULL
