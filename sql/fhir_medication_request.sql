@@ -1,4 +1,4 @@
--- Purpose: Generate a FHIR MedicationRequest resource for each row in the pharmacy table.
+-- Purpose: Generate a FHIR MedicationRequest resource for each row in the prescriptions/pharmacy tables.
 --          Add in the prescription requests that are not found in pharmacy too.
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
