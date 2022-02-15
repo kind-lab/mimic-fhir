@@ -1,9 +1,9 @@
--- Generate unique item codes for only the chartevents
+-- Generate unique item codes for only the datetime events
 
 SELECT 
-    DISTINCT di.itemid, di.label
+    DISTINCT dt.itemid, di.label
 FROM 
     mimic_icu.datetimeevents dt
-    LEFT JOIN mimic_icu.d_items di 
+    INNER JOIN mimic_icu.d_items di 
         ON dt.itemid = di.itemid
             
