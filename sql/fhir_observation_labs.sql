@@ -3,91 +3,88 @@
 
 DROP TABLE IF EXISTS mimic_fhir.observation_labs;
 CREATE TABLE mimic_fhir.observation_labs(
-	id 		uuid PRIMARY KEY,
-	patient_id  uuid NOT NULL,
-  	fhir 	jsonb NOT NULL 
+    id          uuid PRIMARY KEY,
+    patient_id  uuid NOT NULL,
+    fhir        jsonb NOT NULL 
 );
 
 WITH fhir_observation_labs AS (
-	SELECT
-  		CAST(lab.labevent_id AS TEXT) AS lab_LABEVENT_ID 
-  		, CAST(lab.itemid AS TEXT) AS lab_ITEMID
-  		, dlab.label AS dlab_LABEL
-  		, CAST(lab.charttime AS TIMESTAMPTZ) AS lab_CHARTTIME
-  		, CAST(lab.storetime AS TIMESTAMPTZ) AS lab_STORETIME
-  		, lab.flag AS lab_FLAG
-  		, lab.comments AS lab_COMMENTS
-   		, lab.ref_range_lower AS lab_REF_RANGE_LOWER
-  		, lab.ref_range_upper AS lab_REF_RANGE_UPPER
-  		, lab.valueuom AS lab_VALUEUOM
-  		, lab.value AS lab_VALUE
+    SELECT
+        CAST(lab.labevent_id AS TEXT) AS lab_LABEVENT_ID 
+        , CAST(lab.itemid AS TEXT) AS lab_ITEMID
+        , dlab.label AS dlab_LABEL
+        , CAST(lab.charttime AS TIMESTAMPTZ) AS lab_CHARTTIME
+        , CAST(lab.storetime AS TIMESTAMPTZ) AS lab_STORETIME
+        , lab.flag AS lab_FLAG
+        , lab.comments AS lab_COMMENTS
+        , lab.ref_range_lower AS lab_REF_RANGE_LOWER
+        , lab.ref_range_upper AS lab_REF_RANGE_UPPER
+        , lab.valueuom AS lab_VALUEUOM
+        , lab.value AS lab_VALUE
   
-  		-- Parse values with a comparator and pulling out numeric value
+        -- Parse values with a comparator and pulling out numeric value
         , CASE 
-  			WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
+            WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
             WHEN value LIKE '%<%' THEN CAST(split_part(lab.value,'<',2) AS NUMERIC)
-  			WHEN value LIKE '%>=%' THEN CAST(split_part(lab.value,'>=',2) AS NUMERIC)
+            WHEN value LIKE '%>=%' THEN CAST(split_part(lab.value,'>=',2) AS NUMERIC)
             WHEN value LIKE '%>%' THEN CAST(split_part(lab.value,'>',2) AS NUMERIC)
             WHEN value LIKE '%GREATER THAN%' THEN CAST(split_part(lab.value,'GREATER THAN',2) AS NUMERIC)
             WHEN value LIKE '%LESS THAN%' THEN CAST(split_part(lab.value,'LESS THAN',2) AS NUMERIC)
             ELSE lab.valuenum
-          END as lab_VALUENUM
+        END as lab_VALUENUM
         , CASE 
-  			 WHEN value LIKE '%<=%' THEN '<='
-             WHEN value LIKE '%<%' THEN '<'
-  			 WHEN value LIKE '%>=%' THEN '>='
-             WHEN value LIKE '%>%' THEN '>'
-             WHEN value LIKE '%GREATER THAN%' THEN '>'
-             WHEN value LIKE '%LESS THAN%' THEN '<'
-             ELSE NULL
-          END as VALUE_COMPARATOR  		
+            WHEN value LIKE '%<=%' THEN '<='
+            WHEN value LIKE '%<%' THEN '<'
+            WHEN value LIKE '%>=%' THEN '>='
+            WHEN value LIKE '%>%' THEN '>'
+            WHEN value LIKE '%GREATER THAN%' THEN '>'
+            WHEN value LIKE '%LESS THAN%' THEN '<'
+            ELSE NULL
+        END as VALUE_COMPARATOR  		
   
-  		-- reference uuids
-  		, uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
-  		, uuid_generate_v5(ns_patient.uuid, CAST(lab.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(ns_encounter.uuid, CAST(lab.hadm_id AS TEXT)) AS uuid_HADM_ID
-  		, uuid_generate_v5(ns_specimen.uuid, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN_ID
-  	FROM
-  		mimic_hosp.labevents lab
-  		INNER JOIN fhir_etl.subjects sub
-  			ON lab.subject_id =sub.subject_id 
-  		LEFT JOIN mimic_hosp.d_labitems dlab
+        -- reference uuids
+        , uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
+        , uuid_generate_v5(ns_patient.uuid, CAST(lab.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+        , uuid_generate_v5(ns_encounter.uuid, CAST(lab.hadm_id AS TEXT)) AS uuid_HADM_ID
+        , uuid_generate_v5(ns_specimen.uuid, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN_ID
+    FROM
+        mimic_hosp.labevents lab
+        INNER JOIN fhir_etl.subjects sub
+            ON lab.subject_id =sub.subject_id 
+        LEFT JOIN mimic_hosp.d_labitems dlab
             ON lab.itemid = dlab.itemid                   	   		
-  		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
-  			ON ns_encounter.name = 'Encounter'
-  		LEFT JOIN fhir_etl.uuid_namespace ns_patient
-  			ON ns_patient.name = 'Patient'
-  		LEFT JOIN fhir_etl.uuid_namespace ns_observation_labs
-  			ON ns_observation_labs.name = 'ObservationLabs'
-  		LEFT JOIN fhir_etl.uuid_namespace ns_specimen
-  			ON ns_specimen.name = 'Specimen'
+        LEFT JOIN fhir_etl.uuid_namespace ns_encounter
+            ON ns_encounter.name = 'Encounter'
+        LEFT JOIN fhir_etl.uuid_namespace ns_patient
+            ON ns_patient.name = 'Patient'
+        LEFT JOIN fhir_etl.uuid_namespace ns_observation_labs
+            ON ns_observation_labs.name = 'ObservationLabs'
+        LEFT JOIN fhir_etl.uuid_namespace ns_specimen
+            ON ns_specimen.name = 'Specimen'
 )
 INSERT INTO mimic_fhir.observation_labs
 SELECT 
-	uuid_LABEVENT_ID as id
-	, uuid_SUBJECT_ID AS patient_id 
-	, jsonb_strip_nulls(jsonb_build_object(
-    	'resourceType', 'Observation'
+    uuid_LABEVENT_ID as id
+    , uuid_SUBJECT_ID AS patient_id 
+    , jsonb_strip_nulls(jsonb_build_object(
+        'resourceType', 'Observation'
         , 'id', uuid_LABEVENT_ID
         , 'meta', jsonb_build_object(
-        	'profile', jsonb_build_array(
-        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-lab'
-        	)
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-lab'
+            )
         ) 
-      	, 'identifier', 
-      	    jsonb_build_array(
-                jsonb_build_object(
-                    'value', lab_LABEVENT_ID
-                    , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labs'
-                )
-      	    )		 
+        , 'identifier', jsonb_build_array(jsonb_build_object(
+            'value', lab_LABEVENT_ID
+            , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labs'
+        ))		 
         , 'status', 'final' -- All observations are considered final
-      	, 'category', jsonb_build_array(jsonb_build_object(
+        , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
             ))
-          ))
+        ))
           
         -- Lab test completed  
         , 'code', jsonb_build_object(
@@ -96,50 +93,45 @@ SELECT
                 , 'code', lab_ITEMID
                 , 'display', dlab_LABEL
             ))
-          )
+        )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', 
-      	    CASE WHEN uuid_HADM_ID IS NOT NULL
-      	        THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
-      	    ELSE NULL
-      	    END
+            CASE WHEN uuid_HADM_ID IS NOT NULL
+                THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
+            ELSE NULL END
         , 'effectiveDateTime', lab_CHARTTIME
         , 'issued', lab_STORETIME
-      	, 'valueQuantity', 
+        , 'valueQuantity', 
             CASE WHEN lab_VALUENUM IS NOT NULL THEN
-               jsonb_build_object(
-                 'value', lab_VALUENUM
-                 , 'unit', lab_VALUEUOM
-                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
-                 , 'code', lab_VALUEUOM 
-                 , 'comparator', VALUE_COMPARATOR
-               ) 
-            ELSE NULL
-            END
+                jsonb_build_object(
+                    'value', lab_VALUENUM
+                    , 'unit', lab_VALUEUOM
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                    , 'code', lab_VALUEUOM 
+                    , 'comparator', VALUE_COMPARATOR
+                ) 
+            ELSE NULL END
         , 'valueString', 
-      	    CASE WHEN lab_VALUENUM IS NULL THEN
-      	        lab_VALUE
-      	    ELSE NULL
-      	    END      
-      	, 'interpretation', 
-      	    CASE WHEN lab_FLAG IS NOT NULL THEN
-      	        jsonb_build_array(jsonb_build_object(
+            CASE WHEN lab_VALUENUM IS NULL THEN
+                lab_VALUE
+            ELSE NULL END      
+        , 'interpretation', 
+            CASE WHEN lab_FLAG IS NOT NULL THEN
+                jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
                         'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-flags'  
                         , 'code', lab_FLAG
                     ))
                 ))
-      	    ELSE NULL
-      	    END
+            ELSE NULL END
       	    
         -- Add clinical notes    
         , 'note', 
-      		CASE WHEN lab_COMMENTS IS NOT NULL THEN
-      			jsonb_build_array(jsonb_build_object(
-                  'text', lab_COMMENTS
+            CASE WHEN lab_COMMENTS IS NOT NULL THEN
+                jsonb_build_array(jsonb_build_object(
+                    'text', lab_COMMENTS
                 ))
-      	    ELSE NULL
-      	    END
+            ELSE NULL END
         --, 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
         , 'referenceRange', 
             CASE WHEN lab_REF_RANGE_LOWER IS NOT NULL THEN	
@@ -149,17 +141,16 @@ SELECT
                         , 'unit', lab_VALUEUOM
                         , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                         , 'code', lab_VALUEUOM
-                     )
-                     , 'high', jsonb_build_object(
-                         'value', lab_REF_RANGE_UPPER
-                         , 'unit', lab_VALUEUOM
-                         , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
-                         , 'code', lab_VALUEUOM
-                     )
-              ))
-      	    ELSE NULL
-      	    END
+                    )
+                    , 'high', jsonb_build_object(
+                        'value', lab_REF_RANGE_UPPER
+                        , 'unit', lab_VALUEUOM
+                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                        , 'code', lab_VALUEUOM
+                    )
+                ))
+            ELSE NULL END
     )) as fhir 
 FROM
-	fhir_observation_labs
+    fhir_observation_labs
 LIMIT 1000

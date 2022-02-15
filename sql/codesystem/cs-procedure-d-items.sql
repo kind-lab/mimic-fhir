@@ -3,7 +3,7 @@
 SELECT 
     DISTINCT di.itemid, di.label
 FROM 
-	mimic_icu.procedureevents pe
-	LEFT JOIN mimic_icu.d_items di 
-	    ON pe.itemid = di.itemid
+    mimic_icu.procedureevents pe
+    LEFT JOIN mimic_icu.d_items di 
+        ON pe.itemid = di.itemid
             

@@ -29,7 +29,7 @@ codesystems = [
     'discharge-disposition', 'lab-flags', 'medadmin-category-icu',
     'medication-method', 'medication-route', 'medication-site',
     'microbiology-antibiotic', 'microbiology-interpretation',
-    'microbiology-organism', 'microbiology-test', 'mimic-observation-category',
+    'microbiology-organism', 'microbiology-test', 'observation-category',
     'procedure-category', 'procedure-icd9', 'procedure-icd10', 'units'
 ]
 
@@ -39,13 +39,13 @@ valuesets = [
     'diagnosis-icd', 'discharge-disposition', 'lab-flags',
     'medadmin-category-icu', 'medication-method', 'medication-route',
     'medication-site', 'microbiology-antibiotic', 'microbiology-interpretation',
-    'microbiology-organism', 'microbiology-test', 'mimic-observation-category',
+    'microbiology-organism', 'microbiology-test', 'observation-category',
     'outputevents-d-items', 'procedure-category', 'procedure-d-items',
     'procedure-icd', 'units'
 ]
 
 for codesystem in codesystems:
-    codesystem_file = 'CodeSystem-' + codesystem + '.json'
+    codesystem_file = f'CodeSystem-{codesystem}.json'
     codesystem_path = base_path / codesystem_file
     with open(codesystem_path, mode='r') as cs_content:
         cs = json.load(cs_content)
@@ -54,7 +54,7 @@ for codesystem in codesystems:
     put_resource('CodeSystem', cs)
 
 for valueset in valuesets:
-    valueset_file = 'ValueSet-' + valueset + '.json'
+    valueset_file = f'ValueSet-{valueset}.json'
     valueset_path = base_path / valueset_file
     with open(valueset_path, mode='r') as vs_content:
         vs = json.load(vs_content)
