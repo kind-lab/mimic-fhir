@@ -136,14 +136,16 @@ SELECT
                   , 'code', ph_ROUTE
               ))
             )
-            ,'doseAndRate', CASE WHEN pr_DOSE_VAL_RX IS NOT NULL THEN jsonb_build_array(jsonb_build_object(
+            
+            -- dose_val_rx has ranges and free text, need to clean up so passing numeric values to validator
+            /*,'doseAndRate', CASE WHEN pr_DOSE_VAL_RX IS NOT NULL THEN jsonb_build_array(jsonb_build_object(
                 'doseQuantity', jsonb_build_object(
                     'value', pr_DOSE_VAL_RX
                     , 'unit', pr_DOSE_UNIT_RX
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                     , 'code', pr_DOSE_UNIT_RX
                 )
-            )) ELSE NULL END
+            )) ELSE NULL END */
             , 'timing', jsonb_build_object(
                 'code', jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
