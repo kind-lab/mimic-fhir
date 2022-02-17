@@ -34,7 +34,7 @@ WITH pr_drug_code AS (
         
 ), fhir_medication_administration AS (
     SELECT
-        emd.emar_id || '-' || emd.emar_seq || emd.parent_field_ordinal AS em_MEDADMIN_ID
+        emd.emar_id || '-' || emd.parent_field_ordinal AS em_MEDADMIN_ID
         , CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
   		
         -- FHIR VALIDATOR does NOT accept leading/trailing white spaces, so trim values
@@ -66,9 +66,10 @@ WITH pr_drug_code AS (
   		-- reference uuids
         , uuid_generate_v5(
             ns_medication_administration.uuid, 
-            emd.emar_id || '-' || emd.emar_seq || emd.parent_field_ordinal
+            emd.emar_id || '-' || emd.parent_field_ordinal
         ) AS uuid_MEDADMIN
         , uuid_generate_v5(ns_medication.uuid, COALESCE(pr.drug_code, em.medication)) AS uuid_MEDICATION 
+        , uuid_generate_v5(ns_medication_request.uuid, CAST(emd.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST
         , uuid_generate_v5(ns_patient.uuid, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(em.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM
@@ -85,6 +86,8 @@ WITH pr_drug_code AS (
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication
             ON ns_medication.name = 'Medication'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
+            ON ns_medication_request.name = 'MedicationRequest'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_administration
             ON ns_medication_administration.name = 'MedicationAdministration'
     WHERE
@@ -110,6 +113,7 @@ SELECT
         ))	
         , 'status', 'completed' -- All medication adminstrations considered complete
         , 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
+        , 'request', jsonb_build_object('reference', 'MedicationRequest/' || uuid_MEDICATION_REQUEST)
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
             CASE WHEN uuid_HADM_ID IS NOT NULL
