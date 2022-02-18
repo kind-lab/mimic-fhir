@@ -65,7 +65,7 @@ WITH pharmacy_ids AS (
         , CAST(ph.entertime AS TIMESTAMPTZ) AS ph_ENTERTIME
         
         -- dosage information from prescriptions
-        , pr.dose_val_rx AS pr_DOSE_VAL_RX
+        , SPLIT_PART(pr.dose_val_rx,'-',1) AS pr_DOSE_VAL_RX -- grab lower bound OF ANY ranges
         , TRIM(pr.dose_unit_rx) AS pr_DOSE_UNIT_RX
         , pr.form_val_disp AS pr_FORM_VAL_DISP
         , pr.form_unit_disp AS pr_FORM_UNIT_DISP
@@ -113,13 +113,17 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-request'
             )
          ) 
-      	, 'identifier', 
-      		jsonb_build_array(
-        		jsonb_build_object(
-                  'value', pid_PHARMACY_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
-        		)
-      		)	
+      	, 'identifier', jsonb_build_array(jsonb_build_object(
+            'value', pid_PHARMACY_ID
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
+            , 'type', jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'value', 'phid'
+                    , 'display', 'Pharmacy ID'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
+                ))
+            )
+        ))	
         , 'status', stat_FHIR_STATUS
       	, 'intent', 'order'
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
@@ -140,14 +144,14 @@ SELECT
             )
             
             -- dose_val_rx has ranges and free text, need to clean up so passing numeric values to validator
-            /*,'doseAndRate', CASE WHEN pr_DOSE_VAL_RX IS NOT NULL THEN jsonb_build_array(jsonb_build_object(
+            ,'doseAndRate', CASE WHEN pr_DOSE_VAL_RX IS NOT NULL THEN jsonb_build_array(jsonb_build_object(
                 'doseQuantity', jsonb_build_object(
                     'value', pr_DOSE_VAL_RX
                     , 'unit', pr_DOSE_UNIT_RX
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                     , 'code', pr_DOSE_UNIT_RX
                 )
-            )) ELSE NULL END */
+            )) ELSE NULL END 
             , 'timing', jsonb_build_object(
                 'code', jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
@@ -245,13 +249,17 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-request'
             )
          ) 
-        , 'identifier', 
-            jsonb_build_array(
-                jsonb_build_object(
-                  'value', poe_POE_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
-                )
-            )   
+        , 'identifier', jsonb_build_array(jsonb_build_object(
+            'value', poe_POE_ID
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
+            , 'type', jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'value', 'poe'
+                    , 'display', 'Provider Order Entry'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
+                ))
+            )
+        )) 
         , 'status', stat_FHIR_STATUS
         , 'intent', 'order'
         , 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
