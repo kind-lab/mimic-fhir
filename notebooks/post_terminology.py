@@ -34,22 +34,23 @@ version = '0.1.1'  # Need to change version to trigger expansion (does not need 
 codesystems = [
     'admission-class', 'admission-type', 'admission-type-icu', 'admit-source',
     'bodysite', 'd-items', 'd-labitems', 'diagnosis-icd9', 'diagnosis-icd10',
-    'discharge-disposition', 'lab-flags', 'medadmin-category-icu',
-    'medication-code', 'medication-method', 'medication-route',
-    'medication-site', 'microbiology-antibiotic', 'microbiology-interpretation',
-    'microbiology-organism', 'microbiology-test', 'observation-category',
-    'procedure-category', 'procedure-icd9', 'procedure-icd10', 'units'
+    'discharge-disposition', 'identifier-type', 'lab-flags',
+    'medadmin-category-icu', 'medication-code', 'medication-method',
+    'medication-route', 'medication-site', 'microbiology-antibiotic',
+    'microbiology-interpretation', 'microbiology-organism', 'microbiology-test',
+    'observation-category', 'procedure-category', 'procedure-icd9',
+    'procedure-icd10', 'units'
 ]
 
 valuesets = [
     'admission-class', 'admission-type', 'admission-type-icu', 'admit-source',
     'bodysite', 'chartevents-d-items', 'datetime-d-items', 'd-labitems',
-    'diagnosis-icd', 'discharge-disposition', 'lab-flags', 'medication-code',
-    'medadmin-category-icu', 'medication-method', 'medication-route',
-    'medication-site', 'microbiology-antibiotic', 'microbiology-interpretation',
-    'microbiology-organism', 'microbiology-test', 'observation-category',
-    'outputevents-d-items', 'procedure-category', 'procedure-d-items',
-    'procedure-icd', 'units'
+    'diagnosis-icd', 'discharge-disposition', 'identifier-type', 'lab-flags',
+    'medadmin-category-icu', 'medication-code', 'medication-method',
+    'medication-route', 'medication-site', 'microbiology-antibiotic',
+    'microbiology-interpretation', 'microbiology-organism', 'microbiology-test',
+    'observation-category', 'outputevents-d-items', 'procedure-category',
+    'procedurevents-d-items', 'procedure-icd', 'units'
 ]
 
 for codesystem in codesystems:

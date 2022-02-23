@@ -42,6 +42,8 @@ WITH pr_drug_code AS (
         , TRIM(emd.route) AS emd_ROUTE
         , TRIM(em.event_txt) AS em_EVENT_TXT 
         
+        
+        
         -- dose given, grab numeric value if present
         , CASE 
             WHEN emd.dose_given IN ('N', 'INI') THEN 
@@ -59,7 +61,16 @@ WITH pr_drug_code AS (
                 TRIM(emd.dose_given_unit)
             ELSE NULL -- accounts FOR 46,000 VALUES WITH FREE text      
         END AS emd_DOSE_GIVEN_UNIT
-  		
+        
+        -- store free text dose_given in text
+        , CASE 
+            WHEN emd.dose_given IN ('N', 'INI') THEN 
+                NULL
+            WHEN emd.dose_given ~ '^[0-9\.]+$' THEN -- ALL NUMERIC
+                '1'
+            ELSE CONCAT('dose_given: ', emd.dose_given, emd.dose_given_unit) -- accounts FOR 46,000 VALUES WITH FREE text      
+        END AS emd_DOSE_GIVEN_TEXT
+        
         , emd.infusion_rate AS emd_INFUSION_RATE
         , TRIM(emd.infusion_rate_unit) AS emd_INFUSION_RATE_UNIT -- FHIR VALIDATOR fails IF ANY leading/trailing white space present
   
@@ -121,7 +132,8 @@ SELECT
             ELSE NULL END
         , 'effectiveDateTime', em_CHARTTIME
         , 'dosage', jsonb_build_object(
-            'site', 
+            'text', emd_DOSE_GIVEN_TEXT
+            , 'site', 
                 CASE WHEN emd_SITE IS NOT NULL THEN 
                     jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(

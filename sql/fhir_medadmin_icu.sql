@@ -58,13 +58,17 @@ SELECT
         		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration-icu'
         	)
         ) 
-        , 'identifier', 
-      		jsonb_build_array(
-        		jsonb_build_object(
-                  'value', id_INPUTEVENT
-                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration-icu'
-        		)
-      		)	
+        , 'identifier', jsonb_build_array(jsonb_build_object(
+            'value', id_INPUTEVENT
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration-icu'
+            , 'type', jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'code', 'MEDICU'
+                    , 'display', 'ICU medication administration'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type
+                ))
+            )
+        ))	
         , 'status', 'completed'
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
