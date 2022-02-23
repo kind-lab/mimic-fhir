@@ -8,12 +8,16 @@
 import json
 import requests
 import logging
+import os
+
+# Load env variables (should already have loaded in conftest.py)
+FHIR_SERVER = os.getenv('FHIR_SERVER')
 
 
 # Generic function to validate codes against CodeSystem in HAPI fhir
 def cs_validate_code(codesystem, code):
-    server = 'http://localhost:8080/fhir/'
-    url = server + 'CodeSystem/' + codesystem + '/$validate-code?code=' + code
+    server = FHIR_SERVER
+    url = f'{server}/CodeSystem/{codesystem}/$validate-code?code={code}'
     resp = requests.get(url, headers={"Content-Type": "application/json"})
     cs_output = json.loads(resp.text)
     return (cs_output)

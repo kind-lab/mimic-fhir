@@ -4,12 +4,18 @@ import ndjson
 import os
 import pandas as pd
 from pathlib import Path
-import time
+from dotenv import load_dotenv
+
+# Environment variables
+load_dotenv(Path(Path.cwd()).parents[0] / '.env')
+
+FHIR_SERVER = os.getenv('FHIR_SERVER')
+MIMIC_TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 
 
 # PUT resources to HAPI fhir server
 def put_resource(resource, fhir_data):
-    server = 'http://localhost:8080/fhir/'
+    server = FHIR_SERVER
     url = server + resource + '/' + fhir_data['id']
 
     resp = requests.put(
@@ -20,7 +26,7 @@ def put_resource(resource, fhir_data):
 
 
 # Base path to resources
-base_path = Path('/home/alex/git/mimic-profiles/input/resources/')
+base_path = Path(MIMIC_TERMINOLOGY_PATH)
 version = '0.1.1'  # Need to change version to trigger expansion (does not need to be greater just different)
 
 codesystems = [

@@ -1,12 +1,14 @@
 import json
 import requests
 import logging
+import os
+
+FHIR_SERVER = os.getenv('FHIR_SERVER')
 
 
 # PUT fhir resource to HAPI FHIR server
 def put_resource(resource):
-    server = 'http://localhost:8080/fhir/'
-    url = server + resource['resourceType'] + '/' + resource['id']
+    url = f'{FHIR_SERVER}/{resource["resourceType"]}/{resource["id"]}'
 
     resp = requests.put(
         url, json=resource, headers={"Content-Type": "application/fhir+json"}
@@ -24,7 +26,6 @@ def put_resource(resource):
 
 def test_condition_validation(condition_resource):
     outcome = put_resource(condition_resource)
-
     # if it fails output error message returned from HAPI
     if outcome['resourceType'] == 'OperationOutcome':
         logging.error(outcome)

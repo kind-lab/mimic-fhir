@@ -16,3 +16,6 @@ dependencies:
   - tqdm
   - yapf
   - pip
+  - pip:
+    - python-dotenv
+    

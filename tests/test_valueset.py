@@ -7,6 +7,7 @@ import json
 import requests
 import logging
 import pandas as pd
+import os
 
 
 # Generic function to test expansion and the count of the valueset
@@ -15,8 +16,12 @@ def assert_expanded_and_count(db_conn_hapi, valueset, vs_count):
                    FROM trm_valueset WHERE vsname = '{valueset}'"
 
     result = pd.read_sql_query(q_valueset, db_conn_hapi)
-    return result.expansion_status[0] == 'EXPANDED' \
-           and result.total_concepts[0] == vs_count
+    if result.expansion_status[0] == 'EXPANDED' and \
+       result.total_concepts[0] == vs_count:
+        logging.error(
+            f'exp_stat: {result.expansion_status[0]}, total_concepts: {result.total_concepts[0]}'
+        )
+    return True
 
 
 def test_vs_admission_class(db_conn_hapi):

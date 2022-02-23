@@ -2,8 +2,19 @@ from pathlib import Path
 import json
 import pandas as pd
 import psycopg2
+from dotenv import load_dotenv
+import os
 
 import pytest
+
+# Load environment variables
+load_dotenv(Path(Path.cwd()).parents[0] / '.env')
+
+SQLUSER = os.getenv('SQLUSER')
+SQLPASS = os.getenv('SQLPASS')
+DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
+DBNAME_HAPI = os.getenv('DBNAME_HAPI')
+HOST = os.getenv('HOST')
 
 #from fhir.resources.conceptmap import ConceptMap
 
@@ -16,10 +27,10 @@ def patient_id():
 # Initialize database connection to mimic
 @pytest.fixture(scope="session")
 def db_conn():
-    sqluser = 'postgres'
-    sqlpass = 'postgres'
-    dbname = 'mimic'
-    host = 'localhost'
+    sqluser = SQLUSER
+    sqlpass = SQLPASS
+    dbname = DBNAME_MIMIC
+    host = HOST
 
     conn = psycopg2.connect(
         dbname=dbname, user=sqluser, password=sqlpass, host=host
@@ -30,10 +41,10 @@ def db_conn():
 # Initialize database connection to hapi
 @pytest.fixture(scope="session")
 def db_conn_hapi():
-    sqluser = 'postgres'
-    sqlpass = 'postgres'
-    dbname = 'hapi_r4'
-    host = 'localhost'
+    sqluser = SQLUSER
+    sqlpass = SQLPASS
+    dbname = DBNAME_HAPI
+    host = HOST
 
     conn = psycopg2.connect(
         dbname=dbname, user=sqluser, password=sqlpass, host=host
