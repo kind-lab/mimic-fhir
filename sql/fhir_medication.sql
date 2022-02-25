@@ -4,62 +4,61 @@
 
 DROP TABLE IF EXISTS mimic_fhir.medication;
 CREATE TABLE mimic_fhir.medication(
-	id 		uuid PRIMARY KEY,
-  	fhir 	jsonb NOT NULL 
+    id      uuid PRIMARY KEY,
+    fhir    jsonb NOT NULL 
 );
 
 WITH fhir_medication_hosp AS (
-	SELECT DISTINCT
-	    -- FHIR validator will fail if there are double spaces, so trim them out
-  		TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g')) AS drug
-  		, uuid_generate_v5(
-  		    ns_medication.uuid
-  		    , TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
-  		) as uuid_DRUG
-  	FROM
-  		mimic_hosp.prescriptions pr	
-  		LEFT JOIN fhir_etl.uuid_namespace ns_medication
-  			ON ns_medication.name = 'Medication'
-  	WHERE
-  		drug != ''
+    SELECT DISTINCT
+        -- FHIR validator will fail if there are double spaces, so trim them out
+        TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g')) AS drug
+        , uuid_generate_v5(
+            ns_medication.uuid
+            , TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+        ) as uuid_DRUG
+    FROM
+        mimic_hosp.prescriptions pr	
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication
+            ON ns_medication.name = 'Medication'
+    WHERE
+        drug != ''
 ), fhir_medication_icu AS (
-	SELECT DISTINCT
-  		TRIM(REGEXP_REPLACE(di.label, '\s+', ' ', 'g')) AS drug
-  		, uuid_generate_v5(
-  		    ns_medication.uuid
-  		    , TRIM(REGEXP_REPLACE(di.label, '\s+', ' ', 'g'))
-  		) as uuid_DRUG
-  	FROM
-  		mimic_icu.d_items di
-  		LEFT JOIN fhir_etl.uuid_namespace ns_medication
-  			ON ns_medication.name = 'Medication'
-	WHERE 
-		di.linksto = 'inputevents'
+    SELECT DISTINCT
+        TRIM(REGEXP_REPLACE(di.label, '\s+', ' ', 'g')) AS drug
+        , uuid_generate_v5(
+            ns_medication.uuid
+            , TRIM(REGEXP_REPLACE(di.label, '\s+', ' ', 'g'))
+        ) as uuid_DRUG
+    FROM
+        mimic_icu.d_items di
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication
+            ON ns_medication.name = 'Medication'
+    WHERE 
+    di.linksto = 'inputevents'
 )
 
 INSERT INTO mimic_fhir.medication
 SELECT 
-	uuid_DRUG AS id
-	, jsonb_strip_nulls(jsonb_build_object(
-    	'resourceType', 'Medication'
+    uuid_DRUG AS id
+    , jsonb_strip_nulls(jsonb_build_object(
+        'resourceType', 'Medication'
         , 'id', uuid_DRUG
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
             )
-         ) 
-      	, 'code',
-              jsonb_build_object(
-              'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-code'  
-                  , 'code', drug
-              ))
-            )	
+        ) 
+        , 'code', jsonb_build_object(
+            'coding', jsonb_build_array(jsonb_build_object(
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-code'  
+                , 'code', drug
+            ))
+        )	
     )) AS fhir 
 FROM
-	(
-	    -- Keep only distinct medication from both hosp and icu tables
-		SELECT drug, uuid_DRUG FROM fhir_medication_hosp
-		UNION DISTINCT
-		SELECT drug, uuid_DRUG FROM fhir_medication_icu
-	) AS fhir_medication
+    (
+        -- Keep only distinct medication from both hosp and icu tables
+        SELECT drug, uuid_DRUG FROM fhir_medication_hosp
+        UNION DISTINCT
+        SELECT drug, uuid_DRUG FROM fhir_medication_icu
+    ) AS fhir_medication

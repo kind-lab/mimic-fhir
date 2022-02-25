@@ -42,8 +42,6 @@ WITH pr_drug_code AS (
         , TRIM(emd.route) AS emd_ROUTE
         , TRIM(em.event_txt) AS em_EVENT_TXT 
         
-        
-        
         -- dose given, grab numeric value if present
         , CASE 
             WHEN emd.dose_given IN ('N', 'INI') THEN 
