@@ -63,7 +63,7 @@ SELECT
             , 'type', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
                     'code', 'MEDICU'
-                    , 'display', 'ICU medication administration'
+                    , 'display', 'Medication Admin in the ICU'
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
                 ))
             )

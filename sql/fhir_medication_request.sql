@@ -119,7 +119,7 @@ SELECT
             , 'type', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
                     'value', 'phid'
-                    , 'display', 'Pharmacy ID'
+                    , 'display', 'Pharmacy identifier'
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
                 ))
             )

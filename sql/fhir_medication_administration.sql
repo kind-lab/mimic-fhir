@@ -119,6 +119,13 @@ SELECT
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', em_MEDADMIN_ID
             , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration'	
+            , 'type', jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'code', 'MEDHOSP'
+                    , 'display', 'ICU medication administration'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
+                ))
+            )
         ))	
         , 'status', 'completed' -- All medication adminstrations considered complete
         , 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
