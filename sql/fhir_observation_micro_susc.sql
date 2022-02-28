@@ -15,9 +15,10 @@ WITH fhir_observation_micro_susc AS (
         , CAST(mi.storetime AS TIMESTAMPTZ) AS mi_STORETIME
 
         -- UUID references
-        , uuid_generate_v5(ns_observation_micro_susc.uuid, 
-                    mi.micro_specimen_id || '-' ||  mi.org_itemid || '-' ||  
-                    mi.isolate_num || '-' ||  mi.ab_itemid
+        , uuid_generate_v5(
+            ns_observation_micro_susc.uuid 
+            , mi.micro_specimen_id || '-' ||  mi.org_itemid || '-' ||  
+                mi.isolate_num || '-' ||  mi.ab_itemid
         ) AS uuid_MICRO_SUSC
         , uuid_generate_v5(ns_observation_micro_org.uuid, mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid) AS uuid_MICRO_ORG
         , uuid_generate_v5(ns_patient.uuid, CAST(mi.subject_id AS TEXT)) as uuid_SUBJECT_ID 

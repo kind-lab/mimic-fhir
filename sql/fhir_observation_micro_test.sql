@@ -25,7 +25,13 @@ WITH distinct_org AS (
             END as mi_ORGANISM
 	    
         -- flag for whether a specimen has at least one organism growth  
-        , CASE WHEN MIN(mi.org_itemid) IS NULL THEN FALSE ELSE TRUE END AS valueBoolean
+        , CASE 
+            WHEN MAX(mi.org_itemid) IS NULL AND MAX(mi.COMMENTS) IS NOT NULL 
+                THEN MAX(mi.COMMENTS)
+            WHEN MAX(mi.org_itemid) IS NULL AND MAX(mi.COMMENTS) IS NULL 
+                THEN 'No result present' -- ADD COMMENT FOR EMPTY results
+            ELSE NULL
+        END AS valueString
     FROM 
         mimic_hosp.microbiologyevents mi
         INNER JOIN fhir_etl.subjects sub    
@@ -42,10 +48,10 @@ WITH distinct_org AS (
         , MAX(mi_SUBJECT_ID) AS mi_SUBJECT_ID
         , MAX(mi_HADM_ID) AS mi_HADM_ID
         , MAX(mi_CHARTTIME) AS mi_CHARTTIME
-        , BOOL_OR(valueBoolean) AS valueBoolean  
+        , MAX(valueString) AS valueString  
 
         -- only include organism list if specimen had at least one organism growth
-        , CASE WHEN BOOL_OR(valueBoolean) THEN 
+        , CASE WHEN MAX(valueString) IS NULL THEN 
             json_agg(
                 jsonb_build_object('reference', 
                     'Observation/' || uuid_generate_v5(ns_observation_micro_org.uuid, mi_ORGANISM)
@@ -68,13 +74,14 @@ WITH distinct_org AS (
         , mi_SUBJECT_ID
         , mi_HADM_ID
         , mi_CHARTTIME
-        , valueBoolean
+        , valueString
         , fhir_ORGANISM
         
         -- UUID references
         , uuid_generate_v5(ns_observation_micro_test.uuid, mi_MICRO_SPECIMEN_ID|| '-' || mi_TEST_ITEMID) AS uuid_MICRO_TEST
         , uuid_generate_v5(ns_patient.uuid, CAST(mi_SUBJECT_ID AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(mi_HADM_ID AS TEXT)) AS uuid_HADM_ID	
+        , uuid_generate_v5(ns_encounter.uuid, CAST(mi_MICRO_SPECIMEN_ID AS TEXT)) AS uuid_SPECIMEN 
     FROM
         grouped_org
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -83,6 +90,8 @@ WITH distinct_org AS (
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_test
             ON ns_observation_micro_test.name = 'ObservationMicroTest'
+        LEFT JOIN fhir_etl.uuid_namespace ns_specimen
+            ON ns_specimen.name = 'Specimen'
 )
 
 INSERT INTO mimic_fhir.observation_micro_test  
@@ -112,13 +121,14 @@ SELECT
             ))
         )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
+        , 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN)
         , 'encounter', 
             CASE WHEN uuid_HADM_ID IS NOT NULL THEN
                 jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
             ELSE NULL END
         , 'effectiveDateTime', mi_CHARTTIME
         , 'hasMember', fhir_ORGANISM -- reference one to many organisms
-        , 'valueBoolean', valueBoolean -- flag for organism growth present
+        , 'valueString', valueString -- result notes for tests with no organisms associated
     )) AS fhir 
 FROM
     fhir_observation_micro_test
