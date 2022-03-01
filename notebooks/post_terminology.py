@@ -11,6 +11,8 @@ load_dotenv(Path(Path.cwd()).parents[0] / '.env')
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 MIMIC_TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
+print(f'CWD Directory: {os.getcwd()}')
+print(f'MIMIC_TERMINOLOGY_PATH: {MIMIC_TERMINOLOGY_PATH}')
 
 
 # PUT resources to HAPI fhir server

@@ -18,10 +18,13 @@ def assert_expanded_and_count(db_conn_hapi, valueset, vs_count):
     result = pd.read_sql_query(q_valueset, db_conn_hapi)
     if result.expansion_status[0] == 'EXPANDED' and \
        result.total_concepts[0] == vs_count:
+        result = True
+    else:
+        result = False
         logging.error(
             f'exp_stat: {result.expansion_status[0]}, total_concepts: {result.total_concepts[0]}'
         )
-    return True
+    return result
 
 
 def test_vs_admission_class(db_conn_hapi):
@@ -164,5 +167,5 @@ def test_vs_procedure_icd(db_conn_hapi):
 
 def test_vs_units(db_conn_hapi):
     valueset = 'Units'
-    vs_count = 634
+    vs_count = 686
     assert assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
