@@ -8,6 +8,8 @@ CREATE TABLE mimic_fhir.observation_micro_susc(
 WITH fhir_observation_micro_susc AS (
     SELECT 
         mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
+        , mi.micro_specimen_id || '-' ||  mi.org_itemid || '-' ||  
+            mi.isolate_num || '-' ||  mi.ab_itemid AS id_MICRO_SUSC
         , CAST(mi.ab_itemid AS TEXT) AS mi_AB_ITEMID
         , mi.ab_name AS mi_AB_NAME
         , mi.subject_id AS mi_SUBJECT_ID
@@ -48,6 +50,10 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-susc'
             )
         ) 
+        , 'identifier',  jsonb_build_array(jsonb_build_object(
+            'value', id_MICRO_SUSC
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-micro-susc'
+        ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
