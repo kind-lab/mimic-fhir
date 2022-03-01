@@ -205,3 +205,9 @@ def procedure_resource(validator, db_conn):
 @pytest.fixture(scope="session")
 def procedure_icu_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'procedure_icu')
+
+
+# Return a single specimen resource
+@pytest.fixture(scope="session")
+def specimen_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'specimen')
