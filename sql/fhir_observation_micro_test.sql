@@ -92,7 +92,7 @@ WITH distinct_org AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_test
             ON ns_observation_micro_test.name = 'ObservationMicroTest'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
-            ON ns_specimen.name = 'Specimen'
+            ON ns_specimen.name = 'SpecimenMicro'
 )
 
 INSERT INTO mimic_fhir.observation_micro_test  

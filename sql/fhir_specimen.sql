@@ -5,11 +5,13 @@ CREATE TABLE mimic_fhir.specimen(
     fhir        jsonb NOT NULL 
 );
 
+-- Generate the microbiology specimen first. 
+-- There are overlapping ids used in micro and labs but hold different info (ie with different subjects)
+-- To deal with this separate namespaces will be used to differentiate micro and lab ids
 WITH fhir_specimen AS (
     SELECT 
         mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
-        , MAX(mi.subject_id) AS mi_SUBJECT_ID
-        , CAST(MAX(mi.charttime) AS TIMESTAMPTZ) AS mi_charttime
+        , CAST(MAX(mi.charttime) AS TIMESTAMPTZ) AS mi_CHARTTIME
 
         , uuid_generate_v5(ns_specimen.uuid, CAST(mi.micro_specimen_id AS TEXT)) AS uuid_SPECIMEN
         , uuid_generate_v5(ns_patient.uuid, CAST(MAX(mi.subject_id) AS TEXT)) as uuid_SUBJECT_ID 
@@ -20,7 +22,7 @@ WITH fhir_specimen AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
-            ON ns_specimen.name = 'Specimen'
+            ON ns_specimen.name = 'SpecimenMicro'
     GROUP BY 
         micro_specimen_id 
         , ns_specimen.uuid
@@ -36,7 +38,7 @@ SELECT
         , 'id', uuid_SPECIMEN 
         , 'identifier',   jsonb_build_array(jsonb_build_object(
             'value', mi_MICRO_SPECIMEN_ID
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/specimen'
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/lab-specimen'
         ))      
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'collection', jsonb_build_object(
@@ -44,4 +46,45 @@ SELECT
         ) 
     )) AS fhir
 FROM
-    fhir_specimen
+    fhir_specimen;
+
+-- Lab specimen
+WITH fhir_specimen AS (
+    SELECT 
+        lab.specimen_id  AS lab_SPECIMEN_ID
+        , CAST(MAX(lab.charttime) AS TIMESTAMPTZ) AS lab_CHARTTIME
+
+        , uuid_generate_v5(ns_specimen.uuid, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN
+        , uuid_generate_v5(ns_patient.uuid, CAST(MAX(lab.subject_id) AS TEXT)) as uuid_SUBJECT_ID 
+    FROM 
+        mimic_hosp.labevents lab
+        INNER JOIN fhir_etl.subjects sub
+            ON lab.subject_id = sub.subject_id 
+        LEFT JOIN fhir_etl.uuid_namespace ns_patient
+            ON ns_patient.name = 'Patient'
+        LEFT JOIN fhir_etl.uuid_namespace ns_specimen
+            ON ns_specimen.name = 'SpecimenLab'
+    GROUP BY 
+        specimen_id 
+        , ns_specimen.uuid
+        , ns_patient.uuid
+)  
+  
+INSERT INTO mimic_fhir.specimen 
+SELECT 
+    uuid_SPECIMEN  AS id
+    , uuid_SUBJECT_ID AS patient_id
+    , jsonb_strip_nulls(jsonb_build_object(
+        'resourceType', 'Specimen'
+        , 'id', uuid_SPECIMEN 
+        , 'identifier',   jsonb_build_array(jsonb_build_object(
+            'value', lab_SPECIMEN_ID
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/lab-specimen'
+        ))      
+        , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
+        , 'collection', jsonb_build_object(
+            'collectedDateTime', lab_CHARTTIME
+        ) 
+    )) AS fhir
+FROM
+    fhir_specimen;
