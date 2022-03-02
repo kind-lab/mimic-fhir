@@ -177,10 +177,5 @@ def test_vs_procedure_icd(validator, db_conn_hapi):
 
 def test_vs_units(validator, db_conn_hapi):
     valueset = 'Units'
-<<<<<<< HEAD
     vs_count = 686
     assert assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
-=======
-    vs_count = 634
-    assert validate_valueset(validator, db_conn_hapi, valueset, vs_count)
->>>>>>> Added validator flag to codesystem/valuests tests
