@@ -59,7 +59,7 @@ def warn_java_validator():
 # Set validator for the session
 @pytest.fixture(scope="session")
 def validator():
-    validator = 'JAVA'  # JAVA or HAPI
+    validator = 'HAPI'  # JAVA or HAPI
     if validator == 'JAVA':
         warn_java_validator()
     return validator
@@ -68,7 +68,6 @@ def validator():
     # Run individual tests, or java validator will crash everything
     # Need to explore way to run all test with java validator, but not
     # working right now
-
 
 
 # Initialize database connection to mimic
@@ -252,3 +251,205 @@ def procedure_icu_resource(validator, db_conn):
 @pytest.fixture(scope="session")
 def specimen_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'specimen')
+
+
+#----------------------------------------------------------------
+#----------------- BUNDLE RESOURCES -----------------------------
+#----------------------------------------------------------------
+
+
+# Function to find links between a patient and certain resources
+def get_pat_resource_with_links(db_conn, resource_list):
+    q_resource = 'SELECT pat.fhir FROM mimic_fhir.patient pat'
+
+    # Dynamically create query to find links between a patient and certain resources
+    for idx, resource in enumerate(resource_list):
+        q_resource = f"""{q_resource} 
+            INNER JOIN mimic_fhir.{resource} t{idx}
+                ON pat.id = t{idx}.patient_id 
+        """
+    q_resource = f'{q_resource} LIMIT 1;'
+
+    resource = pd.read_sql_query(q_resource, db_conn)
+    return resource.fhir[0]
+
+
+# Generic function to get resources linked to patient from the DB
+def get_resources_by_pat(db_conn, table_name, patient_id):
+    q_resource = f"""
+        SELECT fhir FROM mimic_fhir.{table_name}
+        WHERE patient_id = '{patient_id}'
+    """
+    resources = pd.read_sql_query(q_resource, db_conn)
+
+    return resources
+
+
+# Return a patient bundle (include Patient, Encounter, Condition, Procedure)
+@pytest.fixture(scope="session")
+def patient_bundle_resources(db_conn):
+    resources = []
+    resource_list = ['encounter', 'condition', 'procedure']
+    patient_resource = get_pat_resource_with_links(db_conn, resource_list)
+
+    # Get all linked Encounter/Condition/Procedure resources to this patient
+    encounter_resources = get_resources_by_pat(
+        db_conn, 'encounter', patient_resource['id']
+    )
+    condition_resources = get_resources_by_pat(
+        db_conn, 'condition', patient_resource['id']
+    )
+    procedure_resources = get_resources_by_pat(
+        db_conn, 'procedure', patient_resource['id']
+    )
+
+    # Get all the patient resources into the master list
+    resources.append(patient_resource)
+    [resources.append(fhir) for fhir in encounter_resources.fhir]
+    [resources.append(fhir) for fhir in condition_resources.fhir]
+    [resources.append(fhir) for fhir in procedure_resources.fhir]
+    return resources
+
+
+# Return a micro bundle (include Specimen, ObservationMicroTest, ObservationMicroOrg, ObservationMicroSusc)
+@pytest.fixture(scope="session")
+def microbio_bundle_resources(db_conn):
+    resources = []
+    resource_list = [
+        'observation_micro_test', 'observation_micro_org',
+        'observation_micro_susc'
+    ]
+    patient_resource = get_pat_resource_with_links(db_conn, resource_list)
+
+    # Get all linked ObservationMicro test/org/susc resources to this patient
+    micro_test_resources = get_resources_by_pat(
+        db_conn, 'observation_micro_test', patient_resource['id']
+    )
+    micro_org_resources = get_resources_by_pat(
+        db_conn, 'observation_micro_org', patient_resource['id']
+    )
+    micro_susc_resources = get_resources_by_pat(
+        db_conn, 'observation_micro_susc', patient_resource['id']
+    )
+    specimen_resources = get_resources_by_pat(
+        db_conn, 'specimen', patient_resource['id']
+    )
+
+    # Get all the patient resources into the master list
+    resources.append(patient_resource)
+    [resources.append(fhir) for fhir in micro_test_resources.fhir]
+    [resources.append(fhir) for fhir in micro_org_resources.fhir]
+    [resources.append(fhir) for fhir in micro_susc_resources.fhir]
+    [resources.append(fhir) for fhir in specimen_resources.fhir]
+    return resources
+
+
+# Return a labs bundle (include ObservationLabs and Specimen)
+@pytest.fixture(scope="session")
+def lab_bundle_resources(db_conn):
+    resources = []
+    resource_list = ['observation_labs']
+    patient_resource = get_pat_resource_with_links(db_conn, resource_list)
+
+    # Get all linked ObservationLabs and Specimen to the patient
+    lab_resources = get_resources_by_pat(
+        db_conn, 'observation_labs', patient_resource['id']
+    )
+    specimen_resources = get_resources_by_pat(
+        db_conn, 'specimen', patient_resource['id']
+    )
+
+    # Get all the patient resources into the master list
+    resources.append(patient_resource)
+    [resources.append(fhir) for fhir in lab_resources.fhir]
+    [resources.append(fhir) for fhir in specimen_resources.fhir]
+    return resources
+
+
+# Grab a handful of medication data resoruces to send to the server
+@pytest.fixture(scope="session")
+def med_data_bundle_resources(db_conn):
+    n_limit = 100
+    q_resources = f'SELECT fhir FROM mimic_fhir.medication LIMIT {n_limit}'
+    med_resources = pd.read_sql_query(q_resources, db_conn)
+
+    resources = []
+    [resources.append(fhir) for fhir in med_resources.fhir]
+    return resources
+
+
+# Return a meds bundle (include MedicationRequest, MedicationDispense, MedicationAdministration)
+@pytest.fixture(scope="session")
+def med_pat_bundle_resources(db_conn):
+    resources = []
+
+    #!!! TO DO: Add MedicationDispense when medication PR is integrated
+    resource_list = ['medication_request', 'medication_administration']
+    patient_resource = get_pat_resource_with_links(db_conn, resource_list)
+
+    # Get all linked MedicationRequest, MedicationDispense, and MedicationAdministration resources to this patient
+    med_req_resources = get_resources_by_pat(
+        db_conn, 'medication_request', patient_resource['id']
+    )
+    med_admin_resources = get_resources_by_pat(
+        db_conn, 'medication_administration', patient_resource['id']
+    )
+
+    # Get all the patient resources into the master list
+    resources.append(patient_resource)
+    [resources.append(fhir) for fhir in med_req_resources.fhir]
+    [resources.append(fhir) for fhir in med_admin_resources.fhir]
+    return resources
+
+
+# Return an icu bundle (include EncounterICU, MedicationAdministrationICU)
+@pytest.fixture(scope="session")
+def icu_base_bundle_resources(db_conn):
+    resources = []
+
+    resource_list = ['encounter_icu', 'medication_administration_icu']
+    patient_resource = get_pat_resource_with_links(db_conn, resource_list)
+
+    # Get all linked EncounterICU and MedicationAdministrationICU resources to this patient
+    enc_icu_resources = get_resources_by_pat(
+        db_conn, 'encounter_icu', patient_resource['id']
+    )
+    med_admin_icu_resources = get_resources_by_pat(
+        db_conn, 'medication_administration_icu', patient_resource['id']
+    )
+
+    # Get all the patient resources into the master list
+    resources.append(patient_resource)
+    [resources.append(fhir) for fhir in enc_icu_resources.fhir]
+    [resources.append(fhir) for fhir in med_admin_icu_resources.fhir]
+    return resources
+
+
+# Return an observation icu bundle (include ObservationChartevents, ObservationDatetimeevents, ObservationOutputevents)
+@pytest.fixture(scope="session")
+def icu_observation_bundle_resources(db_conn):
+    resources = []
+
+    resource_list = [
+        'observation_chartevents', 'observation_datetimeevents',
+        'observation_outputevents'
+    ]
+    patient_resource = get_pat_resource_with_links(db_conn, resource_list)
+
+    # Get all linked ObservationChartevents, ObservationDatetimeevents, ObservationOutputevents resources to this patient
+    obs_ce_resources = get_resources_by_pat(
+        db_conn, 'observation_chartevents', patient_resource['id']
+    )
+    obs_de_resources = get_resources_by_pat(
+        db_conn, 'observation_datetimeevents', patient_resource['id']
+    )
+    obs_oo_resources = get_resources_by_pat(
+        db_conn, 'observation_outputevents', patient_resource['id']
+    )
+
+    # Get all the patient resources into the master list
+    resources.append(patient_resource)
+    [resources.append(fhir) for fhir in obs_ce_resources.fhir]
+    [resources.append(fhir) for fhir in obs_de_resources.fhir]
+    [resources.append(fhir) for fhir in obs_oo_resources.fhir]
+    return resources

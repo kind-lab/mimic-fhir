@@ -55,10 +55,20 @@ def put_resource(resource):
 #   - Fail: HAPI will return an OperationOutcome resource with error info
 
 
+def test_bad_patient_gender(validator):
+    pat_resource = {
+        'resourceType': 'Patient',
+        'id': '123456',
+        'gender': 'FAKE CODE'
+    }
+    result = validate_resource(validator, pat_resource)
+    assert result == False
+
+
 @pytest.mark.order(1)
 def test_condition_validation(validator, condition_resource):
     result = validate_resource(validator, condition_resource)
-    assert True  #result
+    assert result
 
 
 @pytest.mark.order(2)
