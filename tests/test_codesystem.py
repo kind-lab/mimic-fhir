@@ -63,10 +63,10 @@ def test_cs_bodysite(validator):
     assert result
 
 
-def test_cs_diagnosis_icd9():
+def test_cs_diagnosis_icd9(validator):
     codesystem = 'diagnosis-icd9'
     code = '79509'
-    result = cs_validate_code(codesystem, code)
+    result = cs_validate_code(validator, codesystem, code)
     assert result
 
 
@@ -84,21 +84,21 @@ def test_cs_discharge_disposition(validator):
     assert result
 
 
-def test_cs_d_items():
+def test_cs_d_items(validator):
     codesystem = 'd-items'
     code = '224723'
     result = cs_validate_code(validator, codesystem, code)
     assert result
 
 
-def test_cs_d_labitems():
+def test_cs_d_labitems(validator):
     codesystem = 'd-labitems'
     code = '51905'
     result = cs_validate_code(validator, codesystem, code)
     assert result
 
 
-def test_cs_lab_flags():
+def test_cs_lab_flags(validator):
     codesystem = 'lab-flags'
     code = 'abnormal'
     result = cs_validate_code(validator, codesystem, code)

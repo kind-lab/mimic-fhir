@@ -14,7 +14,7 @@ MIMIC_IG_PATH = os.getenv('MIMIC_IG_PATH')
 def validate_resource(validator, resource):
     if validator == 'HAPI':
         output = put_resource(resource)
-        result = outcome['resourceType'] == resource['resourceType']
+        result = output['resourceType'] == resource['resourceType']
     else:  #validator == 'JAVA'
         output = subprocess.run(
             [

@@ -27,7 +27,7 @@ def patient_id():
 # Set validator for the session
 @pytest.fixture(scope="session")
 def validator():
-    return 'JAVA'  # or 'HAPI'
+    return 'JAVA'  # JAVA or HAPI
 
 
 # Initialize database connection to mimic
