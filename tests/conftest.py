@@ -17,8 +17,6 @@ DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
 DBNAME_HAPI = os.getenv('DBNAME_HAPI')
 HOST = os.getenv('HOST')
 
-#from fhir.resources.conceptmap import ConceptMap
-
 
 # Example patient that has links to all other resources
 def patient_id():
@@ -119,6 +117,14 @@ def get_single_resource(db_conn, table_name):
     resource = pd.read_sql_query(q_resource, db_conn)
 
     return resource.fhir[0]
+
+
+# Generic function to get N resources from the DB
+def get_n_resources(db_conn, table_name, n_limit):
+    q_resources = f"SELECT * FROM mimic_fhir.{table_name} LIMIT {n_limit}"
+    resources = pd.read_sql_query(q_resources, db_conn)
+
+    return resources
 
 
 # Get a single resource with a link to a specific patient
@@ -453,3 +459,7 @@ def icu_observation_bundle_resources(db_conn):
     [resources.append(fhir) for fhir in obs_de_resources.fhir]
     [resources.append(fhir) for fhir in obs_oo_resources.fhir]
     return resources
+
+
+def patient_multiple_bundle(db_conn):
+    resources = get_n_resources(db_conn, 'patient', 10)
