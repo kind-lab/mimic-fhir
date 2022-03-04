@@ -12,7 +12,6 @@ dependencies:
   - psycopg2
   - jupyter
   - requests
-  - json
   - tqdm
   - yapf
   - pip
