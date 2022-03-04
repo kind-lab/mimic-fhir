@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS mimic_fhir.medication_administration;
 CREATE TABLE mimic_fhir.medication_administration(
 	id 		uuid PRIMARY KEY,
+	patient_id  uuid NOT NULL,
   	fhir 	jsonb NOT NULL 
 );
 
@@ -11,13 +12,17 @@ WITH fhir_medication_administration AS (
 	SELECT
   		em.emar_id AS em_EMAR_ID
   		, CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
-        , emd.site AS emd_SITE
-  		, emd.route AS emd_ROUTE
-  		, em.event_txt AS em_EVENT_TXT
+        
+  		
+        -- FHIR VALIDATOR does NOT accept leading/trailing white spaces, so trim values
+  		, TRIM(REGEXP_REPLACE(emd.site, '\s+', ' ', 'g')) AS emd_SITE
+        , TRIM(emd.route) AS emd_ROUTE
+  		, TRIM(em.event_txt) AS em_EVENT_TXT 
+  		
   		, emd.dose_due AS emd_DOSE_DUE
-  		, emd.dose_due_unit AS emd_DOSE_DUE_UNIT
+  		, TRIM(emd.dose_due_unit) AS emd_DOSE_DUE_UNIT -- FHIR VALIDATOR fails IF ANY leading/trailing white space present
   		, emd.infusion_rate AS emd_INFUSION_RATE
-  		, emd.infusion_rate_unit AS emd_INFUSION_RATE_UNIT
+  		, TRIM(emd.infusion_rate_unit) AS emd_INFUSION_RATE_UNIT -- FHIR VALIDATOR fails IF ANY leading/trailing white space present
   		
   
   		-- reference uuids
@@ -47,14 +52,20 @@ WITH fhir_medication_administration AS (
 INSERT INTO mimic_fhir.medication_administration
 SELECT 
 	uuid_EMAR_ID as id
+	, uuid_SUBJECT_ID AS patient_id 
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationAdministration'
         , 'id', uuid_EMAR_ID
+        , 'meta', jsonb_build_object(
+        	'profile', jsonb_build_array(
+        		'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration'
+        	)
+        ) 
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', em_EMAR_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-emar-id'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration'
         		)
       		)	
         , 'status', 'completed' -- All medication adminstrations considered complete
@@ -67,18 +78,24 @@ SELECT
       		END
         , 'effectiveDateTime', em_CHARTTIME
         , 'dosage', jsonb_build_object(
-          	'site', jsonb_build_object(
-              'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-site'  
-                  , 'code', emd_SITE
-              ))
-            )
-          	, 'route', jsonb_build_object(
-                'coding', jsonb_build_array(jsonb_build_object(
-                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
-                    , 'code', emd_ROUTE
-                ))
-              )
+          	'site', 
+          	     CASE WHEN emd_SITE IS NOT NULL THEN 
+              	     jsonb_build_object(
+                          'coding', jsonb_build_array(jsonb_build_object(
+                              'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-site'  
+                              , 'code', emd_SITE
+                          ))
+                        )
+                 ELSE NULL END              
+          	, 'route', 
+          	     CASE WHEN emd_ROUTE IS NOT NULL THEN 
+              	     jsonb_build_object(
+                        'coding', jsonb_build_array(jsonb_build_object(
+                            'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
+                            , 'code', emd_ROUTE
+                        ))
+                      )
+                ELSE NULL END
           	, 'method', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
                     'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  

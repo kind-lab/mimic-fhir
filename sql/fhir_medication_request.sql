@@ -10,8 +10,8 @@ CREATE TABLE mimic_fhir.medication_request(
 WITH fhir_medication_request AS (
 	SELECT
   		CAST(ph.pharmacy_id AS TEXT) AS ph_PHARMACY_ID
-  		, ph.status AS ph_STATUS
-  		, ph.route AS ph_ROUTE
+  		, stat.fhir_status AS stat_FHIR_STATUS
+  		, TRIM(ph.route) AS ph_ROUTE
   		, CAST(ph.starttime AS TIMESTAMPTZ) AS ph_STARTTIME
   		, CAST(ph.stoptime AS TIMESTAMPTZ) AS ph_STOPTIME  		
   
@@ -32,6 +32,8 @@ WITH fhir_medication_request AS (
   			ON ns_medication.name = 'Medication'
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
   			ON ns_medication_request.name = 'MedicationRequest'
+  		LEFT JOIN fhir_etl.map_medreq_status stat
+  		    ON ph.status = stat.mimic_status   
 ) 
 
 INSERT INTO mimic_fhir.medication_request
@@ -40,14 +42,19 @@ SELECT
 	, jsonb_strip_nulls(jsonb_build_object(
     	'resourceType', 'MedicationRequest'
         , 'id', uuid_MEDICATION_REQUEST
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-request'
+            )
+         ) 
       	, 'identifier', 
       		jsonb_build_array(
         		jsonb_build_object(
                   'value', ph_PHARMACY_ID
-                  , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-medication-request'
+                  , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
         		)
       		)	
-        , 'status', ph_STATUS
+        , 'status', stat_FHIR_STATUS
       	, 'intent', 'order'
       	, 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
       	, 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)

@@ -11,6 +11,10 @@ dependencies:
   - pytest
   - psycopg2
   - jupyter
+  - requests
   - tqdm
   - yapf
   - pip
+  - pip:
+    - python-dotenv
+    
