@@ -32,7 +32,7 @@ MIMIC_FHIR_PROFILE_URL = {
     'ObservationOutputevents':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevent',
     'Organization':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-organization',
+        '',
     'Patient':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-patient',
     'Procedure':

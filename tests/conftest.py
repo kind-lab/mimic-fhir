@@ -241,6 +241,12 @@ def observation_outputevents_resource(validator, db_conn):
     )
 
 
+# Return a single organization resource
+@pytest.fixture(scope="session")
+def organization_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'organization')
+
+
 # Return a single procedure resource
 @pytest.fixture(scope="session")
 def procedure_resource(validator, db_conn):

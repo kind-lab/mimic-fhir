@@ -61,6 +61,7 @@ def test_bulk_export_resources():
 
 
 # Bulk export and get the resources into json
+# Currently failing just based on MedicationDispense
 def test_export_all_resources():
     limit = 1
     result_dict = io.export_all_resources(limit)
@@ -208,6 +209,13 @@ def test_export_medication_administration_icu():
 
 def test_export_medication():
     resource_type = 'Medication'
+    limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
+    result = io.export_resource(resource_type, limit)
+    assert result
+
+
+def test_export_organization():
+    resource_type = 'Organization'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
     result = io.export_resource(resource_type, limit)
     assert result

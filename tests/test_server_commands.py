@@ -65,6 +65,11 @@ def test_bad_patient_gender(validator):
     assert result == False
 
 
+def test_organization_validation(validator, organization_resource):
+    result = validate_resource(validator, organization_resource)
+    assert result
+
+
 @pytest.mark.order(1)
 def test_condition_validation(validator, condition_resource):
     result = validate_resource(validator, condition_resource)
