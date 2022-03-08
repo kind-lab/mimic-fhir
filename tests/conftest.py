@@ -413,21 +413,31 @@ def med_pat_bundle_resources(db_conn):
 def icu_base_bundle_resources(db_conn):
     resources = []
 
-    resource_list = ['encounter_icu', 'medication_administration_icu']
+    resource_list = [
+        'encounter_icu', 'medication_administration_icu', 'procedure_icu'
+    ]
     patient_resource = get_pat_resource_with_links(db_conn, resource_list)
 
     # Get all linked EncounterICU and MedicationAdministrationICU resources to this patient
+    enc_resources = get_resources_by_pat(
+        db_conn, 'encounter', patient_resource['id']
+    )
     enc_icu_resources = get_resources_by_pat(
         db_conn, 'encounter_icu', patient_resource['id']
     )
     med_admin_icu_resources = get_resources_by_pat(
         db_conn, 'medication_administration_icu', patient_resource['id']
     )
+    proc_icu_resources = get_resources_by_pat(
+        db_conn, 'procedure_icu', patient_resource['id']
+    )
 
     # Get all the patient resources into the master list
     resources.append(patient_resource)
+    [resources.append(fhir) for fhir in enc_resources.fhir]
     [resources.append(fhir) for fhir in enc_icu_resources.fhir]
     [resources.append(fhir) for fhir in med_admin_icu_resources.fhir]
+    [resources.append(fhir) for fhir in proc_icu_resources.fhir]
     return resources
 
 
@@ -459,7 +469,3 @@ def icu_observation_bundle_resources(db_conn):
     [resources.append(fhir) for fhir in obs_de_resources.fhir]
     [resources.append(fhir) for fhir in obs_oo_resources.fhir]
     return resources
-
-
-def patient_multiple_bundle(db_conn):
-    resources = get_n_resources(db_conn, 'patient', 10)
