@@ -9,10 +9,19 @@ import json
 import requests
 import logging
 import os
+import subprocess
+
+#------------------------ WARNING ---------------------------
+# DO NOT RUN all validation tests when JAVA validator is set
+# Run individual tests, or java validator will crash everything
+# Need to explore way to run all test with java validator, but not
+# working right now
 
 # Load env variables (should already have loaded in conftest.py)
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 MIMIC_TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
+JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
+MIMIC_IG_PATH = os.getenv('MIMIC_IG_PATH')
 
 
 # Generic function to validate codes against CodeSystem in HAPI fhir
@@ -23,8 +32,15 @@ def cs_validate_code(validator, codesystem, code):
         resp = requests.get(url, headers={"Content-Type": "application/json"})
         cs_output = json.loads(resp.text)['parameter'][0]['valueBoolean']
     else:  # JAVA validator
-        logging.error('Java Validator cannot validate CodeSystems')
-        cs_output = False
+        codesystem_filename = f'{MIMIC_TERMINOLOGY_PATH}CodeSystem-{codesystem}.json'
+        output = subprocess.run(
+            [
+                'java', '-jar', JAVA_VALIDATOR, codesystem_filename, '-version',
+                '4.0', '-ig', MIMIC_IG_PATH
+            ],
+            stdout=subprocess.PIPE
+        ).stdout.decode('utf-8')
+        cs_output = 'Success' in output
     return cs_output
 
 

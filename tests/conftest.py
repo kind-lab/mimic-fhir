@@ -28,6 +28,11 @@ def patient_id():
 @pytest.fixture(scope="session")
 def validator():
     return 'JAVA'  # JAVA or HAPI
+    #------------------------ WARNING ---------------------------
+    # DO NOT RUN all validation tests when JAVA is set
+    # Run individual tests, or java validator will crash everything
+    # Need to explore way to run all test with java validator, but not
+    # working right now
 
 
 # Initialize database connection to mimic
