@@ -68,10 +68,8 @@ def test_bundle_patient_all_resources(db_conn):
     response_list = bundler.post_all_bundles(FHIR_SERVER)
 
     result = True
-    for response in response_list:
-        if response['resourceType'] == 'OperationOutcome':
-            result = False
-            logging.error(response)
+    if False in response_list:
+        result = False
     assert result
 
 
@@ -270,3 +268,20 @@ def test_post_1000_resources(db_conn):
     bundle.add_entry(resources)
     resp = bundle.request(FHIR_SERVER, True)
     assert resp
+
+
+def test_bundle_multiple_lab_resources(db_conn):
+    # Get n patient ids to then bundle and post
+    patient_ids = get_n_patient_id(db_conn, 30)
+    split_flag = True  # Flag to subdivide bundles to speed up posting
+
+    # Create bundle and post it
+    result = True
+    for patient_id in patient_ids:
+        bundler = Bundler(patient_id)
+        bundler.generate_lab_bundle()
+        resp = bundler.lab_bundle.request(FHIR_SERVER, split_flag)
+
+        if resp == False:
+            result = False
+    assert result
