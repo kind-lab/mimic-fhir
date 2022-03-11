@@ -26,12 +26,22 @@ WITH distinct_org AS (
 	    
         -- flag for whether a specimen has at least one organism growth  
         , CASE 
+            WHEN MAX(mi.org_itemid) IS NULL AND MAX(mi.comments) = '___'
+                THEN NULL -- deid VALUES ARE captured IN valueCodeableConcept    
             WHEN MAX(mi.org_itemid) IS NULL AND MAX(mi.COMMENTS) IS NOT NULL 
-                THEN MAX(mi.COMMENTS)
-            WHEN MAX(mi.org_itemid) IS NULL AND MAX(mi.COMMENTS) IS NULL 
-                THEN 'No result present' -- ADD COMMENT FOR EMPTY results
+                THEN MAX(mi.COMMENTS)            
             ELSE NULL
         END AS valueString
+        
+        -- if no test results and no comments(or deid) then add NullFlavor
+        , CASE
+            WHEN MAX(mi.org_itemid) IS NULL AND MAX(mi.comments) = '___'
+                THEN 'MSK' -- Masked
+            WHEN MAX(mi.org_itemid) IS NULL AND MAX(mi.COMMENTS) IS NULL 
+                THEN 'NI' -- NO Information
+            ELSE NULL
+        END AS valueCodeableConcept
+        
     FROM 
         mimic_hosp.microbiologyevents mi
         INNER JOIN fhir_etl.subjects sub    
@@ -49,6 +59,7 @@ WITH distinct_org AS (
         , MAX(mi_HADM_ID) AS mi_HADM_ID
         , MAX(mi_CHARTTIME) AS mi_CHARTTIME
         , MAX(valueString) AS valueString  
+        , MAX(valueCodeableConcept) AS valueCodeableConcept
 
         -- only include organism list if specimen had at least one organism growth
         , CASE WHEN MAX(valueString) IS NULL THEN 
@@ -76,6 +87,7 @@ WITH distinct_org AS (
         , mi_HADM_ID
         , mi_CHARTTIME
         , valueString
+        , valueCodeableConcept
         , fhir_ORGANISM
         
         -- UUID references
@@ -134,6 +146,17 @@ SELECT
         , 'effectiveDateTime', mi_CHARTTIME
         , 'hasMember', fhir_ORGANISM -- reference one to many organisms
         , 'valueString', valueString -- result notes for tests with no organisms associated
+        , 'valueCodeableConcept', CASE WHEN valueCodeableConcept IS NOT NULL THEN
+            jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'code', valueCodeableConcept
+                    , 'display', CASE WHEN valueCodeableConcept = 'MSK'
+                        THEN 'Mask' ELSE 'NoInformation' END
+                    , 'system', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor' 
+                ))
+            )
+        ELSE NULL END
+        
     )) AS fhir 
 FROM
     fhir_observation_micro_test
