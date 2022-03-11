@@ -52,9 +52,15 @@ def get_n_patient_id(db_conn, n_patient):
     return patient_ids
 
 
+def test_bundler(db_conn):
+    patient_id = get_n_patient_id(db_conn, 1)[0]
+    bundler = Bundler(patient_id)
+    assert True
+
+
 def test_bundle_patient_all_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 1)
+    patient_id = get_n_patient_id(db_conn, 1)[0]
 
     # Create bundle and post it
     bundler = Bundler(patient_id)
@@ -71,19 +77,18 @@ def test_bundle_patient_all_resources(db_conn):
 
 def test_bundle_multiple_patient_all_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 50)
+    patient_ids = get_n_patient_id(db_conn, 400)
+    split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
     result = True
     for patient_id in patient_ids:
         bundler = Bundler(patient_id)
         bundler.generate_all_bundles()
-        response_list = bundler.post_all_bundles(FHIR_SERVER)
+        response_list = bundler.post_all_bundles(FHIR_SERVER, split_flag)
 
-        for response in response_list:
-            if response['resourceType'] == 'OperationOutcome':
-                result = False
-                logging.error(response)
+        if False in response_list:
+            result = False
     assert result
 
 
@@ -92,7 +97,7 @@ def test_bad_bundle():
     bad_resource = [{'resourceType': 'BAD RESOURCE', 'id': '123'}]
     bundle.add_entry(bad_resource)
     bundle.request(FHIR_SERVER)
-    assert bundle.response['resourceType'] == 'OperationOutcome'
+    assert bundle.response
 
 
 def test_bad_code_in_bundle():
@@ -105,7 +110,7 @@ def test_bad_code_in_bundle():
     bad_resource = [pat_resource]
     bundle.add_entry(bad_resource)
     bundle.request(FHIR_SERVER)
-    assert bundle.response['resourceType'] == 'OperationOutcome'
+    assert bundle.response
 
 
 def test_patient_bundle(db_conn):
@@ -117,7 +122,7 @@ def test_patient_bundle(db_conn):
     bundler = Bundler(patient_id)
     bundler.generate_patient_bundle()
     response = bundler.patient_bundle.request(FHIR_SERVER)
-    assert response['resourceType'] == 'Bundle'
+    assert response
 
 
 def test_microbio_bundle(db_conn):
@@ -139,7 +144,7 @@ def test_microbio_bundle(db_conn):
     bundler.generate_micro_bundle()
     response = bundler.micro_bundle.request(FHIR_SERVER)
     logging.error(patient_id)
-    assert response['resourceType'] == 'Bundle'
+    assert response
 
 
 def test_lab_bundle(db_conn):
@@ -158,7 +163,7 @@ def test_lab_bundle(db_conn):
     bundler.generate_lab_bundle()
     response = bundler.lab_bundle.request(FHIR_SERVER)
     logging.error(patient_id)
-    assert response['resourceType'] == 'Bundle'
+    assert response
 
 
 def test_med_pat_bundle(db_conn):
@@ -179,7 +184,7 @@ def test_med_pat_bundle(db_conn):
     bundler.generate_med_bundle()
     response = bundler.med_bundle.request(FHIR_SERVER)
     logging.error(patient_id)
-    assert response['resourceType'] == 'Bundle'
+    assert response
 
 
 # Only passing a small portion of the meds here (~100)
@@ -191,9 +196,9 @@ def test_iterative_med_data_bundle(med_data_bundle_resources):
         bundle = Bundle()
         bundle.add_entry(resource_list)
         response = bundle.request(FHIR_SERVER)
-        response_list.append(response['resourceType'])
+        response_list.append(response)
         logging.error(response)
-    assert 'OperationOutcome' not in response_list
+    assert False not in response_list
 
 
 # Need to figure out how to get medication references working if only a subuset of the Medication resources have been posted
@@ -202,7 +207,7 @@ def test_med_data_bundle(db_conn):
     bundle = Bundle()
     bundle.add_entry(med_pat_bundle_resources)
     bundle.request(FHIR_SERVER)
-    assert bundle.response['resourceType'] == 'Bundle'
+    assert bundle.response
 
 
 # Test icu base bundle that include EncounterICU and MedicationAdminstrationICU
@@ -224,7 +229,11 @@ def test_icu_base_bundle(db_conn):
     bundler.generate_icu_base_bundle()
     response = bundler.icu_base_bundle.request(FHIR_SERVER)
     logging.error(patient_id)
-    assert response['resourceType'] == 'Bundle'
+    assert response
+
+
+def test_other_thing(db_conn):
+    assert True
 
 
 # Test all observation resources coming out of the ICU
@@ -247,4 +256,17 @@ def test_icu_observation_bundle(db_conn):
     bundler.generate_icu_obs_bundle()
     response = bundler.icu_obs_bundle.request(FHIR_SERVER)
     logging.error(patient_id)
-    assert response['resourceType'] == 'Bundle'
+    assert response
+
+
+def test_post_1000_resources(db_conn):
+    q_resource = f"""
+        SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 1000
+    """
+    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    resources = pd_resources.fhir.to_list()
+
+    bundle = Bundle()
+    bundle.add_entry(resources)
+    resp = bundle.request(FHIR_SERVER, True)
+    assert resp

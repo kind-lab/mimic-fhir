@@ -1,3 +1,17 @@
+# Initialize logger - MIGRARTE THIS TO MAIN, should just pull in the logger, not the basicConfig
+import logging
+
+LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
+logging.basicConfig(
+    filename='log/export.log',
+    filemode='a',
+    format=LOG_FORMAT,
+    level=logging.INFO,
+    force=True
+)
+
+logger = logging.getLogger(__name__)
+
 import numpy as np
 import pandas as pd
 import json
@@ -7,25 +21,25 @@ import base64
 from pathlib import Path
 import os
 import time
-import logging
-from dotenv import load_dotenv
 
 from py_mimic_fhir.lookup import (
     MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES
 )
 
-# load environment variables
-load_dotenv(load_dotenv(Path(Path.cwd()).parents[0] / '.env'))
-FHIR_SERVER = os.getenv('FHIR_SERVER')
-MIMIC_JSON_PATH = os.getenv('MIMIC_JSON_PATH')
-
 
 # Export all the resoruces, for debugging can limit how many to output. limit = 1 ~1000 resources
-def export_all_resources(limit=1000):
+def export_all_resources(fhir_server, output_path, limit=1000):
     result_dict = {}
+    bypass_profiles = [
+        'Medication', 'MedicationRequest', 'MedicationDispense',
+        'MedicationAdministration', 'MedicationAdministrationICU'
+    ]
+
     for profile in MIMIC_FHIR_PROFILE_NAMES:
-        result = export_resource(profile, limit)
-        result_dict[profile] = result
+        if profile not in bypass_profiles:
+            logger.info(f'Export {profile}')
+            result = export_resource(profile, fhir_server, output_path, limit)
+            result_dict[profile] = result
 
     if False in result_dict.values():
         logging.error(f'Result dictionary: {result_dict}')
@@ -33,19 +47,23 @@ def export_all_resources(limit=1000):
     return result_dict
 
 
-def export_resource(profile, limit):
+def export_resource(profile, fhir_server, output_path, limit=1000):
     resource = MIMIC_FHIR_RESOURCES[profile]
     profile_url = MIMIC_FHIR_PROFILE_URL[profile]
-    resp_export = send_export_resource_request(resource, profile_url)
+    resp_export = send_export_resource_request(
+        resource, profile_url, fhir_server
+    )
     resp_export_poll = get_exported_resource(resp_export)
-    result = write_exported_resource_to_ndjson(resp_export_poll, profile, limit)
+    result = write_exported_resource_to_ndjson(
+        resp_export_poll, profile, output_path, limit
+    )
 
     return result
 
 
 # Start the export process on HAPI FHIR. This is an async request, so the actual result is not provided yet
-def send_export_resource_request(resource, profile_url):
-    url = f"{FHIR_SERVER}$export?_type={resource}&_typeFilter={resource}?_profile={profile_url}"
+def send_export_resource_request(resource, profile_url, fhir_server):
+    url = f"{fhir_server}$export?_type={resource}&_typeFilter={resource}?_profile={profile_url}"
     resp = requests.get(
         url,
         headers={
@@ -83,8 +101,10 @@ def get_exported_resource(resp_export, time_max=30):
 
 
 # Take the binary exported resources and write them to json
-def write_exported_resource_to_ndjson(resp_poll, profile, limit=1000):
-    output_file = f'{MIMIC_JSON_PATH}output_from_hapi/{profile}.ndjson'
+def write_exported_resource_to_ndjson(
+    resp_poll, profile, output_path, limit=1000
+):
+    output_file = f'{output_path}output_from_hapi/{profile}.ndjson'
     resp_poll_json = json.loads(resp_poll.text)
 
     #logging.error(resp_poll.text)
