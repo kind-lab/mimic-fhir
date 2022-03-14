@@ -3,13 +3,13 @@
 -- Need to trim to remove whitespaces, or validator will fail it
 
 
-DROP TABLE IF EXISTS fhir_trm.procedure_icd10;
-CREATE TABLE fhir_trm.procedure_icd10(
+DROP TABLE IF EXISTS fhir_trm.cs_procedure_icd10;
+CREATE TABLE fhir_trm.cs_procedure_icd10(
     code      VARCHAR NOT NULL,
     display   VARCHAR
 );
 
-INSERT INTO fhir_trm.procedure_icd10
+INSERT INTO fhir_trm.cs_procedure_icd10
 SELECT DISTINCT 
     TRIM(proc.icd_code) AS code
     , icd.long_title AS display

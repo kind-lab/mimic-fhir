@@ -77,7 +77,6 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Units
 \i codesystem/cs-units.sql
 
-
 -- ValueSets
 \echo ==== ValueSets ====
 \echo Chartevents D Items
@@ -91,3 +90,18 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 
 \echo Procedureevents D Items
 \i codesystem/vs-procedureevents-d-items.sql
+
+-- ICD Valuesets
+\echo Diagnosis ICD
+\i codesystem/vs-diagnosis-icd.sql
+
+\echo Procedure ICD
+\i codesystem/vs-procedure-icd.sql
+
+
+-- Terminology Descriptions
+\echo CodeSystem Descriptions
+\i codesystem/cs-descriptions.sql
+
+\echo ValueSet Descriptions
+\i codesystem/vs-descriptions.sql

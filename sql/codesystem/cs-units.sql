@@ -1,8 +1,8 @@
 -- Generate the unique set of units across all tables in MIMIC
 -- Potentially map to the fhir units codesystem - http://unitsofmeasure.org
 
-DROP TABLE IF EXISTS fhir_trm.units;
-CREATE TABLE fhir_trm.units(
+DROP TABLE IF EXISTS fhir_trm.cs_units;
+CREATE TABLE fhir_trm.cs_units(
     code      VARCHAR NOT NULL
 );
 
@@ -30,7 +30,7 @@ WITH mimic_units AS (
     -- Outputevents units 
     SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_icu.outputevents  
 )
-INSERT INTO fhir_trm.units
+INSERT INTO fhir_trm.cs_units
 SELECT unit
 FROM mimic_units
 WHERE 

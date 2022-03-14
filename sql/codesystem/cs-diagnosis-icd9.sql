@@ -5,13 +5,13 @@
 --         So can swap to the fhir version when it is complete
 
 
-DROP TABLE IF EXISTS fhir_trm.diagnosis_icd9;
-CREATE TABLE fhir_trm.diagnosis_icd9(
+DROP TABLE IF EXISTS fhir_trm.cs_diagnosis_icd9;
+CREATE TABLE fhir_trm.cs_diagnosis_icd9(
     code      VARCHAR NOT NULL,
     display   VARCHAR NOT NULL
 );
 
-INSERT INTO fhir_trm.diagnosis_icd9
+INSERT INTO fhir_trm.cs_diagnosis_icd9
 SELECT 
     DISTINCT TRIM(diag.icd_code) AS code, icd.long_title AS display
 FROM 

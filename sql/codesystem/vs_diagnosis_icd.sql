@@ -6,7 +6,7 @@ CREATE TABLE fhir_trm.vs_diagnosis_icd(
     system      VARCHAR NOT NULL
 );
 
-INSERT INTO fhir_trm.vs_procedure_icd (system)
+INSERT INTO fhir_trm.vs_diagnosis_icd (system)
 VALUES
     ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9')
     , ('http://hl7.org/fhir/ValueSet/icd-10')
