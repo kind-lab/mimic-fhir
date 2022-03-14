@@ -17,4 +17,5 @@ dependencies:
   - pip
   - pip:
     - python-dotenv
+    - fhir.resources
     

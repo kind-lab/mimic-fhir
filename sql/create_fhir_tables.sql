@@ -79,3 +79,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_observation_outputevents
 \i fhir_observation_outputevents.sql
 
+-- fhir terminology tables
+\echo create_fhir_terminology
+\i fhir_terminology.sql
