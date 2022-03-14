@@ -62,14 +62,6 @@ SELECT
                     , 'system', 'http://fhir.mimic.mit.edu/identifier/condition'
                 )
             )	
-      	
-        -- All diagnoses in MIMIC are considered active	
-        , 'clinicalStatus', jsonb_build_object(
-            'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://terminology.hl7.org/CodeSystem/condition-clinical'  
-                , 'code', 'active'
-            ))
-        )
           
         -- All diagnoses in MIMIC are considered encounter derived
         , 'category', jsonb_build_array(jsonb_build_object(
