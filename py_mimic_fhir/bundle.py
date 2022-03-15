@@ -23,8 +23,34 @@ from pathlib import Path
 import os
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 from py_mimic_fhir import db
+
+
+class ErrBundle():
+    def __init__(self, issue, bundle):
+        self.issue = issue
+        self.time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.bundle_list = []
+        self.set_id_list(bundle)
+
+    def json(self):
+        return self.__dict__
+
+    def set_id_list(self, bundle):
+        for entry in bundle.entry:
+            profile = entry['resource']['meta']['profile'][0].split('/')[-1]
+            fhir_id = entry['resource']['id']
+            itm = {'fhir_profile': profile, 'id': fhir_id}
+            logging.error(self.json())
+            self.bundle_list.append(itm)
+
+    def write(self, err_path):
+        date = datetime.now().strftime('%Y-%m-%d')
+        with open(f'{err_path}err-bundles-{date}.json', 'a+') as errfile:
+            json.dump(self.json(), errfile)
+            errfile.write('\n')
 
 
 class Bundle():
@@ -52,7 +78,12 @@ class Bundle():
     def json(self):
         return self.__dict__
 
-    def request(self, fhir_server, split_flag=False):
+    def request(
+        self,
+        fhir_server,
+        split_flag=False,
+        err_path=None,
+    ):
         output = True  # True until proven false
 
         # Split the entry into smaller bundles to speed up posting
@@ -74,7 +105,6 @@ class Bundle():
                 output_temp = bundle.request(fhir_server)
                 if output_temp == False:
                     output = False
-
         else:
             resp = requests.post(
                 fhir_server,
@@ -83,6 +113,10 @@ class Bundle():
             )
             resp_text = json.loads(resp.text)
             if resp_text['resourceType'] == 'OperationOutcome':
+                #write out error bundles!
+                errbundle = ErrBundle(resp_text['issue'], self)
+                errbundle.write(err_path)
+
                 logging.error(resp_text)
                 output = False
         return output
@@ -106,6 +140,38 @@ def get_patient_resource(db_conn, patient_id):
     resource = pd.read_sql_query(q_resource, db_conn)
 
     return resource.fhir[0]
+
+
+def get_resource_by_id(db_conn, profile, profile_id):
+    q_resource = f"SELECT * FROM mimic_fhir.{profile} WHERE id='{profile_id}'"
+    resource = pd.read_sql_query(q_resource, db_conn)
+
+    return resource.fhir[0]
+
+
+def rerun_bundle_from_file(err_filename, db_conn, fhir_server):
+    bundle_result = []
+
+    with open(err_filename, 'r') as err_file:
+        for err in err_file:
+            bundle_list = json.loads(err)['bundle_list']
+            for entry in bundle_list:
+                resources = []
+
+                #drop mimic prefix from profile to get mimic table name
+                profile = entry['fhir_profile'].replace('-', '_')[6:]
+                fhir_id = entry['id']
+                resource = get_resource_by_id(db_conn, profile, fhir_id)
+                resources.append(resource)
+            bundle = Bundle()
+            bundle.add_entry(resources)
+            resp = bundle.request(fhir_server)
+            bundle_result.append(resp)
+
+    output = True
+    if False in bundle_result:
+        output = False
+    return output
 
 
 # Class to bundle all resources associated with one patient

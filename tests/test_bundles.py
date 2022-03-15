@@ -21,9 +21,10 @@ import numpy as np
 import pandas as pd
 
 #from fhir.resources.bundle import Bundle
-from py_mimic_fhir.bundle import Bundle, Bundler
+from py_mimic_fhir.bundle import Bundle, Bundler, rerun_bundle_from_file
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
+FHIR_BUNDLE_ERROR_PATH = os.getenv('FHIR_BUNDLE_ERROR_PATH')
 
 
 # Function to find links between a patient and certain resources.
@@ -92,10 +93,39 @@ def test_bundle_multiple_patient_all_resources(db_conn):
 
 def test_bad_bundle():
     bundle = Bundle()
-    bad_resource = [{'resourceType': 'BAD RESOURCE', 'id': '123'}]
-    bundle.add_entry(bad_resource)
-    bundle.request(FHIR_SERVER)
-    assert bundle.response
+    bad_resource = {
+        'resourceType': 'Patient',
+        'meta':
+            {
+                'profile':
+                    [
+                        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-patient'
+                    ]
+            },
+        'id': '123456',
+        'gender': 'FAKE CODE'
+    }
+    bundle.add_entry([bad_resource])
+    bundle.add_entry([bad_resource])
+    response = bundle.request(FHIR_SERVER, err_path=FHIR_BUNDLE_ERROR_PATH)
+    assert response
+
+
+def test_rerun_bundle(db_conn):
+    err_file = f'{FHIR_BUNDLE_ERROR_PATH}err-bundles-2022-03-15.json'
+    resp = rerun_bundle_from_file(err_file, db_conn, FHIR_SERVER)
+
+    assert resp
+
+
+def test_bundle_resources_from_list():
+    q_resource = f"""
+        SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 1000
+    """
+    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    resources = pd_resources.fhir.to_list()
+
+    assert response
 
 
 def test_bad_code_in_bundle():
@@ -107,8 +137,8 @@ def test_bad_code_in_bundle():
     bundle = Bundle()
     bad_resource = [pat_resource]
     bundle.add_entry(bad_resource)
-    bundle.request(FHIR_SERVER)
-    assert bundle.response
+    response = bundle.request(FHIR_SERVER)
+    assert response == False
 
 
 def test_patient_bundle(db_conn):
