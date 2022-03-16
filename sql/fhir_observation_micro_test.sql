@@ -94,7 +94,7 @@ WITH distinct_org AS (
         , uuid_generate_v5(ns_observation_micro_test.uuid, mi_MICRO_SPECIMEN_ID|| '-' || mi_TEST_ITEMID) AS uuid_MICRO_TEST
         , uuid_generate_v5(ns_patient.uuid, CAST(mi_SUBJECT_ID AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(mi_HADM_ID AS TEXT)) AS uuid_HADM_ID	
-        , uuid_generate_v5(ns_encounter.uuid, CAST(mi_MICRO_SPECIMEN_ID AS TEXT)) AS uuid_SPECIMEN 
+        , uuid_generate_v5(ns_specimen.uuid, CAST(mi_MICRO_SPECIMEN_ID AS TEXT)) AS uuid_SPECIMEN 
     FROM
         grouped_org
         LEFT JOIN fhir_etl.uuid_namespace ns_patient

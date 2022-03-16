@@ -74,9 +74,28 @@ def test_bundle_patient_all_resources(db_conn):
     assert result
 
 
+def test_bundle_all_patient_bundles(db_conn):
+    patient_ids = get_n_patient_id(db_conn, 10)
+    split_flag = True  # Flag to subdivide bundles to speed up posting
+
+    # Create bundle and post it
+    result = True
+    for patient_id in patient_ids:
+        print(patient_id)
+        bundler = Bundler(patient_id)
+        bundler.generate_patient_bundle()
+        response = bundler.patient_bundle.request(
+            FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+        )
+
+        if response == False:
+            result = False
+    assert False  #result
+
+
 def test_bundle_multiple_patient_all_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 400)
+    patient_ids = get_n_patient_id(db_conn, 10)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
@@ -84,7 +103,9 @@ def test_bundle_multiple_patient_all_resources(db_conn):
     for patient_id in patient_ids:
         bundler = Bundler(patient_id)
         bundler.generate_all_bundles()
-        response_list = bundler.post_all_bundles(FHIR_SERVER, split_flag)
+        response_list = bundler.post_all_bundles(
+            FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+        )
 
         if False in response_list:
             result = False
@@ -216,17 +237,13 @@ def test_med_pat_bundle(db_conn):
 
 
 # Only passing a small portion of the meds here (~100)
-def test_iterative_med_data_bundle(med_data_bundle_resources):
-    response_list = []
-    split_count = len(med_data_bundle_resources) // 500 + 1
-    resource_splits = np.array_split(med_data_bundle_resources, split_count)
-    for resource_list in resource_splits:
-        bundle = Bundle()
-        bundle.add_entry(resource_list)
-        response = bundle.request(FHIR_SERVER)
-        response_list.append(response)
-        logging.error(response)
-    assert False not in response_list
+def test_med_data_bundle_whole(med_data_bundle_resources):
+    resources = med_data_bundle_resources  #[0:1000]
+    bundle = Bundle()
+    bundle.add_entry(resources)
+    response = bundle.request(FHIR_SERVER, split_flag=True)
+    logging.error(response)
+    assert response
 
 
 # Need to figure out how to get medication references working if only a subuset of the Medication resources have been posted
@@ -260,8 +277,22 @@ def test_icu_base_bundle(db_conn):
     assert response
 
 
-def test_other_thing(db_conn):
-    assert True
+def test_icu_enc_bundle_n_patients(db_conn):
+    patient_ids = get_n_patient_id(db_conn, 100)
+    split_flag = True  # Flag to subdivide bundles to speed up posting
+
+    # Create bundle and post it
+    result = True
+    for patient_id in patient_ids:
+        bundler = Bundler(patient_id)
+        bundler.generate_icu_enc_bundle()
+        response = bundler.icu_enc_bundle.request(
+            FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+        )
+
+        if response == False:
+            result = False
+    assert result
 
 
 # Test all observation resources coming out of the ICU
@@ -289,14 +320,16 @@ def test_icu_observation_bundle(db_conn):
 
 def test_post_1000_resources(db_conn):
     q_resource = f"""
-        SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 1000
+        SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 40000
     """
     pd_resources = pd.read_sql_query(q_resource, db_conn)
     resources = pd_resources.fhir.to_list()
 
     bundle = Bundle()
     bundle.add_entry(resources)
-    resp = bundle.request(FHIR_SERVER, True)
+    resp = bundle.request(
+        FHIR_SERVER, True, err_path=FHIR_BUNDLE_ERROR_PATH, bundle_size=50
+    )
     assert resp
 
 
@@ -315,3 +348,26 @@ def test_bundle_multiple_lab_resources(db_conn):
         if resp == False:
             result = False
     assert result
+
+
+def test_largest_bundle():
+    # Bundle is 44,277 resources!
+    # Ran for ~20 minutes without finishing...
+    # I was posting 1000 resources in 6 seconds, so ~44,000 should be about 5 minutes...
+    # Keep playing with this
+    patient_id = '77e10fd0-6a1c-5547-a130-fae1341acf36'
+    bundler = Bundler(patient_id)
+    bundler.generate_icu_obs_bundle()
+    split_flag = True  # send bundle in smaller chunks
+    resp = bundler.icu_obs_bundle.request(FHIR_SERVER, split_flag)
+    assert resp
+
+
+def test_largest_icu_ce_bundle():
+    # Bundle is ~42,000
+    patient_id = '77e10fd0-6a1c-5547-a130-fae1341acf36'
+    bundler = Bundler(patient_id)
+    bundler.generate_icu_ce_bundle()
+    split_flag = True  # send bundle in smaller chunks
+    resp = bundler.icu_ce_bundle.request(FHIR_SERVER, split_flag)
+    assert resp

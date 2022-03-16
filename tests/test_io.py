@@ -65,7 +65,7 @@ def test_bulk_export_resources():
 # Bulk export and get the resources into json
 # Currently failing just based on MedicationDispense
 def test_export_all_resources():
-    limit = 100
+    limit = 10000
     result_dict = io.export_all_resources(FHIR_SERVER, MIMIC_JSON_PATH, limit)
 
     # Assert all resources exported without error
@@ -138,7 +138,7 @@ def test_export_patient():
 
 def test_export_encounter():
     resource_type = 'Encounter'
-    limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
+    limit = 2  #Just export 1 binary ndjson for the resource (~1000 resources)
     result = io.export_resource(
         resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
     )
