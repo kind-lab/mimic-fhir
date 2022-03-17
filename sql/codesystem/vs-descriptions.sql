@@ -3,11 +3,11 @@
 DROP TABLE IF EXISTS fhir_trm.vs_descriptions;
 CREATE TABLE fhir_trm.vs_descriptions(
     valueset      VARCHAR NOT NULL,
-    description   VARCHAR 
+    description   VARCHAR
 );
 
 INSERT INTO fhir_trm.vs_descriptions(valueset, description)
-VALUES  
+VALUES
   ('admission_class', 'The admission class for MIMIC')
     , ('admission_type', 'The admission type for MIMIC')
     , ('admission_type_icu', 'The admission type for ICU encounters in MIMIC')
@@ -35,14 +35,3 @@ VALUES
     , ('procedure_icd', 'The procedure ICD9 and ICD10 codes for MIMIC')
     , ('procedureevents_d_items', 'The procedure item codes used in the ICU for MIMIC')
     , ('units', 'The units used throughout MIMIC')
-    
-    
-     
-    
-     
-    
-   
-    
-    
-    
-
