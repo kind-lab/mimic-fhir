@@ -75,7 +75,7 @@ def test_bundle_patient_all_resources(db_conn):
 
 
 def test_bundle_all_patient_bundles(db_conn):
-    patient_ids = get_n_patient_id(db_conn, 10)
+    patient_ids = get_n_patient_id(db_conn, 1)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
@@ -90,12 +90,12 @@ def test_bundle_all_patient_bundles(db_conn):
 
         if response == False:
             result = False
-    assert False  #result
+    assert result
 
 
 def test_bundle_multiple_patient_all_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 10)
+    patient_ids = get_n_patient_id(db_conn, 100)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
