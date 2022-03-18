@@ -40,6 +40,7 @@ class ErrBundle():
     def json(self):
         return self.__dict__
 
+    # Capture all fhir ids from resources that were part of the failed bundle
     def set_id_list(self, bundle):
         for entry in bundle.entry:
             if 'meta' in entry['resource']:
@@ -51,6 +52,7 @@ class ErrBundle():
             logging.error(self.json())
             self.bundle_list.append(itm)
 
+    # Write err bundle to file
     def write(self, err_path):
         day_of_week = datetime.now().strftime('%A').lower()
         with open(f'{err_path}err-bundles-{day_of_week}.json', 'a+') as errfile:
@@ -86,6 +88,7 @@ class Bundle():
     def json(self):
         return self.__dict__
 
+    # Send request out to HAPI server, validates on the server
     def request(
         self,
         fhir_server,
@@ -158,8 +161,8 @@ class Bundler():
         self.generate_icu_base_bundle()
         self.generate_icu_obs_bundle()
 
+    # Add all resources from table_list for the patient to the bundle
     def fill_bundle(self, bundle, table_list):
-        # Add all resources from table_list for the patient to the bundle
         for table_name in table_list:
             resources = get_resources_by_pat(
                 self.db_conn, table_name, self.patient_id
@@ -309,6 +312,7 @@ def get_resource_by_id(db_conn, profile, profile_id):
     return resource.fhir[0]
 
 
+# After changes have been made to correct bundle errors, the bundle can be rerurn from file
 def rerun_bundle_from_file(err_filename, db_conn, fhir_server):
     bundle_result = []
 

@@ -1,3 +1,5 @@
+# IO module has functions for exporting resources from HAPI
+
 # NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
 
@@ -26,7 +28,7 @@ from py_mimic_fhir.lookup import (
 )
 
 
-# Export all the resoruces, for debugging can limit how many to output. limit = 1 ~1000 resources
+# Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
 def export_all_resources(fhir_server, output_path, limit=1000):
     result_dict = {}
     bypass_profiles = [
@@ -46,6 +48,7 @@ def export_all_resources(fhir_server, output_path, limit=1000):
     return result_dict
 
 
+# Export resource from the HAPI FHIR Server
 def export_resource(profile, fhir_server, output_path, limit=1000):
     resource = MIMIC_FHIR_RESOURCES[profile]
     profile_url = MIMIC_FHIR_PROFILE_URL[profile]
