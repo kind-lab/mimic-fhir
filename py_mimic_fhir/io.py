@@ -1,4 +1,4 @@
-# Initialize logger - MIGRARTE THIS TO MAIN, should just pull in the logger, not the basicConfig
+# NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
 
 LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
@@ -10,8 +10,6 @@ logging.basicConfig(
     force=True
 )
 
-logger = logging.getLogger(__name__)
-
 import numpy as np
 import pandas as pd
 import json
@@ -21,6 +19,7 @@ import base64
 from pathlib import Path
 import os
 import time
+import logging
 
 from py_mimic_fhir.lookup import (
     MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES
@@ -37,7 +36,7 @@ def export_all_resources(fhir_server, output_path, limit=1000):
 
     for profile in MIMIC_FHIR_PROFILE_NAMES:
         if profile not in bypass_profiles:
-            logger.info(f'Export {profile}')
+            logging.info(f'Export {profile}')
             result = export_resource(profile, fhir_server, output_path, limit)
             result_dict[profile] = result
 

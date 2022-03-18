@@ -1,4 +1,12 @@
-# Initialize logger - MIGRARTE THIS TO MAIN, should just pull in the logger, not the basicConfig
+# Bundle classes and useful functions
+# Three main bundle classes made here:
+#    1. Bundle - a FHIR transaction bundle with resources as entries
+#    2. Bundler - Create bundles for each of the MIMIC resources
+#    3. ErrBundle - When a bundle fails it is reorganized with ErrBundle and output
+#
+# The useful functions are primarily used to get links and resources for patient bundles
+
+# NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
 
 LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
@@ -10,9 +18,6 @@ logging.basicConfig(
     force=True
 )
 
-logger = logging.getLogger(__name__)
-
-# Import the rest of the packages
 import requests
 import json
 from pathlib import Path
@@ -47,8 +52,8 @@ class ErrBundle():
             self.bundle_list.append(itm)
 
     def write(self, err_path):
-        date = datetime.now().strftime('%Y-%m-%d')
-        with open(f'{err_path}err-bundles-{date}.json', 'a+') as errfile:
+        day_of_week = datetime.now().strftime('%A').lower()
+        with open(f'{err_path}err-bundles-{day_of_week}.json', 'a+') as errfile:
             json.dump(self.json(), errfile)
             errfile.write('\n')
 

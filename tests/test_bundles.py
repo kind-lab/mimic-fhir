@@ -135,7 +135,6 @@ def test_bad_bundle():
         'gender': 'FAKE CODE'
     }
     bundle.add_entry([bad_resource])
-    bundle.add_entry([bad_resource])
     response = bundle.request(FHIR_SERVER, err_path=FHIR_BUNDLE_ERROR_PATH)
     assert response == False
 
