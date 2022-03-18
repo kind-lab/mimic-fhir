@@ -11,7 +11,3 @@ SELECT DISTINCT TRIM(event_txt)
 FROM mimic_hosp.emar  
 WHERE event_txt IS NOT NULL;
 
-
-INSERT INTO fhir_trm.cs_medication_method
-SELECT DISTINCT TRIM(ordercategorydescription)
-FROM mimic_icu.inputevents; 

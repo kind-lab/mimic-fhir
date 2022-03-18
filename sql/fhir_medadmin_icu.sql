@@ -86,7 +86,7 @@ SELECT
         , 'dosage', jsonb_build_object(
           	'method', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method-icu'  
                   , 'code', ie_ORDERCATEGORYDESCRIPTION
               ))
             )

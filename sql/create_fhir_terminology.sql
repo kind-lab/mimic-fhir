@@ -44,6 +44,9 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Medication Method
 \i codesystem/cs-medication-method.sql
 
+\echo Medication Method ICU
+\i codesystem/cs-medication-method-icu.sql
+
 \echo Medication Route
 \i codesystem/cs-medication-route.sql
 
