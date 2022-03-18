@@ -12,183 +12,188 @@ import os
 
 # Load env variables (should already have loaded in conftest.py)
 FHIR_SERVER = os.getenv('FHIR_SERVER')
+MIMIC_TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 
 
 # Generic function to validate codes against CodeSystem in HAPI fhir
-def cs_validate_code(codesystem, code):
-    server = FHIR_SERVER
-    url = f'{server}/CodeSystem/{codesystem}/$validate-code?code={code}'
-    resp = requests.get(url, headers={"Content-Type": "application/json"})
-    cs_output = json.loads(resp.text)
-    return (cs_output)
+def cs_validate_code(validator, codesystem, code):
+    if validator == 'HAPI':
+        server = FHIR_SERVER
+        url = f'{server}/CodeSystem/{codesystem}/$validate-code?code={code}'
+        resp = requests.get(url, headers={"Content-Type": "application/json"})
+        cs_output = json.loads(resp.text)['parameter'][0]['valueBoolean']
+    else:  # JAVA validator
+        logging.error('Java Validator cannot validate CodeSystems')
+        cs_output = False
+    return cs_output
 
 
-def test_cs_admission_class():
+def test_cs_admission_class(validator):
     codesystem = 'admission-class'
     code = 'URGENT'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_admission_type():
+def test_cs_admission_type(validator):
     codesystem = 'admission-type'
     code = 'URGENT'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_admission_type_icu():
+def test_cs_admission_type_icu(validator):
     codesystem = 'admission-type-icu'
     code = 'Neuro Stepdown'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_admit_source():
+def test_cs_admit_source(validator):
     codesystem = 'admit-source'
     code = 'EMERGENCY ROOM'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_bodysite():
+def test_cs_bodysite(validator):
     codesystem = 'bodysite'
     code = 'Right Foot'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
 def test_cs_diagnosis_icd9():
     codesystem = 'diagnosis-icd9'
     code = '79509'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(codesystem, code)
+    assert result
 
 
-def test_cs_diagnosis_icd10():
+def test_cs_diagnosis_icd10(validator):
     codesystem = 'diagnosis-icd10'
     code = 'K1370'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_discharge_disposition():
+def test_cs_discharge_disposition(validator):
     codesystem = 'discharge-disposition'
     code = 'HOME'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
 def test_cs_d_items():
     codesystem = 'd-items'
     code = '224723'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
 def test_cs_d_labitems():
     codesystem = 'd-labitems'
     code = '51905'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
 def test_cs_lab_flags():
     codesystem = 'lab-flags'
     code = 'abnormal'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_medadmin_category_icu():
+def test_cs_medadmin_category_icu(validator):
     codesystem = 'medadmin-category-icu'
     code = '15-Supplements'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_medication_method():
+def test_cs_medication_method(validator):
     codesystem = 'medication-method'
     code = 'Partial Administered'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_medication_route():
+def test_cs_medication_route(validator):
     codesystem = 'medication-route'
     code = 'INHALATION'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_medication_site():
+def test_cs_medication_site(validator):
     codesystem = 'medication-site'
     code = 'hip'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_microbiology_antibiotic():
+def test_cs_microbiology_antibiotic(validator):
     codesystem = 'microbiology-antibiotic'
     code = '90012'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_microbiology_interpretation():
+def test_cs_microbiology_interpretation(validator):
     codesystem = 'microbiology-interpretation'
     code = 'P'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_microbiology_organism():
+def test_cs_microbiology_organism(validator):
     codesystem = 'microbiology-organism'
     code = '90795'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_microbiology_test():
+def test_cs_microbiology_test(validator):
     codesystem = 'microbiology-test'
     code = '90212'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_mimic_observation_category():
+def test_cs_mimic_observation_category(validator):
     codesystem = 'mimic-observation-category'
     code = 'Output'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_procedure_category():
+def test_cs_procedure_category(validator):
     codesystem = 'procedure-category'
     code = 'Imaging'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_procedure_icd9():
+def test_cs_procedure_icd9(validator):
     codesystem = 'procedure-icd9'
     code = '3226'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_procedure_icd10():
+def test_cs_procedure_icd10(validator):
     codesystem = 'procedure-icd10'
     code = '0SUB09Z'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
-def test_cs_units():
+def test_cs_units(validator):
     codesystem = 'units'
     code = 'mcg/ml'
-    output = cs_validate_code(codesystem, code)
-    assert output['parameter'][0]['valueBoolean']
+    result = cs_validate_code(validator, codesystem, code)
+    assert result
 
 
 # Valueset $validate-code not currently working. May need to add custom validator

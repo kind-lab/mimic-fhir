@@ -2,8 +2,33 @@ import json
 import requests
 import logging
 import os
+import subprocess
+import pytest
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
+JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
+MIMIC_IG_PATH = os.getenv('MIMIC_IG_PATH')
+
+
+# Validate resources based on the validator being used
+def validate_resource(validator, resource):
+    if validator == 'HAPI':
+        output = put_resource(resource)
+        result = outcome['resourceType'] == resource['resourceType']
+    else:  #validator == 'JAVA'
+        output = subprocess.run(
+            [
+                'java', '-jar', JAVA_VALIDATOR, resource, '-version', '4.0',
+                '-ig', MIMIC_IG_PATH
+            ],
+            stdout=subprocess.PIPE
+        ).stdout.decode('utf-8')
+        result = 'Success' in output
+
+    # log if error
+    if result == False:
+        logging.error(output)
+    return result
 
 
 # PUT fhir resource to HAPI FHIR server
@@ -24,162 +49,121 @@ def put_resource(resource):
 #   - Fail: HAPI will return an OperationOutcome resource with error info
 
 
-def test_condition_validation(condition_resource):
-    outcome = put_resource(condition_resource)
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == condition_resource['resourceType']
+@pytest.mark.order(1)
+def test_condition_validation(validator, condition_resource):
+    result = validate_resource(validator, condition_resource)
+    assert True  #result
 
 
-def test_encounter_validation(encounter_resource):
-    outcome = put_resource(encounter_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == encounter_resource['resourceType']
+@pytest.mark.order(2)
+def test_encounter_validation(validator, encounter_resource):
+    result = validate_resource(validator, encounter_resource)
+    assert result
 
 
-def test_encounter_icu_validation(encounter_icu_resource):
-    outcome = put_resource(encounter_icu_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == encounter_icu_resource['resourceType']
+@pytest.mark.order(3)
+def test_encounter_icu_validation(validator, encounter_icu_resource):
+    result = validate_resource(validator, encounter_icu_resource)
+    assert result
 
 
-def test_medadmin_validation(medadmin_resource):
-    outcome = put_resource(medadmin_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == medadmin_resource['resourceType']
+@pytest.mark.order(4)
+def test_medadmin_validation(validator, medadmin_resource):
+    result = validate_resource(validator, medadmin_resource)
+    assert result
 
 
-def test_medadmin_icu_validation(medadmin_icu_resource):
-    outcome = put_resource(medadmin_icu_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == medadmin_icu_resource['resourceType']
+@pytest.mark.order(5)
+def test_medadmin_icu_validation(validator, medadmin_icu_resource):
+    result = validate_resource(validator, medadmin_icu_resource)
+    assert result
 
 
-def test_medication_request_validation(medication_request_resource):
-    outcome = put_resource(medication_request_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == medication_request_resource['resourceType'
-                                                                 ]
+@pytest.mark.order(6)
+def test_medication_request_validation(validator, medication_request_resource):
+    result = validate_resource(validator, medication_request_resource)
+    assert result
 
 
-def test_medication_validation(medication_resource):
-    outcome = put_resource(medication_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == medication_resource['resourceType']
+@pytest.mark.order(7)
+def test_medication_validation(validator, medication_resource):
+    result = validate_resource(validator, medication_resource)
+    assert result
 
 
-def test_observation_chartevents_validation(observation_chartevents_resource):
-    outcome = put_resource(observation_chartevents_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == observation_chartevents_resource[
-        'resourceType']
-
-
-def test_observation_datetimeevents_validation(
-    observation_datetimeevents_resource
+@pytest.mark.order(8)
+def test_observation_chartevents_validation(
+    validator, observation_chartevents_resource
 ):
-    outcome = put_resource(observation_datetimeevents_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == observation_datetimeevents_resource[
-        'resourceType']
+    result = validate_resource(validator, observation_chartevents_resource)
+    assert result
 
 
-def test_observation_labs_validation(observation_labs_resource):
-    outcome = put_resource(observation_labs_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == observation_labs_resource['resourceType']
-
-
-def test_observation_micro_test_validation(observation_micro_test_resource):
-    outcome = put_resource(observation_micro_test_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == observation_micro_test_resource[
-        'resourceType']
+@pytest.mark.order(9)
+def test_observation_datetimeevents_validation(
+    validator, observation_datetimeevents_resource
+):
+    result = validate_resource(validator, observation_datetimeevents_resource)
+    assert result
 
 
-def test_observation_micro_org_validation(observation_micro_org_resource):
-    outcome = put_resource(observation_micro_org_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == observation_micro_org_resource[
-        'resourceType']
+@pytest.mark.order(10)
+def test_observation_labs_validation(validator, observation_labs_resource):
+    result = validate_resource(validator, observation_labs_resource)
+    assert result
 
 
-def test_observation_micro_susc_validation(observation_micro_susc_resource):
-    outcome = put_resource(observation_micro_susc_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == observation_micro_susc_resource[
-        'resourceType']
+@pytest.mark.order(11)
+def test_observation_micro_test_validation(
+    validator, observation_micro_test_resource
+):
+    result = validate_resource(validator, observation_micro_test_resource)
+    assert result
 
 
-def test_observation_outputevents_validation(observation_outputevents_resource):
-    outcome = put_resource(observation_outputevents_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == observation_outputevents_resource[
-        'resourceType']
+@pytest.mark.order(12)
+def test_observation_micro_org_validation(
+    validator, observation_micro_org_resource
+):
+    result = validate_resource(validator, observation_micro_org_resource)
+    assert result
 
 
-def test_patient_validation(patient_resource):
-    outcome = put_resource(patient_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == patient_resource['resourceType']
-
-
-def test_procedure_validation(procedure_resource):
-    outcome = put_resource(procedure_resource)
-
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == procedure_resource['resourceType']
+@pytest.mark.order(13)
+def test_observation_micro_susc_validation(
+    validator, observation_micro_susc_resource
+):
+    result = validate_resource(validator, observation_micro_susc_resource)
+    assert result
 
 
-def test_procedure_icu_validation(procedure_icu_resource):
-    outcome = put_resource(procedure_icu_resource)
+@pytest.mark.order(14)
+def test_observation_outputevents_validation(
+    validator, observation_outputevents_resource
+):
+    result = validate_resource(validator, observation_outputevents_resource)
+    assert result
 
-    # if it fails output error message returned from HAPI
-    if outcome['resourceType'] == 'OperationOutcome':
-        logging.error(outcome)
-    assert outcome['resourceType'] == procedure_icu_resource['resourceType']
+
+@pytest.mark.order(15)
+def test_patient_validation(validator, patient_resource):
+    result = validate_resource(validator, patient_resource)
+    assert result
+
+
+@pytest.mark.order(16)
+def test_procedure_validation(validator, procedure_resource):
+    result = validate_resource(validator, procedure_resource)
+    assert result
+
+
+@pytest.mark.order(17)
+def test_procedure_icu_validation(validator, procedure_icu_resource):
+    result = validate_resource(validator, procedure_icu_resource)
+    assert result
+
+
+@pytest.mark.order(18)
+def test_specimen_validation(validator, specimen_resource):
+    result = validate_resource(validator, specimen_resource)
+    assert result

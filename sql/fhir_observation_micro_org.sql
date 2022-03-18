@@ -18,6 +18,7 @@ WITH micro_info AS (
         , MAX(mi.org_name) AS org_name
         , MAX(mi.subject_id) AS subject_id
         , MAX(CAST(mi.charttime AS TIMESTAMPTZ)) AS charttime
+        , MAX(comments) AS comments
     
         -- Add a reference to susceptibility if an organism is tested for antibiotics
         , CASE WHEN MIN(mi.ab_itemid) IS NULL THEN NULL
@@ -46,8 +47,18 @@ WITH micro_info AS (
 ), fhir_observation_micro_org AS (
     SELECT 
         mi.org_itemid AS mi_ORG_ITEMID
+        , mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid AS id_MICRO_ORG
         , mi.org_name AS mi_ORG_NAME
         , mi.charttime AS mi_CHARTTIME
+        
+        -- For tests with an orgnaism and no susceptibility results, store a result comment
+        , CASE 
+            WHEN fhir_SUSCEPTIBILITY IS NULL AND mi.comments IS NOT NULL 
+                THEN mi.COMMENTS
+            WHEN fhir_SUSCEPTIBILITY IS NULL AND mi.comments IS NULL 
+                THEN 'No susceptibility data present'
+            ELSE NULL 
+        END AS valueString
 
         -- UUID references
         , uuid_generate_v5(ns_observation_micro_org.uuid, mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid) AS uuid_MICRO_ORG
@@ -78,6 +89,10 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-org'
             )
         ) 
+        , 'identifier',  jsonb_build_array(jsonb_build_object(
+            'value', id_MICRO_ORG
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-micro-org'
+        ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
@@ -97,6 +112,7 @@ SELECT
         , 'effectiveDateTime', mi_CHARTTIME
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'hasMember', fhir_SUSCEPTIBILITY -- Reference one to many antiobiotic susceptiblities 
+        , 'valueString', valueString
         , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_TEST))
     )) AS fhir 
 FROM
