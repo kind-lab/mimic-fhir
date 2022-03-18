@@ -167,3 +167,9 @@ def test_procedure_validation(validator, procedure_resource):
 def test_procedure_icu_validation(validator, procedure_icu_resource):
     result = validate_resource(validator, procedure_icu_resource)
     assert result
+
+
+@pytest.mark.order(18)
+def test_specimen_validation(validator, specimen_resource):
+    result = validate_resource(validator, specimen_resource)
+    assert result

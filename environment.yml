@@ -18,4 +18,4 @@ dependencies:
   - pip:
     - python-dotenv
     - pytest-order
-    
+    - fhir.resources

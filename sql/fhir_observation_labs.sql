@@ -60,7 +60,7 @@ WITH fhir_observation_labs AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_labs
             ON ns_observation_labs.name = 'ObservationLabs'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
-            ON ns_specimen.name = 'Specimen'
+            ON ns_specimen.name = 'SpecimenLab'
 )
 INSERT INTO mimic_fhir.observation_labs
 SELECT 

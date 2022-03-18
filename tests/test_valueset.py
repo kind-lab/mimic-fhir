@@ -39,6 +39,16 @@ def validate_valueset(validator, db_conn_hapi, valueset, vs_count):
     return result
 
 
+# Validate valueset
+def validate_valueset(validator, db_conn_hapi, valueset, vs_count):
+    if validator == 'HAPI':
+        result = assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
+    else:  # Java validator
+        logging.error('Java validator cannot validate valuesets')
+        result = False
+    return result
+
+
 # Generic function to test expansion and the count of the valueset
 def assert_expanded_and_count(db_conn_hapi, valueset, vs_count):
     q_valueset = f"SELECT expansion_status, total_concepts \
