@@ -28,7 +28,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_encounter_icu
 \i fhir_encounter_icu.sql
 
--- data resources: conditions, diagnoses, procedures
+-- data resources: conditions, diagnoses, procedures, specimen
 \echo condition
 \i fhir_condition.sql
 
@@ -37,6 +37,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 \echo fhir_procedure_icu
 \i fhir_procedure_icu.sql
+
+\echo fhir_specimen
+\i fhir_specimen.sql
 
 -- data resources: medications
 \echo fhir_medadmin_icu

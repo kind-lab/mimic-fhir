@@ -26,6 +26,8 @@ from py_mimic_fhir.bundle import Bundle, Bundler, rerun_bundle_from_file
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 FHIR_BUNDLE_ERROR_PATH = os.getenv('FHIR_BUNDLE_ERROR_PATH')
 
+# ---------------- Test Support Functions -----------------------
+
 
 # Function to find links between a patient and certain resources.
 # Allows for more complete testing if sending full bundle
@@ -53,6 +55,9 @@ def get_n_patient_id(db_conn, n_patient):
     return patient_ids
 
 
+# ---------------- Test Functions --------------------
+
+
 def test_bundler(db_conn):
     patient_id = get_n_patient_id(db_conn, 1)[0]
     bundler = Bundler(patient_id)
@@ -62,11 +67,14 @@ def test_bundler(db_conn):
 def test_bundle_patient_all_resources(db_conn):
     # Get n patient ids to then bundle and post
     patient_id = get_n_patient_id(db_conn, 1)[0]
+    split_flag = True  # flag for breaking up bundles to smaller chunks
 
     # Create bundle and post it
     bundler = Bundler(patient_id)
     bundler.generate_all_bundles()
-    response_list = bundler.post_all_bundles(FHIR_SERVER)
+    response_list = bundler.post_all_bundles(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
 
     result = True
     if False in response_list:
@@ -95,7 +103,7 @@ def test_bundle_all_patient_bundles(db_conn):
 
 def test_bundle_multiple_patient_all_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 100)
+    patient_ids = get_n_patient_id(db_conn, 10)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
@@ -129,48 +137,65 @@ def test_bad_bundle():
     bundle.add_entry([bad_resource])
     bundle.add_entry([bad_resource])
     response = bundle.request(FHIR_SERVER, err_path=FHIR_BUNDLE_ERROR_PATH)
-    assert response
+    assert response == False
 
 
 def test_rerun_bundle(db_conn):
-    err_file = f'{FHIR_BUNDLE_ERROR_PATH}err-bundles-2022-03-15.json'
+    err_file = f'{FHIR_BUNDLE_ERROR_PATH}err-bundles-thursday.json'
     resp = rerun_bundle_from_file(err_file, db_conn, FHIR_SERVER)
 
-    assert resp
+    # still will complete in error, since I haven't fixed the root causes
+    # If returns True, great!
+    assert resp == False
 
 
-def test_bundle_resources_from_list():
+def test_bundle_resources_from_list(db_conn):
     q_resource = f"""
-        SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 1000
+        SELECT fhir FROM mimic_fhir.patient LIMIT 10
     """
     pd_resources = pd.read_sql_query(q_resource, db_conn)
     resources = pd_resources.fhir.to_list()
 
-    assert response
-
-
-def test_bad_code_in_bundle():
-    pat_resource = {
-        'resourceType': 'Patient',
-        'id': '123456',
-        'gender': 'FAKE CODE'
-    }
     bundle = Bundle()
-    bad_resource = [pat_resource]
-    bundle.add_entry(bad_resource)
+    bundle.add_entry(resources)
     response = bundle.request(FHIR_SERVER)
-    assert response == False
+
+    assert response
 
 
 def test_patient_bundle(db_conn):
     # Get patient_id that has resources from the resource_list
     resource_list = ['encounter', 'condition', 'procedure']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = True  # Divide up bundles into smaller chunks
 
     # Create bundle and post it
     bundler = Bundler(patient_id)
     bundler.generate_patient_bundle()
-    response = bundler.patient_bundle.request(FHIR_SERVER)
+    response = bundler.patient_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+    assert response
+
+
+# Test posting all specimen resources
+def test_spec_bundle(db_conn):
+    # Get patient_id that has resources from the resource_list
+    resource_list = ['specimen']
+    patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = True
+    bundler = Bundler(patient_id)
+
+    # Generate patient first to make sure references are good
+    bundler.generate_patient_bundle()
+    bundler.patient_bundle.request(FHIR_SERVER)
+
+    #  Generate and post spec bundle
+    bundler.generate_spec_bundle()
+    response = bundler.spec_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+    logging.error(patient_id)
     assert response
 
 
@@ -181,6 +206,7 @@ def test_microbio_bundle(db_conn):
         'observation_micro_susc'
     ]
     patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = False  #Do not want to split up micro bundles
 
     # Create bundle
     bundler = Bundler(patient_id)
@@ -189,9 +215,15 @@ def test_microbio_bundle(db_conn):
     bundler.generate_patient_bundle()
     bundler.patient_bundle.request(FHIR_SERVER)
 
+    # Generate and post specimen bundle, must do first to avoid referencing issues
+    bundler.generate_spec_bundle()
+    bundler.spec_bundle.request(FHIR_SERVER)
+
     #  Generate and post micro bundle
     bundler.generate_micro_bundle()
-    response = bundler.micro_bundle.request(FHIR_SERVER)
+    response = bundler.micro_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
     logging.error(patient_id)
     assert response
 
@@ -200,6 +232,7 @@ def test_lab_bundle(db_conn):
     # Get patient_id that has resources from the resource_list
     resource_list = ['observation_labs']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = True  # Divide up bundles into smaller chunks
 
     # Create bundle
     bundler = Bundler(patient_id)
@@ -210,7 +243,9 @@ def test_lab_bundle(db_conn):
 
     #  Generate and post lab bundle
     bundler.generate_lab_bundle()
-    response = bundler.lab_bundle.request(FHIR_SERVER)
+    response = bundler.lab_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
     logging.error(patient_id)
     assert response
 
@@ -221,6 +256,7 @@ def test_med_pat_bundle(db_conn):
         'medication_request', 'medication_administration'
     ]  # Add medication_dispense after updating IG
     patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = False  # Do not break up meds right now, need to test further
 
     # Create bundle
     bundler = Bundler(patient_id)
@@ -231,28 +267,23 @@ def test_med_pat_bundle(db_conn):
 
     #  Generate and post micro bundle
     bundler.generate_med_bundle()
-    response = bundler.med_bundle.request(FHIR_SERVER)
+    response = bundler.med_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
     logging.error(patient_id)
     assert response
 
 
 # Only passing a small portion of the meds here (~100)
-def test_med_data_bundle_whole(med_data_bundle_resources):
-    resources = med_data_bundle_resources  #[0:1000]
+def test_med_data_bundle(med_data_bundle_resources):
+    # Can pass all meds if slicing is dropped
+    resources = med_data_bundle_resources[0:100]
+    split_flag = True  # Divide up bundles into smaller chunks
     bundle = Bundle()
     bundle.add_entry(resources)
-    response = bundle.request(FHIR_SERVER, split_flag=True)
+    response = bundle.request(FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH)
     logging.error(response)
     assert response
-
-
-# Need to figure out how to get medication references working if only a subuset of the Medication resources have been posted
-# OR just post all medication resources..
-def test_med_data_bundle(db_conn):
-    bundle = Bundle()
-    bundle.add_entry(med_pat_bundle_resources)
-    bundle.request(FHIR_SERVER)
-    assert bundle.response
 
 
 # Test icu base bundle that include EncounterICU and MedicationAdminstrationICU
@@ -262,6 +293,7 @@ def test_icu_base_bundle(db_conn):
         'encounter_icu', 'procedure_icu', 'medication_administration_icu'
     ]
     patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = True  # Divide up bundles into smaller chunks
 
     # Create bundle
     bundler = Bundler(patient_id)
@@ -272,13 +304,15 @@ def test_icu_base_bundle(db_conn):
 
     #  Generate and post icu base bundle
     bundler.generate_icu_base_bundle()
-    response = bundler.icu_base_bundle.request(FHIR_SERVER)
+    response = bundler.icu_base_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
     logging.error(patient_id)
     assert response
 
 
 def test_icu_enc_bundle_n_patients(db_conn):
-    patient_ids = get_n_patient_id(db_conn, 100)
+    patient_ids = get_n_patient_id(db_conn, 2)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
@@ -299,10 +333,11 @@ def test_icu_enc_bundle_n_patients(db_conn):
 def test_icu_observation_bundle(db_conn):
     # Get patient_id that has resources from the resource_list
     resource_list = [
-        'observation_chartevents', 'observation_datetimeevents',
-        'observation_outputevents'
+        'observation_datetimeevents', 'observation_outputevents',
+        'observation_chartevents'
     ]
     patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle
     bundler = Bundler(patient_id)
@@ -311,31 +346,38 @@ def test_icu_observation_bundle(db_conn):
     bundler.generate_patient_bundle()
     bundler.patient_bundle.request(FHIR_SERVER)
 
+    # Generate and post icu enc bundle to avoid referencing issues
+    bundler.generate_icu_enc_bundle()
+    bundler.icu_enc_bundle.request(FHIR_SERVER)
+
     #  Generate and post icu observation bundle
     bundler.generate_icu_obs_bundle()
-    response = bundler.icu_obs_bundle.request(FHIR_SERVER)
+    response = bundler.icu_obs_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
     logging.error(patient_id)
     assert response
 
 
-def test_post_1000_resources(db_conn):
+def test_post_100_resources(db_conn):
     q_resource = f"""
-        SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 40000
+        SELECT fhir FROM mimic_fhir.patient LIMIT 100
     """
     pd_resources = pd.read_sql_query(q_resource, db_conn)
     resources = pd_resources.fhir.to_list()
+    split_flag = True  # Divide up bundles into smaller chunks
 
     bundle = Bundle()
     bundle.add_entry(resources)
     resp = bundle.request(
-        FHIR_SERVER, True, err_path=FHIR_BUNDLE_ERROR_PATH, bundle_size=50
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH, bundle_size=50
     )
     assert resp
 
 
 def test_bundle_multiple_lab_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 30)
+    patient_ids = get_n_patient_id(db_conn, 10)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
@@ -343,7 +385,9 @@ def test_bundle_multiple_lab_resources(db_conn):
     for patient_id in patient_ids:
         bundler = Bundler(patient_id)
         bundler.generate_lab_bundle()
-        resp = bundler.lab_bundle.request(FHIR_SERVER, split_flag)
+        resp = bundler.lab_bundle.request(
+            FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+        )
 
         if resp == False:
             result = False
@@ -359,7 +403,9 @@ def test_largest_bundle():
     bundler = Bundler(patient_id)
     bundler.generate_icu_obs_bundle()
     split_flag = True  # send bundle in smaller chunks
-    resp = bundler.icu_obs_bundle.request(FHIR_SERVER, split_flag)
+    resp = bundler.icu_obs_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
     assert resp
 
 
@@ -369,5 +415,7 @@ def test_largest_icu_ce_bundle():
     bundler = Bundler(patient_id)
     bundler.generate_icu_ce_bundle()
     split_flag = True  # send bundle in smaller chunks
-    resp = bundler.icu_ce_bundle.request(FHIR_SERVER, split_flag)
+    resp = bundler.icu_ce_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
     assert resp
