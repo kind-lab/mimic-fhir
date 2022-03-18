@@ -97,6 +97,8 @@ def get_exported_resource(resp_export, time_max=20):
             break
         elif time.time() > timeout:
             break  # exit if data not ready after timeout time
+        else:
+            time.sleep(1)  #put a break in here to let other HAPI process finish
     return resp
 
 

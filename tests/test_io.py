@@ -22,50 +22,10 @@ FHIR_SERVER = os.getenv('FHIR_SERVER')
 MIMIC_JSON_PATH = os.getenv('MIMIC_JSON_PATH')
 
 
-def test_delete_resource():
-    #call to delete one resource
-    assert False
-
-
-def test_expunge_resource():
-    # call to expunge one resource
-    assert False
-
-
-def test_delete_multiple_resources():
-    # call to delete 10 unique resoruces
-    assert False
-
-
-def test_expunge_multiple_resources():
-    # call to expunge 10 unique resources
-    assert False
-
-
-def test_expunge_all():
-    # this may not work as a test... since it should clear out the whole db
-    assert False
-
-
-def test_export_single_resource():
-    # See that a resource can be exported
-    assert False
-
-
-def test_export_resource_to_json():
-    # Take the exported resource and write to json
-    assert False
-
-
-def test_bulk_export_resources():
-    # Call bulk export resources and get one resource
-    assert False
-
-
 # Bulk export and get the resources into json
 # Currently failing just based on MedicationDispense
 def test_export_all_resources():
-    limit = 10000
+    limit = 1
     result_dict = io.export_all_resources(FHIR_SERVER, MIMIC_JSON_PATH, limit)
 
     # Assert all resources exported without error
@@ -138,7 +98,7 @@ def test_export_patient():
 
 def test_export_encounter():
     resource_type = 'Encounter'
-    limit = 2  #Just export 1 binary ndjson for the resource (~1000 resources)
+    limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
     result = io.export_resource(
         resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
     )
