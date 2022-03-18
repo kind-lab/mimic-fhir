@@ -2,7 +2,17 @@
 -- Only taking the codes used in procedure_icd versus all the codes in d_icd_procedures 
 -- Need to trim to remove whitespaces, or validator will fail it
 
-SELECT DISTINCT TRIM(proc.icd_code) AS icd_code, icd.long_title 
+
+DROP TABLE IF EXISTS fhir_trm.cs_procedure_icd10;
+CREATE TABLE fhir_trm.cs_procedure_icd10(
+    code      VARCHAR NOT NULL,
+    display   VARCHAR
+);
+
+INSERT INTO fhir_trm.cs_procedure_icd10
+SELECT DISTINCT 
+    TRIM(proc.icd_code) AS code
+    , icd.long_title AS display
 FROM 
     mimic_hosp.procedures_icd proc
     LEFT JOIN mimic_hosp.d_icd_procedures icd
