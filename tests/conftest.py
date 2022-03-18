@@ -4,6 +4,7 @@ import pandas as pd
 import psycopg2
 from dotenv import load_dotenv
 import os
+import tkinter as tk
 
 import pytest
 
@@ -24,10 +25,50 @@ def patient_id():
     return '01aa15d9-3114-5220-b492-332361c2f91c'
 
 
+# Function to warn against the extensive use of Java Validator
+def warn_java_validator():
+    window = tk.Tk()
+    width = 600
+    height = 200
+    screen_width = window.winfo_screenwidth()  # width of the screen
+    screen_height = window.winfo_screenheight()  # height of the screen
+
+    # calculate x and y coordinates for the Tk root window
+    x = (screen_width / 2) - (width / 2)
+    y = (screen_height / 2) - (height / 2)
+
+    # set the dimensions of the screen
+    # and where it is placed
+    window.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+    warning = tk.Label(
+        text="""
+        WARNING:\n
+        DO NOT RUN all validation tests with Java Validator.
+        Run individual tests, or Java Validator will crash everything.
+        Abort multiple tests recommended.
+        """,
+        width=300,
+        height=100,
+        fg='red'
+    )
+    warning.pack()
+    window.mainloop()
+
+
 # Set validator for the session
 @pytest.fixture(scope="session")
 def validator():
-    return 'JAVA'  # or 'HAPI'
+    validator = 'JAVA'  # JAVA or HAPI
+    if validator == 'JAVA':
+        warn_java_validator()
+    return validator
+    #------------------------ WARNING ---------------------------
+    # DO NOT RUN all validation tests when JAVA is set
+    # Run individual tests, or java validator will crash everything
+    # Need to explore way to run all test with java validator, but not
+    # working right now
+
 
 
 # Initialize database connection to mimic

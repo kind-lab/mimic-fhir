@@ -7,7 +7,36 @@ import json
 import requests
 import logging
 import pandas as pd
+import subprocess
 import os
+
+MIMIC_TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
+JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
+MIMIC_IG_PATH = os.getenv('MIMIC_IG_PATH')
+
+#------------------------ WARNING ---------------------------
+# DO NOT RUN all validation tests when JAVA validator is set
+# Run individual tests, or java validator will crash everything
+# Need to explore way to run all test with java validator, but not
+# working right now
+
+
+# Validate valueset
+def validate_valueset(validator, db_conn_hapi, valueset, vs_count):
+    if validator == 'HAPI':
+        result = assert_expanded_and_count(db_conn_hapi, valueset, vs_count)
+    else:  # Java validator
+        valueset_name = valueset.lower().replace(' ', '-')
+        valueset_filename = f'{MIMIC_TERMINOLOGY_PATH}ValueSet-{valueset_name}.json'
+        output = subprocess.run(
+            [
+                'java', '-jar', JAVA_VALIDATOR, valueset_filename, '-version',
+                '4.0', '-ig', MIMIC_IG_PATH
+            ],
+            stdout=subprocess.PIPE
+        ).stdout.decode('utf-8')
+        result = 'Success' in output
+    return result
 
 
 # Validate valueset

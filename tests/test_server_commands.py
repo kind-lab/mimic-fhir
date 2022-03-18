@@ -9,12 +9,18 @@ FHIR_SERVER = os.getenv('FHIR_SERVER')
 JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
 MIMIC_IG_PATH = os.getenv('MIMIC_IG_PATH')
 
+#------------------------ WARNING ---------------------------
+# DO NOT RUN all validation tests when JAVA validator is set
+# Run individual tests, or java validator will crash everything
+# Need to explore way to run all test with java validator, but not
+# working right now
+
 
 # Validate resources based on the validator being used
 def validate_resource(validator, resource):
     if validator == 'HAPI':
         output = put_resource(resource)
-        result = outcome['resourceType'] == resource['resourceType']
+        result = output['resourceType'] == resource['resourceType']
     else:  #validator == 'JAVA'
         output = subprocess.run(
             [
