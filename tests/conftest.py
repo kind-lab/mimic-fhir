@@ -5,8 +5,9 @@ import psycopg2
 from dotenv import load_dotenv
 import os
 import tkinter as tk
-
 import pytest
+
+from py_mimic_fhir import db
 
 # Load environment variables
 load_dotenv(Path(Path.cwd()).parents[0] / '.env')
@@ -71,14 +72,7 @@ def validator():
 # Initialize database connection to mimic
 @pytest.fixture(scope="session")
 def db_conn():
-    sqluser = SQLUSER
-    sqlpass = SQLPASS
-    dbname = DBNAME_MIMIC
-    host = HOST
-
-    conn = psycopg2.connect(
-        dbname=dbname, user=sqluser, password=sqlpass, host=host
-    )
+    conn = db.db_conn(SQLUSER, SQLPASS, DBNAME_MIMIC, HOST)
     return conn
 
 

@@ -131,7 +131,7 @@ class Bundle():
 
 # Class to bundle all resources associated with one patient
 class Bundler():
-    def __init__(self, patient_id):
+    def __init__(self, patient_id, db_conn):
         self.patient_id = patient_id
         self.patient_bundle = Bundle()
         self.spec_bundle = Bundle()
@@ -142,7 +142,7 @@ class Bundler():
         self.icu_base_bundle = Bundle()
         self.icu_obs_bundle = Bundle()
         self.icu_ce_bundle = Bundle()
-        self.db_conn = db.db_conn()
+        self.db_conn = db_conn
         logging.info('----------- NEW BUNDLE -----------')
         logging.info(f'Patient_id: {patient_id}')
 

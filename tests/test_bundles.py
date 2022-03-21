@@ -61,7 +61,7 @@ def get_n_patient_id(db_conn, n_patient):
 
 def test_bundler(db_conn):
     patient_id = get_n_patient_id(db_conn, 1)[0]
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
     assert True
 
 
@@ -91,7 +91,7 @@ def test_bundle_all_patient_bundles(db_conn):
     result = True
     for patient_id in patient_ids:
         print(patient_id)
-        bundler = Bundler(patient_id)
+        bundler = Bundler(patient_id, db_conn)
         bundler.generate_patient_bundle()
         response = bundler.patient_bundle.request(
             FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
@@ -110,7 +110,7 @@ def test_bundle_multiple_patient_all_resources(db_conn):
     # Create bundle and post it
     result = True
     for patient_id in patient_ids:
-        bundler = Bundler(patient_id)
+        bundler = Bundler(patient_id, db_conn)
         bundler.generate_all_bundles()
         response_list = bundler.post_all_bundles(
             FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
@@ -166,7 +166,7 @@ def test_patient_bundle(db_conn):
     split_flag = True  # Divide up bundles into smaller chunks
 
     # Create bundle and post it
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
     bundler.generate_patient_bundle()
     response = bundler.patient_bundle.request(
         FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
@@ -180,7 +180,7 @@ def test_spec_bundle(db_conn):
     resource_list = ['specimen']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
     split_flag = True
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
 
     # Generate patient first to make sure references are good
     bundler.generate_patient_bundle()
@@ -205,7 +205,7 @@ def test_microbio_bundle(db_conn):
     split_flag = False  #Do not want to split up micro bundles
 
     # Create bundle
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     bundler.generate_patient_bundle()
@@ -231,7 +231,7 @@ def test_lab_bundle(db_conn):
     split_flag = True  # Divide up bundles into smaller chunks
 
     # Create bundle
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     bundler.generate_patient_bundle()
@@ -255,7 +255,7 @@ def test_med_pat_bundle(db_conn):
     split_flag = False  # Do not break up meds right now, need to test further
 
     # Create bundle
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     bundler.generate_patient_bundle()
@@ -292,7 +292,7 @@ def test_icu_base_bundle(db_conn):
     split_flag = True  # Divide up bundles into smaller chunks
 
     # Create bundle
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     bundler.generate_patient_bundle()
@@ -314,7 +314,7 @@ def test_icu_enc_bundle_n_patients(db_conn):
     # Create bundle and post it
     result = True
     for patient_id in patient_ids:
-        bundler = Bundler(patient_id)
+        bundler = Bundler(patient_id, db_conn)
         bundler.generate_icu_enc_bundle()
         response = bundler.icu_enc_bundle.request(
             FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
@@ -336,7 +336,7 @@ def test_icu_observation_bundle(db_conn):
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     bundler.generate_patient_bundle()
@@ -379,7 +379,7 @@ def test_bundle_multiple_lab_resources(db_conn):
     # Create bundle and post it
     result = True
     for patient_id in patient_ids:
-        bundler = Bundler(patient_id)
+        bundler = Bundler(patient_id, db_conn)
         bundler.generate_lab_bundle()
         resp = bundler.lab_bundle.request(
             FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
@@ -396,7 +396,7 @@ def test_largest_bundle():
     # I was posting 1000 resources in 6 seconds, so ~44,000 should be about 5 minutes...
     # Keep playing with this
     patient_id = '77e10fd0-6a1c-5547-a130-fae1341acf36'
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
     bundler.generate_icu_obs_bundle()
     split_flag = True  # send bundle in smaller chunks
     resp = bundler.icu_obs_bundle.request(
@@ -408,7 +408,7 @@ def test_largest_bundle():
 def test_largest_icu_ce_bundle():
     # Bundle is ~42,000
     patient_id = '77e10fd0-6a1c-5547-a130-fae1341acf36'
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
     bundler.generate_icu_ce_bundle()
     split_flag = True  # send bundle in smaller chunks
     resp = bundler.icu_ce_bundle.request(
