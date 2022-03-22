@@ -70,20 +70,27 @@ def parse_arguments(arguments=None):
         envvar='HOST',
         help='Database Host'
     )
-
-    subparsers = parser.add_subparsers(dest="actions", title="actions")
-    subparsers.required = True
-
-    # Downloading
-    arg_validate = subparsers.add_parser(
-        "validate", help=("Validation options for mimic-fhir data")
-    )
-    arg_validate.add_argument(
+    parser.add_argument(
         '--fhir_server',
         action=EnvDefault,
         envvar='FHIR_SERVER',
         required=True,
         help='FHIR Server'
+    )
+    parser.add_argument(
+        '--output_path',
+        required=False,
+        action=EnvDefault,
+        envvar='MIMIC_JSON_PATH',
+        help='Export Resources'
+    )
+
+    subparsers = parser.add_subparsers(dest="actions", title="actions")
+    subparsers.required = True
+
+    # Validation
+    arg_validate = subparsers.add_parser(
+        "validate", help=("Validation options for mimic-fhir data")
     )
     arg_validate.add_argument(
         '--dbname_hapi',
@@ -97,15 +104,10 @@ def parse_arguments(arguments=None):
         required=True,
         action=EnvDefault,
         envvar='FHIR_BUNDLE_ERROR_PATH',
-        help='HAPI Database Name'
+        help='Bundling error file path'
     )
-    arg_validate.add_argument(
-        '--output_path',
-        required=False,
-        action=EnvDefault,
-        envvar='MIMIC_JSON_PATH',
-        help='Export Resources'
-    )
+
+    # Allow exporting right after validation
     arg_validate.add_argument(
         '--export',
         required=False,
@@ -113,11 +115,30 @@ def parse_arguments(arguments=None):
         help='Export Resources'
     )
     arg_validate.add_argument(
+        '--export_limit',
+        required=False,
+        type=float,
+        default=10000,
+        help='Export Limit, 1 is ~ 1000 resources'
+    )
+    arg_validate.add_argument(
         '--num_patients',
         required=False,
         type=float,
         default=1,
         help='Number of patients'
+    )
+
+    # Export - can be run separate from validation
+    arg_export = subparsers.add_parser(
+        "export", help=("Export options for mimic-fhir data")
+    )
+    arg_export.add_argument(
+        '--export_limit',
+        required=False,
+        type=float,
+        default=10000,
+        help='Export Limit, 1 is ~ 1000 resources'
     )
 
     return parser.parse_args(arguments)
@@ -132,7 +153,13 @@ def validate(args):
 
     # Only export if validation is successful
     if validation_result == True and args.export == True:
-        export_all_resources(args.fhir_server, args.output_path, 1)
+        export_all_resources(
+            args.fhir_server, args.output_path, args.export_limit
+        )
+
+
+def export(args):
+    export_all_resources(args.fhir_server, args.output_path, args.export_limit)
 
 
 def main(argv=sys.argv):
@@ -142,6 +169,8 @@ def main(argv=sys.argv):
 
     if args.actions == 'validate':
         validate(args)
+    elif args.actions == 'export':
+        export(args)
     else:
         logger.warn('Unrecongnized command')
 
