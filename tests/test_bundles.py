@@ -161,7 +161,7 @@ def test_bundle_resources_from_list(db_conn):
 
 def test_patient_bundle(db_conn):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['encounter', 'condition', 'procedure']
+    resource_list = ['encounter']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
     split_flag = True  # Divide up bundles into smaller chunks
 
@@ -174,8 +174,52 @@ def test_patient_bundle(db_conn):
     assert response
 
 
+def test_condition_bundle(db_conn):
+    # Get patient_id that has resources from the resource_list
+    resource_list = ['condition']
+    patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = True  # Divide up bundles into smaller chunks
+
+    # Create bundle
+    bundler = Bundler(patient_id, db_conn)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    bundler.generate_patient_bundle()
+    bundler.patient_bundle.request(FHIR_SERVER)
+
+    #  Generate and post lab bundle
+    bundler.generate_condition_bundle()
+    response = bundler.condition_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+    logging.error(patient_id)
+    assert response
+
+
+def test_procedure_bundle(db_conn):
+    # Get patient_id that has resources from the resource_list
+    resource_list = ['procedure']
+    patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = True  # Divide up bundles into smaller chunks
+
+    # Create bundle
+    bundler = Bundler(patient_id, db_conn)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    bundler.generate_patient_bundle()
+    bundler.patient_bundle.request(FHIR_SERVER)
+
+    #  Generate and post lab bundle
+    bundler.generate_procedure_bundle()
+    response = bundler.procedure_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+    logging.error(patient_id)
+    assert response
+
+
 # Test posting all specimen resources
-def test_spec_bundle(db_conn):
+def test_specimen_bundle(db_conn):
     # Get patient_id that has resources from the resource_list
     resource_list = ['specimen']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
@@ -187,8 +231,8 @@ def test_spec_bundle(db_conn):
     bundler.patient_bundle.request(FHIR_SERVER)
 
     #  Generate and post spec bundle
-    bundler.generate_spec_bundle()
-    response = bundler.spec_bundle.request(
+    bundler.generate_specimen_bundle()
+    response = bundler.specimen_bundle.request(
         FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
     )
     logging.error(patient_id)

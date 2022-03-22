@@ -17,7 +17,7 @@ def get_n_patient_id(db_conn, n_patient):
 # Validate n patients and all their associated resources
 def validate_n_patients(args):
     # Get n patient ids to then bundle and post
-    logger.info('Validating patients!!')
+    logger.info('Validating patients')
     logger.info(
         f'USER: {args.sqluser}, PASS: {args.sqlpass}, DBNAME: {args.dbname_mimic}, HOST: {args.host}'
     )
