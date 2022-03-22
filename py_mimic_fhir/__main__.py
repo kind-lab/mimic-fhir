@@ -1,21 +1,23 @@
 import argparse
 import os
 import sys
+from datetime import datetime
 import logging
 import pandas as pd
-import logging
 from pathlib import Path
 
 from py_mimic_fhir.validate import validate_n_patients
 from py_mimic_fhir.io import export_all_resources
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-    datefmt='%m/%d/%Y %H:%M:%S',
-    force=True
-)
 logger = logging.getLogger(__name__)
+
+# logging.basicConfig(
+#         filename=f'{args.log_path}log.log',
+#         level=logging.INFO,
+#         format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+#         datefmt='%m/%d/%Y %H:%M:%S',
+#         force=True
+#     )
 
 
 class EnvDefault(argparse.Action):
@@ -42,49 +44,66 @@ def parse_arguments(arguments=None):
     parser = argparse.ArgumentParser(
         description="py-mimic-fhir command line interface"
     )
+
+    # Pull in environment variables
     parser.add_argument(
         '--sqluser',
-        required=True,
         action=EnvDefault,
         envvar='SQLUSER',
-        help='SQL username'
+        help='SQL username',
+        required=True
     )
     parser.add_argument(
         '--sqlpass',
-        required=True,
         action=EnvDefault,
         envvar='SQLPASS',
-        help='SQL password'
+        help='SQL password',
+        required=True
     )
     parser.add_argument(
         '--dbname_mimic',
-        required=True,
         action=EnvDefault,
         envvar='DBNAME_MIMIC',
-        help='MIMIC Database Name'
+        help='MIMIC Database Name',
+        required=True
     )
     parser.add_argument(
         '--host',
-        required=True,
         action=EnvDefault,
         envvar='HOST',
-        help='Database Host'
+        help='Database Host',
+        required=True
     )
     parser.add_argument(
         '--fhir_server',
         action=EnvDefault,
         envvar='FHIR_SERVER',
-        required=True,
-        help='FHIR Server'
+        help='FHIR Server',
+        required=True
     )
     parser.add_argument(
         '--output_path',
-        required=False,
         action=EnvDefault,
         envvar='MIMIC_JSON_PATH',
-        help='Export Resources'
+        help='Export Resources',
+        required=True
+    )
+    parser.add_argument(
+        '--log_path',
+        action=EnvDefault,
+        envvar='MIMIC_FHIR_LOG_PATH',
+        help='Export Resources',
+        required=True
+    )
+    # More for debugging, output to console
+    parser.add_argument(
+        '--stdout',
+        action='store_true',
+        help='Log to standard console',
+        required=False
     )
 
+    # Create subparsers for validation and export
     subparsers = parser.add_subparsers(dest="actions", title="actions")
     subparsers.required = True
 
@@ -94,14 +113,14 @@ def parse_arguments(arguments=None):
     )
     arg_validate.add_argument(
         '--dbname_hapi',
-        required=True,
+        required=False,
         action=EnvDefault,
         envvar='DBNAME_HAPI',
         help='HAPI Database Name'
     )
     arg_validate.add_argument(
         '--err_path',
-        required=True,
+        required=False,
         action=EnvDefault,
         envvar='FHIR_BUNDLE_ERROR_PATH',
         help='Bundling error file path'
@@ -162,11 +181,30 @@ def export(args):
     export_all_resources(args.fhir_server, args.output_path, args.export_limit)
 
 
+def set_logger(log_path, stdout=False):
+    if stdout:
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+            datefmt='%m/%d/%Y %H:%M:%S',
+            force=True
+        )
+    else:
+        day_of_week = datetime.now().strftime('%A').lower()
+        logging.basicConfig(
+            filename=f'{log_path}log_mimic_fhir_{day_of_week}.log',
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+            datefmt='%m/%d/%Y %H:%M:%S',
+            force=True
+        )
+
+
 def main(argv=sys.argv):
     """Entry point for package."""
 
     args = parse_arguments(argv[1:])
-
+    set_logger(args.log_path, args.stdout)
     if args.actions == 'validate':
         validate(args)
     elif args.actions == 'export':
