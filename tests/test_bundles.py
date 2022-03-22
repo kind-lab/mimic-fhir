@@ -19,6 +19,7 @@ import subprocess
 import pytest
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 #from fhir.resources.bundle import Bundle
 from py_mimic_fhir.bundle import Bundle, Bundler, rerun_bundle_from_file
@@ -120,32 +121,28 @@ def test_bundle_multiple_patient_all_resources(db_conn):
     assert result
 
 
-def test_bad_bundle():
+def test_bad_bundle(db_conn):
+    q_resource = f"""
+        SELECT fhir FROM mimic_fhir.patient LIMIT 1
+    """
+    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    resource = pd_resources.fhir[0]
+    resource['gender'] = 'FAKE CODE'  # Will cause bundle to fail
+
     bundle = Bundle()
-    bad_resource = {
-        'resourceType': 'Patient',
-        'meta':
-            {
-                'profile':
-                    [
-                        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-patient'
-                    ]
-            },
-        'id': '123456',
-        'gender': 'FAKE CODE'
-    }
-    bundle.add_entry([bad_resource])
+    bundle.add_entry([resource])
     response = bundle.request(FHIR_SERVER, err_path=FHIR_BUNDLE_ERROR_PATH)
     assert response == False
 
 
 def test_rerun_bundle(db_conn):
-    err_file = f'{FHIR_BUNDLE_ERROR_PATH}err-bundles-thursday.json'
+    day_of_week = datetime.now().strftime('%A').lower()
+    err_file = f'{FHIR_BUNDLE_ERROR_PATH}err-bundles-{day_of_week}.json'
     resp = rerun_bundle_from_file(err_file, db_conn, FHIR_SERVER)
 
-    # still will complete in error, since I haven't fixed the root causes
-    # If returns True, great!
-    assert resp == False
+    # If only test_bad_bundle has been run then this should pass, if other issues run then it will fail
+    # If other tests have failed and written to the log, this will fail since the root causes won't be solved
+    assert resp == True
 
 
 def test_bundle_resources_from_list(db_conn):
@@ -376,7 +373,7 @@ def test_post_100_resources(db_conn):
 
 def test_bundle_multiple_lab_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 10)
+    patient_ids = get_n_patient_id(db_conn, 2)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it

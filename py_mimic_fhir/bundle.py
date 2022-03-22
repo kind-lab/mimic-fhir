@@ -9,19 +9,17 @@
 # NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
 
-LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
-logging.basicConfig(
-    filename='log/bundle.log',
-    filemode='a',
-    format=LOG_FORMAT,
-    level=logging.INFO,
-    force=True
-)
+# LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
+# logging.basicConfig(
+#     filename='log/bundle.log',
+#     filemode='a',
+#     format=LOG_FORMAT,
+#     level=logging.INFO,
+#     force=True
+# )
 
 import requests
 import json
-from pathlib import Path
-import os
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -33,7 +31,6 @@ from py_mimic_fhir import db
 class ErrBundle():
     def __init__(self, issue, bundle):
         self.issue = issue
-        self.time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.bundle_list = []
         self.set_id_list(bundle)
 
@@ -49,30 +46,29 @@ class ErrBundle():
                 profile = entry['resource']['resourceType']
             fhir_id = entry['resource']['id']
             itm = {'fhir_profile': profile, 'id': fhir_id}
-            logging.error(self.json())
             self.bundle_list.append(itm)
 
     # Write err bundle to file
     def write(self, err_path):
-        day_of_week = datetime.now().strftime('%A').lower()
+        day_of_week = datetime.now().strftime('%A').lower(
+        )  # will overwrite each week
         with open(f'{err_path}err-bundles-{day_of_week}.json', 'a+') as errfile:
             json.dump(self.json(), errfile)
             errfile.write('\n')
 
 
 # FHIR bundle class with options to add entries and send requests to the server
-# Created a Bundle class since fhir.resources did not allow construction of the entry
-# and request in a pythonic way (there was validation built in that needed both set at once)
 class Bundle():
     def __init__(self):
         self.resourceType = 'Bundle'
         self.type = 'transaction'
         self.entry = []
 
+    # Create bundle entry with given resources
     def add_entry(self, resources):
         for resource in resources:
             if 'resourceType' not in resource:
-                logging.error(f'Resource no resourceType: {resource}')
+                logging.error(f'Resource has no resourceType: {resource}')
             new_request = {}
             new_request['method'] = 'PUT'
             new_request['url'] = resource['resourceType'] + '/' + resource['id']
@@ -94,17 +90,15 @@ class Bundle():
         fhir_server,
         split_flag=False,
         err_path=None,
-        bundle_size=60,
+        bundle_size=60,  # optimal based on testing, seems small but if no links is quick!
     ):
         output = True  # True until proven false
 
         # Split the entry into smaller bundles to speed up posting
         if split_flag:
-
             # Generate smaller bundles
-            peak_bundle_size = bundle_size  # optimal based on testing, seems small but if no links is quick!
-            split_count = len(self.entry) // peak_bundle_size
-            split_count = 1 if split_count == 0 else split_count  # for bundles smaller than peak_bundle_size
+            split_count = len(self.entry) // bundle_size
+            split_count = 1 if split_count == 0 else split_count  # for bundles smaller than bundle_size
 
             entry_groups = np.array_split(self.entry, split_count)
             for entries in entry_groups:
@@ -118,6 +112,7 @@ class Bundle():
                 if output_temp == False:
                     output = False
         else:
+            # Post full bundle, no restriction on bundle size
             resp = requests.post(
                 fhir_server,
                 json=self.json(),
@@ -232,11 +227,13 @@ class Bundler():
         self.fill_bundle(self.icu_obs_bundle, table_list)
 
     # Add all ICU observation chartevents resources associated with the Patient to the bundle
+    # Useful in testing to get just the chartevents, since it is a larger grouping
     def generate_icu_ce_bundle(self):
         logging.info('Generating icu obs bundle')
         table_list = ['observation_chartevents']
         self.fill_bundle(self.icu_ce_bundle, table_list)
 
+    # Post all bundles to the fhir server, recording their result status
     def post_all_bundles(self, fhir_server, split_flag=False, err_path=None):
         logging.info('------ POSTING BUNDLES ----------')
         response_list = []
@@ -305,6 +302,7 @@ def get_patient_resource(db_conn, patient_id):
     return resource.fhir[0]
 
 
+# Get any resource by its id
 def get_resource_by_id(db_conn, profile, profile_id):
     q_resource = f"SELECT * FROM mimic_fhir.{profile} WHERE id='{profile_id}'"
     resource = pd.read_sql_query(q_resource, db_conn)

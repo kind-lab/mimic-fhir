@@ -12,13 +12,9 @@ logging.basicConfig(
     force=True
 )
 
-import numpy as np
-import pandas as pd
 import json
-import psycopg2
 import requests
 import base64
-from pathlib import Path
 import os
 import time
 import logging
@@ -29,13 +25,16 @@ from py_mimic_fhir.lookup import (
 
 
 # Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
-def export_all_resources(fhir_server, output_path, limit=1000):
+def export_all_resources(fhir_server, output_path, limit=10000):
     result_dict = {}
+
+    # REMOVE ONCE MEDICATION BRANCH COMPLETE!!!
     bypass_profiles = [
         'Medication', 'MedicationRequest', 'MedicationDispense',
         'MedicationAdministration', 'MedicationAdministrationICU'
     ]
 
+    # Export each resource based on its profile name
     for profile in MIMIC_FHIR_PROFILE_NAMES:
         if profile not in bypass_profiles:
             logging.info(f'Export {profile}')
@@ -49,7 +48,12 @@ def export_all_resources(fhir_server, output_path, limit=1000):
 
 
 # Export resource from the HAPI FHIR Server
-def export_resource(profile, fhir_server, output_path, limit=1000):
+# Process is 3 parts
+#   1. Post export request
+#   2. Poll HAPI export location, to get download location
+#   3. Download from HAPI download location
+#   4. Write the downloaded resources to file
+def export_resource(profile, fhir_server, output_path, limit=10000):
     resource = MIMIC_FHIR_RESOURCES[profile]
     profile_url = MIMIC_FHIR_PROFILE_URL[profile]
     resp_export = send_export_resource_request(
@@ -76,8 +80,9 @@ def send_export_resource_request(resource, profile_url, fhir_server):
     return resp
 
 
-# The exported resources are stored in a binary at the polling location specified in the initial export response
-# The resource may NOT be ready when this is called, should the logic stay here to keep polling? or in parent function?
+# The exported resources are stored in a binary at the download location. The download location is found by polling
+# the initial response poll location
+# The resource may NOT be ready when this is called, so keeps calling till ready.
 def get_exported_resource(resp_export, time_max=20):
     timeout = time.time() + time_max  # 30 seconds from now
     if resp_export.status_code == 202:
@@ -98,21 +103,21 @@ def get_exported_resource(resp_export, time_max=20):
         if resp.status_code == 200:
             break
         elif time.time() > timeout:
-            break  # exit if data not ready after timeout time
+            break  # exit if data not ready after time_max time
         else:
-            time.sleep(1)  #put a break in here to let other HAPI process finish
+            time.sleep(
+                1
+            )  #put a break in here to let other HAPI process finish. Needed for tests to work
     return resp
 
 
 # Take the binary exported resources and write them to json
 def write_exported_resource_to_ndjson(
-    resp_poll, profile, output_path, limit=1000
+    resp_poll, profile, output_path, limit=10000
 ):
     output_file = f'{output_path}output_from_hapi/{profile}.ndjson'
     resp_poll_json = json.loads(resp_poll.text)
 
-    #logging.error(resp_poll.text)
-    #logging.error(resp_poll.headers)
     # Check if any resources were found in the export call
     if 'output' not in resp_poll_json:
         logging.error(f'No matching {profile} resources found on the server')
@@ -128,8 +133,8 @@ def write_exported_resource_to_ndjson(
         if idx >= limit:
             break
 
+        # Download the resources from the HAPI url that was specified
         url_download = hapi_output['url']
-
         resp_download = requests.get(
             url_download, headers={"Content-Type": "application/fhir+json"}
         )
@@ -139,6 +144,7 @@ def write_exported_resource_to_ndjson(
             json.loads(resp_download.content)['data']
         ).decode()
 
+        # Write resources out to NDJSON
         with open(output_file, 'a+') as out_file:
             out_file.write(output_data)
 
