@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_n_patient_id(db_conn, n_patient):
-    q_resource = f"SELECT * FROM mimic_fhir.patient LIMIT 1"  #{n_patient}"
+    q_resource = f"SELECT * FROM mimic_fhir.patient LIMIT {n_patient}"
     resource = pd.read_sql_query(q_resource, db_conn)
     patient_ids = [fhir['id'] for fhir in resource.fhir]
     return patient_ids

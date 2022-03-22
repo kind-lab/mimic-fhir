@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 
 from py_mimic_fhir.validate import validate_n_patients
+from py_mimic_fhir.io import export_all_resources
 
 logging.basicConfig(
     level=logging.INFO,
@@ -99,10 +100,16 @@ def parse_arguments(arguments=None):
         help='HAPI Database Name'
     )
     arg_validate.add_argument(
+        '--output_path',
+        required=False,
+        action=EnvDefault,
+        envvar='MIMIC_JSON_PATH',
+        help='Export Resources'
+    )
+    arg_validate.add_argument(
         '--export',
         required=False,
-        type=bool,
-        default=False,
+        action='store_true',
         help='Export Resources'
     )
     arg_validate.add_argument(
@@ -117,11 +124,15 @@ def parse_arguments(arguments=None):
 
 
 def validate(args):
-    result = validate_n_patients(args)
-    if result == True:
+    validation_result = validate_n_patients(args)
+    if validation_result == True:
         logger.info('Validation successful')
     else:
         logger.error('Validation failed')
+
+    # Only export if validation is successful
+    if validation_result == True and args.export == True:
+        export_all_resources(args.fhir_server, args.output_path, 1)
 
 
 def main(argv=sys.argv):
