@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='py_mimimc_fhir',
+    name='py_mimic_fhir',
     version='0.1.0',
     author='Alex Bennett',
     packages=['py_mimic_fhir'],
