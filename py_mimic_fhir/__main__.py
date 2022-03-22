@@ -118,13 +118,6 @@ def parse_arguments(arguments=None):
         envvar='DBNAME_HAPI',
         help='HAPI Database Name'
     )
-    arg_validate.add_argument(
-        '--err_path',
-        required=False,
-        action=EnvDefault,
-        envvar='FHIR_BUNDLE_ERROR_PATH',
-        help='Bundling error file path'
-    )
 
     # Allow exporting right after validation
     arg_validate.add_argument(

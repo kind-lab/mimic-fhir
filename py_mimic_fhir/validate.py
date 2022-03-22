@@ -36,7 +36,7 @@ def validate_n_patients(args):
         bundler = Bundler(patient_id, db_conn)
         bundler.generate_all_bundles()
         response_list = bundler.post_all_bundles(
-            args.fhir_server, split_flag, args.err_path
+            args.fhir_server, split_flag, args.log_path
         )
 
         if False in response_list:
