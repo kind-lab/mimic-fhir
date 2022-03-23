@@ -132,7 +132,7 @@ SELECT
                     'text', lab_COMMENTS
                 ))
             ELSE NULL END
-        --, 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
+        , 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
         , 'referenceRange', 
             CASE WHEN lab_REF_RANGE_LOWER IS NOT NULL THEN	
                 jsonb_build_array(jsonb_build_object(
