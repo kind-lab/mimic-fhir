@@ -21,6 +21,7 @@ WITH fhir_observation_labs AS (
         , lab.ref_range_upper AS lab_REF_RANGE_UPPER
         , lab.valueuom AS lab_VALUEUOM
         , lab.value AS lab_VALUE
+        , lab.priority AS lab_PRIORITY
   
         -- Parse values with a comparator and pulling out numeric value
         , CASE 
@@ -150,6 +151,12 @@ SELECT
                     )
                 ))
             ELSE NULL END
+        , 'extension', 
+            CASE WHEN lab_PRIORITY IS NOT NULL THEN
+                jsonb_build_array(jsonb_build_object(
+                    'url', 'http://fhir.mimic.mit.edu/StructureDefinition/lab-priority'
+                    , 'valueString', lab_PRIORITY
+                ))
     )) as fhir 
 FROM
     fhir_observation_labs
