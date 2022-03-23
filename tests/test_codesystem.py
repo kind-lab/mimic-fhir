@@ -86,13 +86,6 @@ def test_cs_diagnosis_icd9(validator):
     assert result
 
 
-def test_cs_diagnosis_icd10(validator):
-    codesystem = 'diagnosis-icd10'
-    code = 'K1370'
-    result = cs_validate_code(validator, codesystem, code)
-    assert result
-
-
 def test_cs_discharge_disposition(validator):
     codesystem = 'discharge-disposition'
     code = 'HOME'

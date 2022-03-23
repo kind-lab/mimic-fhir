@@ -130,3 +130,6 @@ dmypy.json
 
 # Test folder
 /tests/fhir
+
+# Logs
+log/

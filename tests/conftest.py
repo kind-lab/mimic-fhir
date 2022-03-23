@@ -17,8 +17,6 @@ DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
 DBNAME_HAPI = os.getenv('DBNAME_HAPI')
 HOST = os.getenv('HOST')
 
-#from fhir.resources.conceptmap import ConceptMap
-
 
 # Example patient that has links to all other resources
 def patient_id():
@@ -59,7 +57,7 @@ def warn_java_validator():
 # Set validator for the session
 @pytest.fixture(scope="session")
 def validator():
-    validator = 'JAVA'  # JAVA or HAPI
+    validator = 'HAPI'  # JAVA or HAPI
     if validator == 'JAVA':
         warn_java_validator()
     return validator
@@ -68,7 +66,6 @@ def validator():
     # Run individual tests, or java validator will crash everything
     # Need to explore way to run all test with java validator, but not
     # working right now
-
 
 
 # Initialize database connection to mimic
@@ -120,6 +117,14 @@ def get_single_resource(db_conn, table_name):
     resource = pd.read_sql_query(q_resource, db_conn)
 
     return resource.fhir[0]
+
+
+# Generic function to get N resources from the DB
+def get_n_resources(db_conn, table_name, n_limit):
+    q_resources = f"SELECT * FROM mimic_fhir.{table_name} LIMIT {n_limit}"
+    resources = pd.read_sql_query(q_resources, db_conn)
+
+    return resources
 
 
 # Get a single resource with a link to a specific patient
@@ -236,6 +241,12 @@ def observation_outputevents_resource(validator, db_conn):
     )
 
 
+# Return a single organization resource
+@pytest.fixture(scope="session")
+def organization_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'organization')
+
+
 # Return a single procedure resource
 @pytest.fixture(scope="session")
 def procedure_resource(validator, db_conn):
@@ -252,3 +263,20 @@ def procedure_icu_resource(validator, db_conn):
 @pytest.fixture(scope="session")
 def specimen_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'specimen')
+
+
+#----------------------------------------------------------------
+#----------------- BUNDLE RESOURCES -----------------------------
+#----------------------------------------------------------------
+
+
+# Grab a handful of medication data resoruces to send to the server
+@pytest.fixture(scope="session")
+def med_data_bundle_resources(db_conn):
+    n_limit = 15000
+    q_resources = f'SELECT fhir FROM mimic_fhir.medication LIMIT {n_limit}'
+    med_resources = pd.read_sql_query(q_resources, db_conn)
+
+    resources = []
+    [resources.append(fhir) for fhir in med_resources.fhir]
+    return resources
