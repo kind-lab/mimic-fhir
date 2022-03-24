@@ -10,7 +10,7 @@ CREATE TABLE mimic_fhir.specimen(
 -- To deal with this separate namespaces will be used to differentiate micro and lab ids
 WITH fhir_specimen AS (
     SELECT 
-        mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
+        CAST(mi.micro_specimen_id AS TEXT)  AS mi_MICRO_SPECIMEN_ID
         , CAST(MAX(mi.charttime) AS TIMESTAMPTZ) AS mi_CHARTTIME
 
         , uuid_generate_v5(ns_specimen.uuid, CAST(mi.micro_specimen_id AS TEXT)) AS uuid_SPECIMEN

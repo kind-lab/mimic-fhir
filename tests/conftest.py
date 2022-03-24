@@ -259,6 +259,12 @@ def specimen_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'specimen')
 
 
+# Return a single specimen resource
+@pytest.fixture(scope="session")
+def specimen_lab_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'specimen_lab')
+
+
 #----------------------------------------------------------------
 #----------------- BUNDLE RESOURCES -----------------------------
 #----------------------------------------------------------------

@@ -181,8 +181,8 @@ class Bundler():
         self.fill_bundle(self.procedure_bundle, table_list)
 
     def generate_specimen_bundle(self):
-        logger.info('Generating micro bundle')
-        table_list = ['specimen']
+        logger.info('Generating specimen bundle')
+        table_list = ['specimen', 'specimen_lab']
         self.fill_bundle(self.specimen_bundle, table_list)
 
     # Add all micro resources associated with the Patient to the bundle

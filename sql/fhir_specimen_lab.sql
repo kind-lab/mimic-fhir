@@ -6,9 +6,9 @@ CREATE TABLE mimic_fhir.specimen_lab(
 );
 
 -- Lab specimen
-WITH fhir_specimen AS (
+WITH fhir_specimen_lab AS (
     SELECT 
-        lab.specimen_id  AS lab_SPECIMEN_ID
+        CAST(lab.specimen_id AS TEXT) AS lab_SPECIMEN_ID
         , CAST(MAX(lab.charttime) AS TIMESTAMPTZ) AS lab_CHARTTIME
         , MAX(dlab.fluid) AS dlab_FLUID
 
@@ -58,4 +58,4 @@ SELECT
         ) 
     )) AS fhir
 FROM
-    fhir_specimen;
+    fhir_specimen_lab;

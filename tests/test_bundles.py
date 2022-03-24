@@ -218,10 +218,10 @@ def test_procedure_bundle(db_conn):
     assert response
 
 
-# Test posting all specimen resources
+# Test posting specimen resources
 def test_specimen_bundle(db_conn):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['specimen']
+    resource_list = ['specimen', 'specimen_lab']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
     split_flag = True
     bundler = Bundler(patient_id, db_conn)
