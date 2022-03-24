@@ -48,7 +48,7 @@ SELECT
         , 'id', uuid_CHARTEVENTS	
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevent'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevents'
             )
         ) 
         , 'status', 'final' -- All observations considered final

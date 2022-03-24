@@ -44,7 +44,7 @@ SELECT
         , 'id', uuid_OUTPUTEVENT	
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevent'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevents'
             )
         ) 
         , 'status', 'final'
