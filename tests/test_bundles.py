@@ -270,7 +270,7 @@ def test_microbio_bundle(db_conn):
 
 def test_lab_bundle(db_conn):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['observation_labs']
+    resource_list = ['observation_labevents']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
     split_flag = True  # Divide up bundles into smaller chunks
 

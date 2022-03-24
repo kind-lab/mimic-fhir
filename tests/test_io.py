@@ -135,8 +135,8 @@ def test_export_observation_micro_susc():
     assert result
 
 
-def test_export_observation_lab():
-    profile = 'ObservationLabs'
+def test_export_observation_labevents():
+    profile = 'ObservationLabevents'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
     result = io.export_resource(profile, FHIR_SERVER, MIMIC_JSON_PATH, limit)
     assert result

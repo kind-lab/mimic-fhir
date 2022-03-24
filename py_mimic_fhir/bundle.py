@@ -207,7 +207,7 @@ class Bundler():
     # Add all lab resources associated with the Patient to the bundle
     def generate_lab_bundle(self):
         logger.info('Generating lab bundle')
-        table_list = ['observation_labs']
+        table_list = ['observation_labevents']
         self.fill_bundle(self.lab_bundle, table_list)
 
     # Add all ICU base resources associated with the Patient to the bundle

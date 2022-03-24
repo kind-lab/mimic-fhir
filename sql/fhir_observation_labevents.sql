@@ -1,14 +1,14 @@
 -- Purpose: Generate a FHIR Observation resource from the labevents rows
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.observation_labs;
-CREATE TABLE mimic_fhir.observation_labs(
+DROP TABLE IF EXISTS mimic_fhir.observation_labevents;
+CREATE TABLE mimic_fhir.observation_labevents(
     id          uuid PRIMARY KEY,
     patient_id  uuid NOT NULL,
     fhir        jsonb NOT NULL 
 );
 
-WITH fhir_observation_labs AS (
+WITH fhir_observation_labevents AS (
     SELECT
         CAST(lab.labevent_id AS TEXT) AS lab_LABEVENT_ID 
         , CAST(lab.itemid AS TEXT) AS lab_ITEMID
@@ -63,7 +63,7 @@ WITH fhir_observation_labs AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
             ON ns_specimen.name = 'SpecimenLab'
 )
-INSERT INTO mimic_fhir.observation_labs
+INSERT INTO mimic_fhir.observation_labevents
 SELECT 
     uuid_LABEVENT_ID as id
     , uuid_SUBJECT_ID AS patient_id 
@@ -157,7 +157,8 @@ SELECT
                     'url', 'http://fhir.mimic.mit.edu/StructureDefinition/lab-priority'
                     , 'valueString', lab_PRIORITY
                 ))
+            ELSE NULL END
     )) as fhir 
 FROM
-    fhir_observation_labs
+    fhir_observation_labevents
 LIMIT 1000

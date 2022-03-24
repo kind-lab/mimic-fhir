@@ -119,8 +119,10 @@ def test_observation_datetimeevents_validation(
     assert result
 
 
-def test_observation_labs_validation(validator, observation_labs_resource):
-    result = validate_resource(validator, observation_labs_resource)
+def test_observation_labevents_validation(
+    validator, observation_labevents_resource
+):
+    result = validate_resource(validator, observation_labevents_resource)
     assert result
 
 
