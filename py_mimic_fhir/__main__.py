@@ -11,14 +11,6 @@ from py_mimic_fhir.io import export_all_resources
 
 logger = logging.getLogger(__name__)
 
-# logging.basicConfig(
-#         filename=f'{args.log_path}log.log',
-#         level=logging.INFO,
-#         format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-#         datefmt='%m/%d/%Y %H:%M:%S',
-#         force=True
-#     )
-
 
 class EnvDefault(argparse.Action):
     """Argument parser class which inherits from environment and has a default value."""
@@ -156,6 +148,7 @@ def parse_arguments(arguments=None):
     return parser.parse_args(arguments)
 
 
+# Validate all resources for user specified number of patients
 def validate(args):
     validation_result = validate_n_patients(args)
     if validation_result == True:
@@ -170,12 +163,15 @@ def validate(args):
         )
 
 
+# Export all resources from FHIR Server and write to NDJSON
 def export(args):
     export_all_resources(args.fhir_server, args.output_path, args.export_limit)
 
 
+# Logger can be written out to file or stdout, user chooses
 def set_logger(log_path, stdout=False):
     if stdout:
+        print('getting here')
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',

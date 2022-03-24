@@ -75,8 +75,8 @@ def send_export_resource_request(resource, profile_url, fhir_server):
 
 # The exported resources are stored in a binary at the polling location specified in the initial export response
 # The resource may NOT be ready when this is called, should the logic stay here to keep polling? or in parent function?
-# The ObservationChartevents resources take longer so time_max needs to be about a minute!
-def get_exported_resource(resp_export, time_max=60):
+# The ObservationChartevents resources take longer so time_max needs to be about 3 minutes!
+def get_exported_resource(resp_export, time_max=180):
     timeout = time.time() + time_max  # 30 seconds from now
     if resp_export.status_code == 202:
         url_content_location = resp_export.headers['Content-Location']
