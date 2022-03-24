@@ -6,18 +6,7 @@
 #
 # The useful functions are primarily used to get links and resources for patient bundles
 
-# NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
-
-# LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
-# logging.basicConfig(
-#     filename='log/bundle.log',
-#     filemode='a',
-#     format=LOG_FORMAT,
-#     level=logging.INFO,
-#     force=True
-# )
-
 import requests
 import json
 import pandas as pd
@@ -25,6 +14,8 @@ import numpy as np
 from datetime import datetime
 
 from py_mimic_fhir import db
+
+logger = logging.getLogger(__name__)
 
 
 # The ErrBundle captures any failed bundles and writes them out to a logfile
@@ -68,7 +59,7 @@ class Bundle():
     def add_entry(self, resources):
         for resource in resources:
             if 'resourceType' not in resource:
-                logging.error(f'Resource has no resourceType: {resource}')
+                logger.error(f'Resource has no resourceType: {resource}')
             new_request = {}
             new_request['method'] = 'PUT'
             new_request['url'] = resource['resourceType'] + '/' + resource['id']
@@ -124,17 +115,19 @@ class Bundle():
                 errbundle = ErrBundle(resp_text['issue'], self)
                 errbundle.write(err_path)
 
-                logging.error(resp_text)
+                logger.error(resp_text)
                 output = False
         return output
 
 
 # Class to bundle all resources associated with one patient
 class Bundler():
-    def __init__(self, patient_id):
+    def __init__(self, patient_id, db_conn):
         self.patient_id = patient_id
         self.patient_bundle = Bundle()
-        self.spec_bundle = Bundle()
+        self.condition_bundle = Bundle()
+        self.procedure_bundle = Bundle()
+        self.specimen_bundle = Bundle()
         self.micro_bundle = Bundle()
         self.med_bundle = Bundle()
         self.lab_bundle = Bundle()
@@ -142,13 +135,15 @@ class Bundler():
         self.icu_base_bundle = Bundle()
         self.icu_obs_bundle = Bundle()
         self.icu_ce_bundle = Bundle()
-        self.db_conn = db.db_conn()
-        logging.info('----------- NEW BUNDLE -----------')
-        logging.info(f'Patient_id: {patient_id}')
+        self.db_conn = db_conn
+        logger.info('----------- NEW BUNDLE -----------')
+        logger.info(f'Patient_id: {patient_id}')
 
     def generate_all_bundles(self):
         self.generate_patient_bundle()
-        self.generate_spec_bundle()
+        self.generate_condition_bundle()
+        self.generate_procedure_bundle()
+        self.generate_specimen_bundle()
         self.generate_micro_bundle()
         #self.generate_med_bundle() # Activate when medication PR is integrated
         self.generate_lab_bundle()
@@ -165,8 +160,8 @@ class Bundler():
             bundle.add_entry(resources)
 
     def generate_patient_bundle(self):
-        logging.info('Generating patient bundle')
-        table_list = ['encounter', 'condition', 'procedure']
+        logger.info('Generating patient bundle')
+        table_list = ['encounter']
 
         # Add individual patient
         pat_resource = get_patient_resource(self.db_conn, self.patient_id)
@@ -175,14 +170,24 @@ class Bundler():
         # Add all base patient resources for the Patient to the bundle
         self.fill_bundle(self.patient_bundle, table_list)
 
-    def generate_spec_bundle(self):
-        logging.info('Generating micro bundle')
+    def generate_condition_bundle(self):
+        logger.info('Generating condition bundle')
+        table_list = ['condition']
+        self.fill_bundle(self.condition_bundle, table_list)
+
+    def generate_procedure_bundle(self):
+        logger.info('Generating procedure bundle')
+        table_list = ['procedure']
+        self.fill_bundle(self.procedure_bundle, table_list)
+
+    def generate_specimen_bundle(self):
+        logger.info('Generating micro bundle')
         table_list = ['specimen']
-        self.fill_bundle(self.spec_bundle, table_list)
+        self.fill_bundle(self.specimen_bundle, table_list)
 
     # Add all micro resources associated with the Patient to the bundle
     def generate_micro_bundle(self):
-        logging.info('Generating micro bundle')
+        logger.info('Generating micro bundle')
         table_list = [
             'observation_micro_test', 'observation_micro_org',
             'observation_micro_susc'
@@ -192,7 +197,7 @@ class Bundler():
 
     # Add all medication resources associated with the Patient to the bundle
     def generate_med_bundle(self):
-        logging.info('Generating med bundle')
+        logger.info('Generating med bundle')
         table_list = [
             'medication_request', 'medication_dispense',
             'medication_administration'
@@ -201,25 +206,25 @@ class Bundler():
 
     # Add all lab resources associated with the Patient to the bundle
     def generate_lab_bundle(self):
-        logging.info('Generating lab bundle')
+        logger.info('Generating lab bundle')
         table_list = ['observation_labs']
         self.fill_bundle(self.lab_bundle, table_list)
 
     # Add all ICU base resources associated with the Patient to the bundle
     def generate_icu_enc_bundle(self):
-        logging.info('Generating icu enc bundle')
+        logger.info('Generating icu enc bundle')
         table_list = ['encounter_icu']
         self.fill_bundle(self.icu_enc_bundle, table_list)
 
     # Add all ICU base resources associated with the Patient to the bundle
     def generate_icu_base_bundle(self):
-        logging.info('Generating icu base bundle')
+        logger.info('Generating icu base bundle')
         table_list = ['procedure_icu']  #, 'medication_administration_icu']
         self.fill_bundle(self.icu_base_bundle, table_list)
 
     # Add all ICU observation resources associated with the Patient to the bundle
     def generate_icu_obs_bundle(self):
-        logging.info('Generating icu obs bundle')
+        logger.info('Generating icu obs bundle')
         table_list = [
             'observation_chartevents', 'observation_datetimeevents',
             'observation_outputevents'
@@ -229,47 +234,57 @@ class Bundler():
     # Add all ICU observation chartevents resources associated with the Patient to the bundle
     # Useful in testing to get just the chartevents, since it is a larger grouping
     def generate_icu_ce_bundle(self):
-        logging.info('Generating icu obs bundle')
+        logger.info('Generating icu obs bundle')
         table_list = ['observation_chartevents']
         self.fill_bundle(self.icu_ce_bundle, table_list)
 
     # Post all bundles to the fhir server, recording their result status
     def post_all_bundles(self, fhir_server, split_flag=False, err_path=None):
-        logging.info('------ POSTING BUNDLES ----------')
+        logger.info('------ POSTING BUNDLES ----------')
         response_list = []
 
-        logging.info('Post patient bundle')
+        logger.info('Post patient bundle')
         response_list.append(
             self.patient_bundle.request(fhir_server, split_flag, err_path)
         )
 
-        logging.info('Post specimen bundle')
+        logger.info('Post condition bundle')
         response_list.append(
-            self.spec_bundle.request(fhir_server, split_flag, err_path)
+            self.condition_bundle.request(fhir_server, split_flag, err_path)
         )
 
-        logging.info('Post micro bundle')
+        logger.info('Post procedure bundle')
+        response_list.append(
+            self.procedure_bundle.request(fhir_server, split_flag, err_path)
+        )
+
+        logger.info('Post specimen bundle')
+        response_list.append(
+            self.specimen_bundle.request(fhir_server, split_flag, err_path)
+        )
+
+        logger.info('Post micro bundle')
         response_list.append(
             self.micro_bundle.request(fhir_server, err_path=err_path)
         )
 
         #self.med_bundle.request(fhir_server)
-        logging.info('Post lab bundle')
+        logger.info('Post lab bundle')
         response_list.append(
             self.lab_bundle.request(fhir_server, split_flag, err_path)
         )
 
-        logging.info('Post icu_enc bundle')
+        logger.info('Post icu_enc bundle')
         response_list.append(
             self.icu_enc_bundle.request(fhir_server, split_flag, err_path)
         )
 
-        logging.info('Post icu_base bundle')
+        logger.info('Post icu_base bundle')
         response_list.append(
             self.icu_base_bundle.request(fhir_server, split_flag, err_path)
         )
 
-        logging.info('Post icu_obs bundle')
+        logger.info('Post icu_obs bundle')
         response_list.append(
             self.icu_obs_bundle.request(fhir_server, split_flag, err_path)
         )

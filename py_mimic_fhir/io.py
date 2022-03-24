@@ -2,26 +2,19 @@
 
 # NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
-
-LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
-logging.basicConfig(
-    filename='log/export.log',
-    filemode='a',
-    format=LOG_FORMAT,
-    level=logging.INFO,
-    force=True
-)
-
+import numpy as np
+import pandas as pd
 import json
 import requests
 import base64
 import os
 import time
-import logging
 
 from py_mimic_fhir.lookup import (
     MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES
 )
+
+logger = logging.getLogger(__name__)
 
 
 # Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
@@ -37,12 +30,12 @@ def export_all_resources(fhir_server, output_path, limit=10000):
     # Export each resource based on its profile name
     for profile in MIMIC_FHIR_PROFILE_NAMES:
         if profile not in bypass_profiles:
-            logging.info(f'Export {profile}')
+            logger.info(f'Export {profile}')
             result = export_resource(profile, fhir_server, output_path, limit)
             result_dict[profile] = result
 
     if False in result_dict.values():
-        logging.error(f'Result dictionary: {result_dict}')
+        logger.error(f'Result dictionary: {result_dict}')
 
     return result_dict
 
@@ -80,10 +73,10 @@ def send_export_resource_request(resource, profile_url, fhir_server):
     return resp
 
 
-# The exported resources are stored in a binary at the download location. The download location is found by polling
-# the initial response poll location
-# The resource may NOT be ready when this is called, so keeps calling till ready.
-def get_exported_resource(resp_export, time_max=20):
+# The exported resources are stored in a binary at the polling location specified in the initial export response
+# The resource may NOT be ready when this is called, should the logic stay here to keep polling? or in parent function?
+# The ObservationChartevents resources take longer so time_max needs to be about 3 minutes!
+def get_exported_resource(resp_export, time_max=180):
     timeout = time.time() + time_max  # 30 seconds from now
     if resp_export.status_code == 202:
         url_content_location = resp_export.headers['Content-Location']
@@ -116,11 +109,15 @@ def write_exported_resource_to_ndjson(
     resp_poll, profile, output_path, limit=10000
 ):
     output_file = f'{output_path}output_from_hapi/{profile}.ndjson'
+    if resp_poll.text is None:
+        logger.error(f'{profile} response poll is empty!!')
+        return False
+
     resp_poll_json = json.loads(resp_poll.text)
 
     # Check if any resources were found in the export call
     if 'output' not in resp_poll_json:
-        logging.error(f'No matching {profile} resources found on the server')
+        logger.error(f'No matching {profile} resources found on the server')
         return False
 
     # Delete the file if it exists since all writing will be appended in the next step
