@@ -72,12 +72,12 @@ SELECT
         , 'id', uuid_LABEVENT_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-lab'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-labevents'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', lab_LABEVENT_ID
-            , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labs'
+            , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labevents'
         ))		 
         , 'status', 'final' -- All observations are considered final
         , 'category', jsonb_build_array(jsonb_build_object(
