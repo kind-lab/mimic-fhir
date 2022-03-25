@@ -121,10 +121,7 @@ SELECT
                 ) 
             ELSE NULL END
         , 'valueString', 
-            CASE
-                -- store comments as result, since they include useful information WHEN NO value present (negative, positive etc)
-                WHEN lab_VALUENUM IS NULL AND lab_VALUE IS NULL THEN lab_COMMENTS 
-                WHEN lab_VALUENUM IS NULL THEN lab_VALUE    
+            CASE WHEN lab_VALUENUM IS NULL THEN lab_VALUE    
             ELSE NULL END      
         , 'interpretation', 
             CASE WHEN lab_FLAG IS NOT NULL THEN

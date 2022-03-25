@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 import pytest
+from py_mimic_fhir.bundle import get_resource_by_id
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
@@ -120,8 +121,16 @@ def test_observation_datetimeevents_validation(
 
 
 def test_observation_labevents_validation(
-    validator, observation_labevents_resource
+    db_conn, validator, observation_labevents_resource
 ):
+    # Need to post lab specimen before lab or referencing issues will occur
+    resource = observation_labevents_resource
+    if validator == 'HAPI':
+        specimen_id = resource['specimen']['reference'].split('/')[1]
+        specimen_resource = get_resource_by_id(
+            db_conn, 'specimen_lab', specimen_id
+        )
+        validate_resource(validator, specimen_resource)
     result = validate_resource(validator, observation_labevents_resource)
     assert result
 
