@@ -41,7 +41,15 @@ WITH fhir_observation_labevents AS (
             WHEN value LIKE '%GREATER THAN%' THEN '>'
             WHEN value LIKE '%LESS THAN%' THEN '<'
             ELSE NULL
-        END as VALUE_COMPARATOR  		
+        END as VALUE_COMPARATOR  
+        
+        -- Get lab status from comments (error, corrected, cancelled)
+        , CASE 
+            WHEN comments ILIKE '%error%' THEN 'entered-in-error'
+            WHEN comments ILIKE '%corrected%' THEN 'corrected'
+            WHEN comments ILIKE '%cancel%' THEN 'cancelled'
+            ELSE 'final'
+        END AS lab_STATUS
   
         -- reference uuids
         , uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
@@ -79,7 +87,7 @@ SELECT
             'value', lab_LABEVENT_ID
             , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labevents'
         ))		 
-        , 'status', 'final' -- All observations are considered final
+        , 'status', lab_STATUS
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
@@ -113,8 +121,10 @@ SELECT
                 ) 
             ELSE NULL END
         , 'valueString', 
-            CASE WHEN lab_VALUENUM IS NULL THEN
-                lab_VALUE
+            CASE
+                -- store comments as result, since they include useful information WHEN NO value present (negative, positive etc)
+                WHEN lab_VALUENUM IS NULL AND lab_VALUE IS NULL THEN lab_COMMENTS 
+                WHEN lab_VALUENUM IS NULL THEN lab_VALUE    
             ELSE NULL END      
         , 'interpretation', 
             CASE WHEN lab_FLAG IS NOT NULL THEN
@@ -161,4 +171,3 @@ SELECT
     )) as fhir 
 FROM
     fhir_observation_labevents
-LIMIT 1000
