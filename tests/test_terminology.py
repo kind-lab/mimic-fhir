@@ -89,3 +89,13 @@ def test_write_valueset(example_valueset, terminology_path):
     modified_time_unstructured = os.path.getmtime(output_filepath)
     modified_time = time.localtime(modified_time_unstructured)
     assert current_time == modified_time
+
+
+def test_generate_all_codesystems(db_conn, meta, terminology_path):
+    trm.generate_codesystems(db_conn, meta, terminology_path)
+    assert True
+
+
+def test_generate_all_valuesets(db_conn, meta, terminology_path):
+    trm.generate_valuesets(db_conn, meta, terminology_path)
+    assert True

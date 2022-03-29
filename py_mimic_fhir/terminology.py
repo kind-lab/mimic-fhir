@@ -43,20 +43,22 @@ def generate_all_terminology(args):
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
     meta = TerminologyMetaData(db_conn)
-    generate_codesystems(db_conn, meta, args)
-    generate_valuesets(db_conn, meta, args)
+    generate_codesystems(db_conn, meta, args.terminology_path)
+    generate_valuesets(db_conn, meta, args.terminology_path)
 
 
-def generate_codesystems(db_conn, meta, args):
+def generate_codesystems(db_conn, meta, terminology_path):
     for mimic_codesystem in MIMIC_CODESYSTEMS:
+        logger.info(f'Generating codesystem: {mimic_codesystem}')
         codesystem = generate_codesystem(mimic_codesystem, db_conn, meta)
-        write_terminology(codesystem, args.terminology_path)
+        write_terminology(codesystem, terminology_path)
 
 
-def generate_valuesets(args):
+def generate_valuesets(db_conn, meta, terminology_path):
     for mimic_valueset in MIMIC_VALUESETS:
-        valueset = generate_codesystem(mimic_valueset, db_conn, meta)
-        write_terminology(valueset, args.terminology_path)
+        logger.info(f'Generating valueset: {mimic_valueset}')
+        valueset = generate_valueset(mimic_valueset, db_conn, meta)
+        write_terminology(valueset, terminology_path)
 
 
 def generate_codesystem(mimic_codesystem, db_conn, meta):
@@ -141,6 +143,7 @@ def generate_concept(df):
 
 def write_terminology(terminology, terminology_path):
     # Write out CodeSystem json to terminology folder
+    logger.info(f'Writing out {terminology.resource_type}-{terminology.id}')
     output_filename = f'{terminology_path}{terminology.resource_type}-{terminology.id}.json'
     with open(output_filename, 'w') as outfile:
         json.dump(json.loads(terminology.json()), outfile, indent=4)

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from py_mimic_fhir.validate import validate_n_patients
 from py_mimic_fhir.io import export_all_resources
+from py_mimic_fhir.terminology import generate_all_terminology
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +185,7 @@ def export(args):
 
 # Generate mimic-fhir terminology systems and write out to file
 def terminology(args):
-    i = 5
+    generate_all_terminology(args)
 
 
 # Logger can be written out to file or stdout, user chooses
