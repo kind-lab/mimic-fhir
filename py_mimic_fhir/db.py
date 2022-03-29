@@ -1,5 +1,6 @@
 import psycopg2
 import logging
+import pandas as pd
 
 
 # database connection

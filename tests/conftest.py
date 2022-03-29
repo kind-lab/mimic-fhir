@@ -8,6 +8,8 @@ import tkinter as tk
 import pytest
 
 from py_mimic_fhir import db
+import py_mimic_fhir.terminology as trm
+from py_mimic_fhir.terminology import TerminologyMetaData
 
 # Load environment variables
 load_dotenv(Path(Path.cwd()).parents[0] / '.env')
@@ -17,6 +19,7 @@ SQLPASS = os.getenv('SQLPASS')
 DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
 DBNAME_HAPI = os.getenv('DBNAME_HAPI')
 HOST = os.getenv('HOST')
+TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 
 
 # Example patient that has links to all other resources
@@ -282,3 +285,37 @@ def med_data_bundle_resources(db_conn):
     resources = []
     [resources.append(fhir) for fhir in med_resources.fhir]
     return resources
+
+
+#----------------------------------------------------------------
+#---------------------- TERMINOLOGY -----------------------------
+#----------------------------------------------------------------
+
+
+# Initialize terminology meta data
+@pytest.fixture(scope="session")
+def meta(db_conn):
+    meta = TerminologyMetaData(db_conn)
+    return meta
+
+
+# Initialize terminology path
+@pytest.fixture(scope="session")
+def terminology_path(db_conn):
+    return TERMINOLOGY_PATH
+
+
+# Example codeystem
+@pytest.fixture(scope="session")
+def example_codesystem(db_conn, meta):
+    mimic_codesystem = 'lab_flags'
+    codesystem = trm.generate_codesystem(mimic_codesystem, db_conn, meta)
+    return codesystem
+
+
+# Example valueset
+@pytest.fixture(scope="session")
+def example_valueset(db_conn, meta):
+    mimic_valueset = 'lab_flags'
+    valueset = trm.generate_valueset(mimic_valueset, db_conn, meta)
+    return valueset
