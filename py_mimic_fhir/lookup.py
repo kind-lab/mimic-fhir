@@ -82,7 +82,7 @@ MIMIC_FHIR_PROFILE_NAMES = [
 MIMIC_CODESYSTEMS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
     'bodysite', 'd_items', 'd_labitems', 'diagnosis_icd9',
-    'discharge_disposition', 'identifier_type', 'lab_flags',
+    'discharge_disposition', 'identifier_type', 'lab_flags', 'lab_priority',
     'medadmin_category_icu', 'medication_method', 'medication_route',
     'medication_site', 'microbiology_antibiotic', 'microbiology_interpretation',
     'microbiology_organism', 'microbiology_test', 'observation_category',
@@ -93,11 +93,11 @@ MIMIC_VALUESETS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
     'bodysite', 'chartevents_d_items', 'd_labitems', 'datetimeevents_d_items',
     'diagnosis_icd', 'discharge_disposition', 'identifier_type', 'lab_flags',
-    'outputevents_d_items', 'medadmin_category_icu', 'medication_method',
-    'medication_route', 'medication_site', 'microbiology_antibiotic',
-    'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
-    'observation_category', 'procedure_category', 'procedureevents_d_items',
-    'procedure_icd', 'units'
+    'lab_priority', 'outputevents_d_items', 'medadmin_category_icu',
+    'medication_method', 'medication_route', 'medication_site',
+    'microbiology_antibiotic', 'microbiology_interpretation',
+    'microbiology_organism', 'microbiology_test', 'observation_category',
+    'procedure_category', 'procedureevents_d_items', 'procedure_icd', 'units'
 ]
 
 VALUESETS_CODED = [
