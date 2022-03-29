@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 import pytest
+from py_mimic_fhir.bundle import get_resource_by_id
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
@@ -70,49 +71,41 @@ def test_organization_validation(validator, organization_resource):
     assert result
 
 
-@pytest.mark.order(1)
 def test_condition_validation(validator, condition_resource):
     result = validate_resource(validator, condition_resource)
     assert result
 
 
-@pytest.mark.order(2)
 def test_encounter_validation(validator, encounter_resource):
     result = validate_resource(validator, encounter_resource)
     assert result
 
 
-@pytest.mark.order(3)
 def test_encounter_icu_validation(validator, encounter_icu_resource):
     result = validate_resource(validator, encounter_icu_resource)
     assert result
 
 
-@pytest.mark.order(4)
 def test_medadmin_validation(validator, medadmin_resource):
     result = validate_resource(validator, medadmin_resource)
     assert result
 
 
-@pytest.mark.order(5)
 def test_medadmin_icu_validation(validator, medadmin_icu_resource):
     result = validate_resource(validator, medadmin_icu_resource)
     assert result
 
 
-@pytest.mark.order(6)
 def test_medication_request_validation(validator, medication_request_resource):
     result = validate_resource(validator, medication_request_resource)
     assert result
 
 
-@pytest.mark.order(7)
 def test_medication_validation(validator, medication_resource):
     result = validate_resource(validator, medication_resource)
     assert result
 
 
-@pytest.mark.order(8)
 def test_observation_chartevents_validation(
     validator, observation_chartevents_resource
 ):
@@ -120,7 +113,6 @@ def test_observation_chartevents_validation(
     assert result
 
 
-@pytest.mark.order(9)
 def test_observation_datetimeevents_validation(
     validator, observation_datetimeevents_resource
 ):
@@ -128,13 +120,21 @@ def test_observation_datetimeevents_validation(
     assert result
 
 
-@pytest.mark.order(10)
-def test_observation_labs_validation(validator, observation_labs_resource):
-    result = validate_resource(validator, observation_labs_resource)
+def test_observation_labevents_validation(
+    db_conn, validator, observation_labevents_resource
+):
+    # Need to post lab specimen before lab or referencing issues will occur
+    resource = observation_labevents_resource
+    if validator == 'HAPI':
+        specimen_id = resource['specimen']['reference'].split('/')[1]
+        specimen_resource = get_resource_by_id(
+            db_conn, 'specimen_lab', specimen_id
+        )
+        validate_resource(validator, specimen_resource)
+    result = validate_resource(validator, observation_labevents_resource)
     assert result
 
 
-@pytest.mark.order(11)
 def test_observation_micro_test_validation(
     validator, observation_micro_test_resource
 ):
@@ -142,7 +142,6 @@ def test_observation_micro_test_validation(
     assert result
 
 
-@pytest.mark.order(12)
 def test_observation_micro_org_validation(
     validator, observation_micro_org_resource
 ):
@@ -150,7 +149,6 @@ def test_observation_micro_org_validation(
     assert result
 
 
-@pytest.mark.order(13)
 def test_observation_micro_susc_validation(
     validator, observation_micro_susc_resource
 ):
@@ -158,7 +156,6 @@ def test_observation_micro_susc_validation(
     assert result
 
 
-@pytest.mark.order(14)
 def test_observation_outputevents_validation(
     validator, observation_outputevents_resource
 ):
@@ -166,25 +163,26 @@ def test_observation_outputevents_validation(
     assert result
 
 
-@pytest.mark.order(15)
 def test_patient_validation(validator, patient_resource):
     result = validate_resource(validator, patient_resource)
     assert result
 
 
-@pytest.mark.order(16)
 def test_procedure_validation(validator, procedure_resource):
     result = validate_resource(validator, procedure_resource)
     assert result
 
 
-@pytest.mark.order(17)
 def test_procedure_icu_validation(validator, procedure_icu_resource):
     result = validate_resource(validator, procedure_icu_resource)
     assert result
 
 
-@pytest.mark.order(18)
 def test_specimen_validation(validator, specimen_resource):
     result = validate_resource(validator, specimen_resource)
+    assert result
+
+
+def test_specimen_lab_validation(validator, specimen_lab_resource):
+    result = validate_resource(validator, specimen_lab_resource)
     assert result

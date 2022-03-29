@@ -197,10 +197,12 @@ def observation_datetimeevents_resource(validator, db_conn):
     )
 
 
-# Return a single observation_labs resource
+# Return a single observation_labevents resource
 @pytest.fixture(scope="session")
-def observation_labs_resource(validator, db_conn):
-    return initialize_single_resource(validator, db_conn, 'observation_labs')
+def observation_labevents_resource(validator, db_conn):
+    return initialize_single_resource(
+        validator, db_conn, 'observation_labevents'
+    )
 
 
 # Return a single observation_micro_test resource
@@ -257,6 +259,12 @@ def procedure_icu_resource(validator, db_conn):
 @pytest.fixture(scope="session")
 def specimen_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'specimen')
+
+
+# Return a single specimen resource
+@pytest.fixture(scope="session")
+def specimen_lab_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'specimen_lab')
 
 
 #----------------------------------------------------------------

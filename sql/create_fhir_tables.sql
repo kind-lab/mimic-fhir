@@ -64,8 +64,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_observation_datetimeevents
 \i fhir_observation_datetimeevents.sql
 
-\echo fhir_observation_labs
-\i fhir_observation_labs.sql
+\echo fhir_observation_labevents
+\i fhir_observation_labevents.sql
 
 \echo fhir_observation_micro_org
 \i fhir_observation_micro_org.sql

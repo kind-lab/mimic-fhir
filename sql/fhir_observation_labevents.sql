@@ -1,14 +1,14 @@
 -- Purpose: Generate a FHIR Observation resource from the labevents rows
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.observation_labs;
-CREATE TABLE mimic_fhir.observation_labs(
+DROP TABLE IF EXISTS mimic_fhir.observation_labevents;
+CREATE TABLE mimic_fhir.observation_labevents(
     id          uuid PRIMARY KEY,
     patient_id  uuid NOT NULL,
     fhir        jsonb NOT NULL 
 );
 
-WITH fhir_observation_labs AS (
+WITH fhir_observation_labevents AS (
     SELECT
         CAST(lab.labevent_id AS TEXT) AS lab_LABEVENT_ID 
         , CAST(lab.itemid AS TEXT) AS lab_ITEMID
@@ -21,6 +21,7 @@ WITH fhir_observation_labs AS (
         , lab.ref_range_upper AS lab_REF_RANGE_UPPER
         , lab.valueuom AS lab_VALUEUOM
         , lab.value AS lab_VALUE
+        , lab.priority AS lab_PRIORITY
   
         -- Parse values with a comparator and pulling out numeric value
         , CASE 
@@ -40,7 +41,15 @@ WITH fhir_observation_labs AS (
             WHEN value LIKE '%GREATER THAN%' THEN '>'
             WHEN value LIKE '%LESS THAN%' THEN '<'
             ELSE NULL
-        END as VALUE_COMPARATOR  		
+        END as VALUE_COMPARATOR  
+        
+        -- Get lab status from comments (error, corrected, cancelled)
+        , CASE 
+            WHEN comments ILIKE '%error%' THEN 'entered-in-error'
+            WHEN comments ILIKE '%corrected%' THEN 'corrected'
+            WHEN comments ILIKE '%cancel%' THEN 'cancelled'
+            ELSE 'final'
+        END AS lab_STATUS
   
         -- reference uuids
         , uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
@@ -62,7 +71,7 @@ WITH fhir_observation_labs AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
             ON ns_specimen.name = 'SpecimenLab'
 )
-INSERT INTO mimic_fhir.observation_labs
+INSERT INTO mimic_fhir.observation_labevents
 SELECT 
     uuid_LABEVENT_ID as id
     , uuid_SUBJECT_ID AS patient_id 
@@ -71,14 +80,14 @@ SELECT
         , 'id', uuid_LABEVENT_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-lab'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-labevents'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', lab_LABEVENT_ID
-            , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labs'
+            , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labevents'
         ))		 
-        , 'status', 'final' -- All observations are considered final
+        , 'status', lab_STATUS
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
@@ -112,8 +121,7 @@ SELECT
                 ) 
             ELSE NULL END
         , 'valueString', 
-            CASE WHEN lab_VALUENUM IS NULL THEN
-                lab_VALUE
+            CASE WHEN lab_VALUENUM IS NULL THEN lab_VALUE    
             ELSE NULL END      
         , 'interpretation', 
             CASE WHEN lab_FLAG IS NOT NULL THEN
@@ -132,7 +140,7 @@ SELECT
                     'text', lab_COMMENTS
                 ))
             ELSE NULL END
-        --, 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
+        , 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
         , 'referenceRange', 
             CASE WHEN lab_REF_RANGE_LOWER IS NOT NULL THEN	
                 jsonb_build_array(jsonb_build_object(
@@ -150,7 +158,13 @@ SELECT
                     )
                 ))
             ELSE NULL END
+        , 'extension', 
+            CASE WHEN lab_PRIORITY IS NOT NULL THEN
+                jsonb_build_array(jsonb_build_object(
+                    'url', 'http://fhir.mimic.mit.edu/StructureDefinition/lab-priority'
+                    , 'valueString', lab_PRIORITY
+                ))
+            ELSE NULL END
     )) as fhir 
 FROM
-    fhir_observation_labs
-LIMIT 1000
+    fhir_observation_labevents

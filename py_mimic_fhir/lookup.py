@@ -21,8 +21,8 @@ MIMIC_FHIR_PROFILE_URL = {
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevent',
     'ObservationDatetimeevents':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-datetime',
-    'ObservationLabs':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-lab',
+    'ObservationLabevents':
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-labevents',
     'ObservationMicroTest':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-test',
     'ObservationMicroOrg':
@@ -40,7 +40,9 @@ MIMIC_FHIR_PROFILE_URL = {
     'ProcedureICU':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-icu',
     'Specimen':
-        ''
+        '',
+    'SpecimenLab':
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen-lab'
 }
 
 MIMIC_FHIR_RESOURCES = {
@@ -54,7 +56,7 @@ MIMIC_FHIR_RESOURCES = {
     'MedicationRequest': 'MedicationRequest',
     'ObservationChartevents': 'Observation',
     'ObservationDatetimeevents': 'Observation',
-    'ObservationLabs': 'Observation',
+    'ObservationLabevents': 'Observation',
     'ObservationMicroTest': 'Observation',
     'ObservationMicroOrg': 'Observation',
     'ObservationMicroSusc': 'Observation',
@@ -63,14 +65,16 @@ MIMIC_FHIR_RESOURCES = {
     'Patient': 'Patient',
     'Procedure': 'Procedure',
     'ProcedureICU': 'Procedure',
-    'Specimen': 'Specimen'
+    'Specimen': 'Specimen',
+    'SpecimenLab': 'Specimen'
 }
 
 MIMIC_FHIR_PROFILE_NAMES = [
     'Condition', 'Encounter', 'EncounterICU', 'Medication',
     'MedicationAdministration', 'MedicationAdministrationICU',
     'MedicationDispense', 'MedicationRequest', 'ObservationChartevents',
-    'ObservationDatetimeevents', 'ObservationLabs', 'ObservationMicroTest',
+    'ObservationDatetimeevents', 'ObservationLabevents', 'ObservationMicroTest',
     'ObservationMicroOrg', 'ObservationMicroSusc', 'ObservationOutputevents',
-    'Organization', 'Patient', 'Procedure', 'ProcedureICU', 'Specimen'
+    'Organization', 'Patient', 'Procedure', 'ProcedureICU', 'Specimen',
+    'SpecimenLab'
 ]

@@ -21,6 +21,7 @@ VALUES
     , ('discharge_disposition', 'The discharge disposition for MIMIC')
     , ('identifier_type', 'The identifier type for MIMIC')
     , ('lab_flags', 'The lab alarm flags for abnormal lab events in MIMIC')
+    , ('lab_priority', 'The priority of the lab item in MIMIC')   
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
     , ('medication_method', 'The medication delivery method for MIMIC')
     , ('medication_route', 'The medication route during administration for MIMIC')

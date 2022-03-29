@@ -38,9 +38,9 @@ SELECT fhir FROM mimic_fhir.observation_chartevents;
 \o :outputdir/observation_datetimeevents.json
 SELECT fhir FROM mimic_fhir.observation_datetimeevents;
 
-\echo observation_labs
-\o :outputdir/observation_labs.json
-SELECT fhir FROM mimic_fhir.observation_labs;
+\echo observation_labevents
+\o :outputdir/observation_labevents.json
+SELECT fhir FROM mimic_fhir.observation_labevents;
 
 \echo observation_micro_org
 \o :outputdir/observation_micro_org.json
