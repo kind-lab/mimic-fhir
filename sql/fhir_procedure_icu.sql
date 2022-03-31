@@ -16,6 +16,7 @@ WITH fhir_procedure_icu AS (
         , CAST(pe.endtime AS TIMESTAMPTZ) AS pe_ENDTIME
         , TRIM(REGEXP_REPLACE(pe.location, '\s+', ' ', 'g')) AS pe_LOCATION
         , di.label AS di_LABEL
+        , map_status.fhir_status AS fhir_STATUS
   
         -- refernce uuids
         , uuid_generate_v5(ns_procedure_icu.uuid, pe.stay_id || '-' || pe.orderid || '-' || pe.itemid) AS uuid_PROCEDUREEVENT
@@ -27,6 +28,8 @@ WITH fhir_procedure_icu AS (
             ON pe.subject_id = sub.subject_id 
         LEFT JOIN mimic_icu.d_items di
             ON pe.itemid = di.itemid
+        LEFT JOIN fhir_etl.map_status_procedure_icu map_status
+            ON pe.statusdescription = map_status.mimic_status
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu
             ON ns_encounter_icu.name = 'EncounterICU'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -47,7 +50,7 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-icu'
             )  
         ) 
-        , 'status', 'completed'
+        , 'status', fhir_STATUS
         , 'category', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-category'  

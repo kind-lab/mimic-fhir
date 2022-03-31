@@ -18,9 +18,9 @@ MIMIC_FHIR_PROFILE_URL = {
     'MedicationRequest':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-request',
     'ObservationChartevents':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevent',
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevents',
     'ObservationDatetimeevents':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-datetime',
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-datetimeevents',
     'ObservationLabevents':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-labevents',
     'ObservationMicroTest':
@@ -30,7 +30,7 @@ MIMIC_FHIR_PROFILE_URL = {
     'ObservationMicroSusc':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-susc',
     'ObservationOutputevents':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevent',
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevents',
     'Organization':
         '',
     'Patient':
