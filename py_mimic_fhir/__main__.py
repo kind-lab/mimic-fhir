@@ -8,6 +8,7 @@ from pathlib import Path
 
 from py_mimic_fhir.validate import validate_n_patients
 from py_mimic_fhir.io import export_all_resources
+from py_mimic_fhir.terminology import generate_all_terminology
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,7 @@ def parse_arguments(arguments=None):
     )
     arg_validate.add_argument(
         '--dbname_hapi',
-        required=False,
+        required=True,
         action=EnvDefault,
         envvar='DBNAME_HAPI',
         help='HAPI Database Name'
@@ -145,6 +146,36 @@ def parse_arguments(arguments=None):
         help='Export Limit, 1 is ~ 1000 resources'
     )
 
+    # Terminology
+    arg_terminology = subparsers.add_parser(
+        "terminology",
+        help=("Terminology generation option for mimic-fhir data")
+    )
+
+    arg_terminology.add_argument(
+        '--terminology_path',
+        required=True,
+        action=EnvDefault,
+        envvar='MIMIC_TERMINOLOGY_PATH',
+        help='MIMIC Terminology Path to output complete CodeSystems/ValueSets'
+    )
+
+    arg_terminology.add_argument(
+        '--version',
+        required=False,
+        type=str,
+        default='0.4',
+        help='Version for MIMIC terminology'
+    )
+
+    arg_terminology.add_argument(
+        '--status',
+        required=False,
+        type=str,
+        default='draft',
+        help='Content maturity level'
+    )
+
     return parser.parse_args(arguments)
 
 
@@ -166,6 +197,11 @@ def validate(args):
 # Export all resources from FHIR Server and write to NDJSON
 def export(args):
     export_all_resources(args.fhir_server, args.output_path, args.export_limit)
+
+
+# Generate mimic-fhir terminology systems and write out to file
+def terminology(args):
+    generate_all_terminology(args)
 
 
 # Logger can be written out to file or stdout, user chooses
@@ -198,6 +234,8 @@ def main(argv=sys.argv):
         validate(args)
     elif args.actions == 'export':
         export(args)
+    elif args.actions == 'terminology':
+        terminology(args)
     else:
         logger.warn('Unrecongnized command')
 
