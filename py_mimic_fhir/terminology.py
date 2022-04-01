@@ -14,6 +14,7 @@ from py_mimic_fhir.lookup import (
 logger = logging.getLogger(__name__)
 
 
+# Common meta data across all MIMIC Terminology
 class TerminologyMetaData():
     def __init__(self, db_conn, version='0.4', status='draft'):
         self.status = status
@@ -39,6 +40,7 @@ class TerminologyMetaData():
         )
 
 
+# Master terminology function. Creates all CodeSystems and ValueSets
 def generate_all_terminology(args):
     db_conn = db.db_conn(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
@@ -81,7 +83,7 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
     concept = generate_concept(df_codesystem)
     codesystem.concept = concept
 
-    # Set canonical valueset if possible
+    # Set canonical valueset if relevant
     if mimic_codesystem in VALUESETS_CANONICAL:
         codesystem.valueSet = f'{meta.base_url}/ValueSet/{codesystem.id}'
 
@@ -133,22 +135,24 @@ def generate_valueset(mimic_valueset, db_conn, meta):
     return valueset
 
 
+# Populate the terminology concept list with code/display values from data tables
 def generate_concept(df):
     concept = []
     for _, row in df.iterrows():
-        elem = {}
-        elem['code'] = row['code']
+        element = {}
+        element['code'] = row['code']
         if 'display' in row and row['display'] != '' and not pd.isna(
             row['display']
         ):
-            elem['display'] = row['display']
-        concept.append(elem)
+            element['display'] = row['display']
+        concept.append(element)
     return concept
 
 
+# Write out terminology to a json file in the terminology_path
 def write_terminology(terminology, terminology_path):
-    # Write out CodeSystem json to terminology folder
     logger.info(f'Writing out {terminology.resource_type}: {terminology.id}')
     output_filename = f'{terminology_path}{terminology.resource_type}-{terminology.id}.json'
     with open(output_filename, 'w') as outfile:
+        # fhir.resources uses orjson package so not compatible for json.dump alone
         json.dump(json.loads(terminology.json()), outfile, indent=4)
