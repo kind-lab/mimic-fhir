@@ -160,6 +160,22 @@ def parse_arguments(arguments=None):
         help='MIMIC Terminology Path to output complete CodeSystems/ValueSets'
     )
 
+    arg_terminology.add_argument(
+        '--version',
+        required=False,
+        type=str,
+        default='0.4',
+        help='Version for MIMIC terminology'
+    )
+
+    arg_terminology.add_argument(
+        '--content',
+        required=False,
+        type=str,
+        default='draft',
+        help='Content maturity level'
+    )
+
     return parser.parse_args(arguments)
 
 

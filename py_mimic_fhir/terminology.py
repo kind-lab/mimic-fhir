@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class TerminologyMetaData():
-    def __init__(self, db_conn):
+    def __init__(self, db_conn, version='0.4', content='complete'):
         self.status = 'active'
-        self.content = 'complete'
-        self.version = '0.4'
+        self.content = content
+        self.version = version
         self.publisher = 'KinD Lab'
         self.language = 'en'
         self.current_date = str(
@@ -42,7 +42,7 @@ def generate_all_terminology(args):
     db_conn = db.db_conn(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
-    meta = TerminologyMetaData(db_conn)
+    meta = TerminologyMetaData(db_conn, args.version, args.content)
     generate_codesystems(db_conn, meta, args.terminology_path)
     generate_valuesets(db_conn, meta, args.terminology_path)
 
