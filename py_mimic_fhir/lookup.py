@@ -93,11 +93,11 @@ MIMIC_VALUESETS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
     'bodysite', 'chartevents_d_items', 'd_labitems', 'datetimeevents_d_items',
     'diagnosis_icd', 'discharge_disposition', 'identifier_type', 'lab_flags',
-    'lab_priority', 'outputevents_d_items', 'medadmin_category_icu',
-    'medication_method', 'medication_route', 'medication_site',
-    'microbiology_antibiotic', 'microbiology_interpretation',
-    'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'procedureevents_d_items', 'procedure_icd', 'units'
+    'lab_priority', 'medadmin_category_icu', 'medication_method',
+    'medication_route', 'medication_site', 'microbiology_antibiotic',
+    'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
+    'observation_category', 'outputevents_d_items', 'procedure_category',
+    'procedureevents_d_items', 'procedure_icd', 'units'
 ]
 
 VALUESETS_CODED = [
@@ -105,3 +105,13 @@ VALUESETS_CODED = [
     'procedureevents_d_items'
 ]
 VALUESETS_DOUBLE_SYSTEM = ['procedure_icd', 'diagnosis_icd']
+
+# ValueSets that are full encapulsation of the CodeSystem
+VALUESETS_CANONICAL = [
+    'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
+    'bodysite', 'd_labitems', 'discharge_disposition', 'identifier_type',
+    'lab_flags', 'lab_priority', 'medadmin_category_icu', 'medication_method',
+    'medication_route', 'medication_site', 'microbiology_antibiotic',
+    'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
+    'observation_category', 'procedure_category', 'units'
+]

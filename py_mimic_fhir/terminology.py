@@ -7,16 +7,17 @@ import json
 
 from py_mimic_fhir import db
 from py_mimic_fhir.lookup import (
-    MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED, VALUESETS_DOUBLE_SYSTEM
+    MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED,
+    VALUESETS_DOUBLE_SYSTEM, VALUESETS_CANONICAL
 )
 
 logger = logging.getLogger(__name__)
 
 
 class TerminologyMetaData():
-    def __init__(self, db_conn, version='0.4', content='complete'):
-        self.status = 'active'
-        self.content = content
+    def __init__(self, db_conn, version='0.4', status='draft'):
+        self.status = status
+        self.content = 'complete'
         self.version = version
         self.publisher = 'KinD Lab'
         self.language = 'en'
@@ -42,7 +43,7 @@ def generate_all_terminology(args):
     db_conn = db.db_conn(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
-    meta = TerminologyMetaData(db_conn, args.version, args.content)
+    meta = TerminologyMetaData(db_conn, args.version, args.status)
     generate_codesystems(db_conn, meta, args.terminology_path)
     generate_valuesets(db_conn, meta, args.terminology_path)
 
@@ -79,6 +80,10 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
     df_codesystem = db.get_table(db_conn, 'fhir_trm', f'cs_{mimic_codesystem}')
     concept = generate_concept(df_codesystem)
     codesystem.concept = concept
+
+    # Set canonical valueset if possible
+    if mimic_codesystem in VALUESETS_CANONICAL:
+        codesystem.valueSet = f'{meta.base_url}/ValueSet/{codesystem.id}'
 
     return codesystem
 

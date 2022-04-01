@@ -169,7 +169,7 @@ def parse_arguments(arguments=None):
     )
 
     arg_terminology.add_argument(
-        '--content',
+        '--status',
         required=False,
         type=str,
         default='draft',
