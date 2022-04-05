@@ -12,4 +12,5 @@ SELECT
     itemid AS code
     , LABEL AS display
 FROM mimic_icu.d_items 
+WHERE linksto='inputevents'
 
