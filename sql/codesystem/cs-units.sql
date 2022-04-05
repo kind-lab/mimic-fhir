@@ -29,6 +29,9 @@ WITH mimic_units AS (
     
     -- Outputevents units 
     SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_icu.outputevents  
+    
+    -- Prescription units 
+    SELECT DISTINCT TRIM(dose_unit_rx) AS unit FROM mimic_hosp.prescriptions p   
 )
 INSERT INTO fhir_trm.cs_units
 SELECT unit
@@ -37,14 +40,6 @@ WHERE
     unit IS NOT NULL 
     AND unit != ''
 
--- Observation labs units
-SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_hosp.labevents   
-UNION
 
--- Outputevents units 
-SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_icu.outputevents  
 
-UNION
 
--- Prescription units 
-SELECT DISTINCT TRIM(dose_unit_rx) AS unit FROM mimic_hosp.prescriptions p   
