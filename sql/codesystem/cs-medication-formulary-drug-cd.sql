@@ -14,4 +14,6 @@ WITH formulary_drug_cd AS (
 INSERT INTO fhir_trm.cs_medication_formulary_drug_cd 
 SELECT code
 FROM formulary_drug_cd
-WHERE code IS NOT NULL 
+WHERE 
+    code IS NOT NULL 
+    AND code != ''

@@ -8,16 +8,16 @@ CREATE TABLE fhir_trm.cs_medication_name(
 
 WITH medication_name AS (
     -- prescription names are fully captured in pharmacy currently, but keeping incase this changes in future
-    SELECT DISTINCT drug AS code FROM mimic_hosp.prescriptions WHERE formulary_drug_cd IS NULL
+    SELECT DISTINCT TRIM(drug) AS code FROM mimic_hosp.prescriptions WHERE formulary_drug_cd IS NULL
     
     UNION    
     
-    SELECT DISTINCT medication AS  code FROM mimic_hosp.pharmacy
+    SELECT DISTINCT TRIM(medication) AS  code FROM mimic_hosp.pharmacy
     
     UNION 
     
     SELECT 
-        DISTINCT medication AS code
+        DISTINCT TRIM(medication) AS code
     FROM 
         mimic_hosp.emar_detail emd 
         LEFT JOIN mimic_hosp.emar em

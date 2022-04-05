@@ -13,3 +13,5 @@ VALUES
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-name')
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-mix')
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-icu')
+    

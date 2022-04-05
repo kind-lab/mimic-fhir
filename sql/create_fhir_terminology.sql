@@ -34,8 +34,23 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Lab Priority
 \i codesystem/cs-lab-priority.sql
 
-
 -- Medication CodeSystems
+\echo Medication ICU
+\i codesystem/cs-medication-icu.sql
+
+\echo Medication Formulary Drug Cd
+\i codesystem/cs-medication-formulary-drug-cd.sql
+
+\echo Medication Mix
+\i codesystem/cs-medication-mix.sql
+
+\echo Medication Name
+\i codesystem/cs-medication-name.sql
+
+\echo Medication POE IV
+\i codesystem/cs-medication-poe-iv.sql
+
+-- Medication Related CodeSystems
 \echo Medadmin Category ICU
 \i codesystem/cs-medadmin-category-icu.sql
 
@@ -113,6 +128,9 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Procedureevents D Items
 \i codesystem/vs-procedureevents-d-items.sql
 
+-- Medication
+\echo Medication ValueSet
+\i codesystem/vs-medication.sql
 
 -- ICD Valuesets
 \echo Diagnosis ICD
