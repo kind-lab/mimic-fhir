@@ -20,12 +20,12 @@ begin
         WHEN formulary_drug_cd IS NOT NULL AND formulary_drug_cd != '' THEN
             jsonb_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-formulary-drug-cd'  
-                , 'code', formulary_drug_cd
+                , 'code', TRIM(REGEXP_REPLACE(formulary_drug_cd , '\s+', ' ', 'g'))
             )::TEXT
         ELSE
             jsonb_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-name'  
-                , 'code', drug
+                , 'code', TRIM(REGEXP_REPLACE(drug, '\s+', ' ', 'g'))
             )::TEXT
         END AS output_value      
         

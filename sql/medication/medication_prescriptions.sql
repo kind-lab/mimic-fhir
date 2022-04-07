@@ -12,11 +12,11 @@
 
 WITH prescriptions_ndc AS (
     SELECT DISTINCT 
-        pr.ndc AS pr_NDC
-        , pr.gsn AS pr_GSN
+        CASE WHEN pr.ndc = '' THEN NULL ELSE pr.ndc END AS pr_NDC
+        , CASE WHEN pr.gsn = '' THEN NULL ELSE pr.gsn END  AS pr_GSN
         , pr.drug AS pr_DRUG
         , pr.formulary_drug_cd AS pr_FORMULARY_DRUG_CD        
-        , uuid_generate_v5(ns_medication.uuid, CONCAT(pr.ndc,'-', pr.gsn,'-',pr.formulary_drug_cd, '-', pr.drug)) AS med_UUID        
+        , uuid_generate_v5(ns_medication.uuid, CONCAT(pr.ndc,'--', pr.gsn,'--',pr.formulary_drug_cd, '--', pr.drug)) AS med_UUID        
     FROM 
         mimic_hosp.prescriptions pr
         LEFT JOIN fhir_etl.uuid_namespace ns_medication
