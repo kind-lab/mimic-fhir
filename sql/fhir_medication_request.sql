@@ -10,22 +10,11 @@ CREATE TABLE mimic_fhir.medication_request(
 );
 
 
--- Create medicationRequest resources from the prescription and pharmacy TABLES 
--- Pull information from both tables to make more complete request
+-- Create medicationRequest resources from the prescription table 
+-- Pull information from pharmacy to supplement prescriptions table
 
 
--- Create a list of all the unique pharmacy ids
-WITH pharmacy_ids AS (
-    SELECT DISTINCT pharmacy_id, subject_id, hadm_id 
-    FROM mimic_hosp.prescriptions 
-    
-    UNION
-    
-    SELECT DISTINCT pharmacy_id, subject_id, hadm_id 
-    FROM mimic_hosp.pharmacy p 
-    
--- Group prescriptions to make into one complete medication request
-), prescript_request AS (
+WITH prescript_request AS (
     SELECT 
         pr.pharmacy_id
         , MAX(pr.route) AS route -- ALL routes across drugs IN a prescription ARE the same
@@ -41,7 +30,7 @@ WITH pharmacy_ids AS (
         , MAX(form_unit_disp) AS form_unit_disp
         , MAX(prod_strength) AS prod_strength
         , STRING_AGG(
-            TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
+            CONCAT(pr.ndc,'--', pr.gsn,'--',pr.formulary_drug_cd, '--', pr.drug)
             , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
         ) AS drug_code  
     FROM 
@@ -49,7 +38,7 @@ WITH pharmacy_ids AS (
     GROUP BY pr.pharmacy_id 
 ), fhir_medication_request AS (
 	SELECT
-  		CAST(pid.pharmacy_id AS TEXT) AS pid_PHARMACY_ID
+  		CAST(pr.pharmacy_id AS TEXT) AS pr_PHARMACY_ID
   		, COALESCE(stat.fhir_status, 'unknown') AS stat_FHIR_STATUS -- NULL IF ONLY prescription link (missing pharmacy link). Coalesce AS unknown
   		, TRIM(COALESCE(ph.route, pr.route)) AS ph_ROUTE
   		, CAST(COALESCE(ph.starttime, pr.starttime) AS TIMESTAMPTZ) AS ph_STARTTIME
@@ -73,24 +62,22 @@ WITH pharmacy_ids AS (
 
             
   		-- reference uuids
-  		, uuid_generate_v5(ns_medication_request.uuid, CAST(pid.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
-  		, uuid_generate_v5(ns_medication.uuid, COALESCE(pr.drug_code, ph.medication)) AS uuid_MEDICATION 
-  		, uuid_generate_v5(ns_patient.uuid, CAST(pid.subject_id AS TEXT)) AS uuid_SUBJECT_ID
-  		, uuid_generate_v5(ns_encounter.uuid, CAST(pid.hadm_id AS TEXT)) AS uuid_HADM_ID
+  		, uuid_generate_v5(ns_medication_request.uuid, CAST(pr.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
+  		, uuid_generate_v5(ns_medication.uuid, drug_code) AS uuid_MEDICATION 
+  		, uuid_generate_v5(ns_patient.uuid, CAST(pr.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+  		, uuid_generate_v5(ns_encounter.uuid, CAST(pr.hadm_id AS TEXT)) AS uuid_HADM_ID
   	FROM
-  	    pharmacy_ids pid
+  	    prescript_request pr
   	    LEFT JOIN mimic_hosp.pharmacy ph
-            ON pid.pharmacy_id = ph.pharmacy_id  
-        LEFT JOIN prescript_request pr
-            ON pid.pharmacy_id = pr.pharmacy_id
+            ON pr.pharmacy_id = ph.pharmacy_id  
   		INNER JOIN fhir_etl.subjects sub
-  			ON pid.subject_id = sub.subject_id 
+  			ON pr.subject_id = sub.subject_id 
   		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
   			ON ns_encounter.name = 'Encounter'
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient
   			ON ns_patient.name = 'Patient'
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication
-  			ON ns_medication.name = 'Medication'
+  			ON ns_medication.name = 'MedicationPrescriptions'
   		LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
   			ON ns_medication_request.name = 'MedicationRequest'
   		
@@ -114,7 +101,7 @@ SELECT
             )
          ) 
       	, 'identifier', jsonb_build_array(jsonb_build_object(
-            'value', pid_PHARMACY_ID
+            'value', pr_PHARMACY_ID
             , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
             , 'type', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
@@ -191,7 +178,8 @@ SELECT
         ) ELSE NULL END     
     )) AS fhir  
 FROM
-	fhir_medication_request;
+	fhir_medication_request
+LIMIT 10;
 	
 	
 	
@@ -199,12 +187,24 @@ FROM
 -- Create medicationRequest resources poe table for emar events without pharmacy_id
 -- And for now just grab emar events with non-null medication values
 
--- get unique poe_id that show up in emar, without pharmacy_id and with medication
-WITH poe_medreq AS (
-SELECT DISTINCT poe_id, medication FROM mimic_hosp.emar e
-WHERE 
-    pharmacy_id IS NULL
-    AND medication IS NOT NULL
+-- get unique poe_id that show up in emar, without pharmacy_id and with medication or poe iv order
+WITH prescriptions AS (
+    SELECT DISTINCT pharmacy_id FROM mimic_hosp.prescriptions 
+), poe_medreq AS (
+    SELECT DISTINCT 
+        em.poe_id
+        , em.medication
+        , poe.order_type 
+    FROM 
+        mimic_hosp.emar em
+        LEFT JOIN prescriptions pr
+            ON em.pharmacy_id = pr.pharmacy_id
+        LEFT JOIN mimic_hosp.poe
+            ON em.poe_id = poe.poe_id
+    WHERE 
+        pr.pharmacy_id IS NULL
+        AND (em.medication IS NOT NULL 
+        OR poe.order_type IN ('TPN', 'IV therapy'))
 ), fhir_poe_medication_request AS (
     SELECT
         poe.poe_id AS poe_POE_ID
@@ -213,7 +213,13 @@ WHERE
     
         -- reference uuids
         , uuid_generate_v5(ns_medication_request.uuid, poe.poe_id) AS uuid_MEDICATION_REQUEST 
-        , uuid_generate_v5(ns_medication.uuid, pm.medication) AS uuid_MEDICATION 
+        , CASE 
+            WHEN pm.medication IS NOT NULL THEN
+                uuid_generate_v5(ns_medication_name.uuid, pm.medication) 
+            WHEN pm.order_type IN ('TPN', 'IV therapy') THEN
+                uuid_generate_v5(ns_medication_poe.uuid, pm.order_type)  
+        END AS uuid_MEDICATION 
+        
         , uuid_generate_v5(ns_patient.uuid, CAST(poe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(poe.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM
@@ -228,14 +234,17 @@ WHERE
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
-        LEFT JOIN fhir_etl.uuid_namespace ns_medication
-            ON ns_medication.name = 'Medication'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication_name
+            ON ns_medication_name.name = 'MedicationName'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication_poe
+            ON ns_medication_poe.name = 'MedicationPoeIv'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
             ON ns_medication_request.name = 'MedicationRequest'
         
         --status mapping
         LEFT JOIN fhir_etl.map_medreq_status stat
-            ON poe.order_status = stat.mimic_status            
+            ON poe.order_status = stat.mimic_status   
+    WHERE poe.order_type IN ('IV therapy', 'TPN')
 )
 INSERT INTO mimic_fhir.medication_request
 SELECT 

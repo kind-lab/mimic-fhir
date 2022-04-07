@@ -11,6 +11,9 @@
 \i fn/fn_prescriptions_medication_code.sql
 
 -- medication data generation
+\echo Medication formulary drug code
+\i medication_formulary_drug_cd.sql
+
 \echo Medication prescriptions
 \i medication/medication_prescriptions.sql
 

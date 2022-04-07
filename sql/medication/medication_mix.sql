@@ -27,7 +27,7 @@ WITH medication_identifier AS (
     
         -- format of medication mixes will be MAIN-BASE-ADDITIVE if all drug_types are present
         -- Multiple additives are allowed, so these are ordered alphabetically 
-        , STRING_AGG(mid.med_id, '_' ORDER BY pr.drug_type DESC, mid.med_id ASC) AS medmix_id   
+        , STRING_AGG(mid.med_id, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) AS medmix_id   
         
         -- Use formulary_drug_cd here to make medmix code more readable
         , STRING_AGG(pr.formulary_drug_cd , '_' ORDER BY pr.drug_type DESC, pr.formulary_drug_cd  ASC) AS medmix_code  
@@ -51,7 +51,7 @@ WITH medication_identifier AS (
     FROM 
         medication_mix mix
         LEFT JOIN fhir_etl.uuid_namespace ns_medication 
-            ON ns_medication.name = 'MedicationMix'
+            ON ns_medication.name = 'MedicationPrescriptions'
 )
 INSERT INTO mimic_fhir.medication
 SELECT 

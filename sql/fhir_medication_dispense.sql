@@ -11,49 +11,9 @@ CREATE TABLE mimic_fhir.medication_dispense(
 );
 
 
--- Collect all emar evetns associated with pharmacy_id
-WITH emar_events AS (
-    SELECT 
-        emd.pharmacy_id
-        , jsonb_agg(
-            jsonb_build_object('reference', 'MedicationAdministration/' ||
-                uuid_generate_v5(ns_medadmin.uuid, emd.emar_id 
-                                        || '-' || emd.parent_field_ordinal
-                )
-            )
-        ) AS uuid_MEDADMIN
-    FROM 
-        mimic_hosp.emar_detail emd
-        INNER JOIN fhir_etl.subjects sub
-            ON emd.subject_id = sub.subject_id
-        LEFT JOIN fhir_etl.uuid_namespace ns_medadmin 
-            ON ns_medadmin.name = 'MedicationAdministration'    
-    WHERE 
-        emd.parent_field_ordinal IS NOT NULL
-    GROUP BY 
-        emd.pharmacy_id 
-        
-), prescription_medication AS (
-    -- grab drug codes to capture any medication mixes
-    SELECT 
-        pr.pharmacy_id
-        , CASE WHEN count(pr.drug) > 1 THEN
-            -- Reference the drug in MAIN_BASE_ADDITIVE format
-            STRING_AGG(
-                TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
-                , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
-            ) 
-        ELSE
-            MAX(pr.drug) 
-        END AS drug_code            
-    FROM
-        mimic_hosp.pharmacy ph 
-        INNER JOIN fhir_etl.subjects sub 
-            ON ph.subject_id = sub.subject_id 
-        LEFT JOIN mimic_hosp.prescriptions pr
-            ON pr.pharmacy_id = ph.pharmacy_id 
-    GROUP BY pr.pharmacy_id 
-), fhir_medication_dispense AS (
+-- Collect all pharmacy_id in pharmacy. 
+-- There are some pharmacy_id in prescriptions that will not have a related pharmacy_id in pharmacy
+WITH fhir_medication_dispense AS (
     SELECT 
         CAST(ph.pharmacy_id AS TEXT) AS ph_PHARMACY_ID
         
@@ -70,20 +30,14 @@ WITH emar_events AS (
         
         -- reference uuids
         , uuid_generate_v5(ns_medication_dispense.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_DISPENSE
-        , em.uuid_MEDADMIN AS uuid_MEDADMIN
         , uuid_generate_v5(ns_medication_request.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
-        -- coalesce for medication that are in pharmacy but NOT in prescriptions
-        , uuid_generate_v5(ns_medication.uuid, COALESCE(pr.drug_code, ph.medication)) AS uuid_MEDICATION 
+        , uuid_generate_v5(ns_medication.uuid, ph.medication) AS uuid_MEDICATION 
         , uuid_generate_v5(ns_patient.uuid, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM 
         mimic_hosp.pharmacy ph 
         INNER JOIN fhir_etl.subjects sub 
             ON ph.subject_id = sub.subject_id 
-        LEFT JOIN emar_events em
-            ON ph.pharmacy_id = em.pharmacy_id
-        LEFT JOIN prescription_medication pr
-            ON ph.pharmacy_id = pr.pharmacy_id
             
         -- UUID namespaces
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
@@ -91,9 +45,7 @@ WITH emar_events AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication
-            ON ns_medication.name = 'Medication'
-        LEFT JOIN fhir_etl.uuid_namespace ns_medadmin
-            ON ns_medadmin.name = 'MedicationDAdministration'
+            ON ns_medication.name = 'MedicationName'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
             ON ns_medication_request.name = 'MedicationRequest'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_dispense
@@ -179,7 +131,6 @@ SELECT
                 )         
             ) ELSE NULL END    
         ))
-        , 'partOf', uuid_MEDADMIN
     )) AS fhir  
 FROM 
     fhir_medication_dispense

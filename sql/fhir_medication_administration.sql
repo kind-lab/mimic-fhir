@@ -10,29 +10,12 @@ CREATE TABLE mimic_fhir.medication_administration(
 
 
 -- Generate the drug code for all prescriptions
--- A single drug or drug mix will reference a Medication resource
-WITH pr_drug_code AS (
-    SELECT  
-        pr.pharmacy_id
-        , CASE WHEN count(pr.drug) > 1 THEN
-            -- Reference the drug in MAIN_BASE_ADDITIVE format
-            STRING_AGG(
-                TRIM(REGEXP_REPLACE(pr.drug, '\s+', ' ', 'g'))
-                , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
-            ) 
-        ELSE
-            MAX(pr.drug) 
-        END AS drug_code              
-    FROM 
-        mimic_hosp.emar em
-        INNER JOIN fhir_etl.subjects sub
-            ON em.subject_id = sub.subject_id 
-        LEFT JOIN mimic_hosp.prescriptions pr
-            ON em.pharmacy_id = pr.pharmacy_id
-    GROUP BY 
-        pr.pharmacy_id
-        
-), fhir_medication_administration AS (
+-- Three primary sources for medication in emar
+--    1) emar_detail.product_code -> primary code
+--    2) emar.medication -> when no product code
+--    3) poe.order_type -> this is for IV fluids
+--    4) if nothing is present then store as Unknown medication
+WITH fhir_medication_administration AS (
     SELECT
         emd.emar_id || '-' || emd.parent_field_ordinal AS em_MEDADMIN_ID
         , CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
@@ -77,24 +60,39 @@ WITH pr_drug_code AS (
             ns_medication_administration.uuid, 
             emd.emar_id || '-' || emd.parent_field_ordinal
         ) AS uuid_MEDADMIN
-        , uuid_generate_v5(ns_medication.uuid, COALESCE(pr.drug_code, em.medication)) AS uuid_MEDICATION 
+        
         , uuid_generate_v5(ns_medication_request.uuid, CAST(emd.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST
         , uuid_generate_v5(ns_patient.uuid, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(em.hadm_id AS TEXT)) AS uuid_HADM_ID
+        
+        , CASE 
+            WHEN emd.product_code IS NOT NULL THEN 
+                uuid_generate_v5(ns_medication_cd.uuid, emd.product_code)
+            WHEN em.medication IS NOT NULL THEN
+                uuid_generate_v5(ns_medication_name.uuid, em.medication)
+            WHEN poe.order_type IN ('TPN', 'IV therapy') THEN
+                uuid_generate_v5(ns_medication_poe.uuid, poe.order_type)
+        ELSE NULL END AS uuid_MEDICATION
+            
+        
     FROM
         mimic_hosp.emar_detail emd
         INNER JOIN fhir_etl.subjects sub
             ON emd.subject_id = sub.subject_id 
         LEFT JOIN mimic_hosp.emar em
             ON emd.emar_id = em.emar_id
-        LEFT JOIN pr_drug_code pr
-            ON emd.pharmacy_id = pr.pharmacy_id
+        LEFT JOIN mimic_hosp.poe poe
+            ON em.poe_id = poe.poe_id 
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
-        LEFT JOIN fhir_etl.uuid_namespace ns_medication
-            ON ns_medication.name = 'Medication'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication_cd
+            ON ns_medication_cd.name = 'MedicationFormularyDrugCd'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication_name
+            ON ns_medication_name.name = 'MedicationName'
+        LEFT JOIN fhir_etl.uuid_namespace ns_medication_poe
+            ON ns_medication_poe.name = 'MedicationPoeIv'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
             ON ns_medication_request.name = 'MedicationRequest'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_administration
@@ -102,6 +100,9 @@ WITH pr_drug_code AS (
     WHERE
         -- Select each individual dose given in the emar_detail row, skipping the summary row
         emd.parent_field_ordinal IS NOT NULL 
+        
+        -- need to fix this eventually, but no sources for some meds, so can't have admin 
+        
 )
 
 INSERT INTO mimic_fhir.medication_administration
@@ -128,7 +129,20 @@ SELECT
             )
         ))	
         , 'status', 'completed' -- All medication adminstrations considered complete
-        , 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
+        , 'medicationReference', 
+            CASE WHEN uuid_MEDICATION IS NOT NULL THEN
+                jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
+            ELSE NULL END
+        , 'medicationCodeableConcept',
+            CASE WHEN uuid_MEDICATION IS NULL THEN
+                jsonb_build_object(
+                    'coding', jsonb_build_array(jsonb_build_object(
+                        'system', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'  
+                        , 'code', 'UNK'
+                        , 'display', 'unknown'
+                    ))
+                )
+            ELSE NULL END        
         , 'request', jsonb_build_object('reference', 'MedicationRequest/' || uuid_MEDICATION_REQUEST)
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
