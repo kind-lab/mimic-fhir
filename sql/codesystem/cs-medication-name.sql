@@ -25,8 +25,6 @@ WITH medication_name AS (
         mimic_hosp.emar_detail emd 
         LEFT JOIN mimic_hosp.emar em
             ON emd.emar_id = em.emar_id
-    WHERE 
-        emd.product_code IS NULL
 )
 
 INSERT INTO fhir_trm.cs_medication_name
