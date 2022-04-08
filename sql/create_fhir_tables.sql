@@ -72,6 +72,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo create fhir medication
 \i create_fhir_medication.sql
 
+\echo create medication_mix
+\i fhir_medication_mix.sql
+
 \echo fhir_medadmin_icu
 \i fhir_medadmin_icu.sql
 

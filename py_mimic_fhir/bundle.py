@@ -130,6 +130,10 @@ class Bundler():
         self.specimen_bundle = Bundle()
         self.micro_bundle = Bundle()
         self.med_bundle = Bundle()
+        self.medreq_bundle = Bundle()
+        self.meddisp_bundle = Bundle()
+        self.medadmin_bundle = Bundle()
+        self.medadmin_icu_bundle = Bundle()
         self.lab_bundle = Bundle()
         self.icu_enc_bundle = Bundle()
         self.icu_base_bundle = Bundle()
@@ -203,6 +207,26 @@ class Bundler():
             'medication_administration'
         ]
         self.fill_bundle(self.med_bundle, table_list)
+
+    def generate_medreq_bundle(self):
+        logger.info('Generating medication request bundle')
+        table_list = ['medication_request']
+        self.fill_bundle(self.lab_bundle, table_list)
+
+    def generate_meddisp_bundle(self):
+        logger.info('Generating medication dispense bundle')
+        table_list = ['medication_dispense']
+        self.fill_bundle(self.lab_bundle, table_list)
+
+    def generate_medadmin_bundle(self):
+        logger.info('Generating medication administration bundle')
+        table_list = ['medication_administration']
+        self.fill_bundle(self.lab_bundle, table_list)
+
+    def generate_medadmin_icu_bundle(self):
+        logger.info('Generating medication administration ICU bundle')
+        table_list = ['medication_administration_icu']
+        self.fill_bundle(self.lab_bundle, table_list)
 
     # Add all lab resources associated with the Patient to the bundle
     def generate_lab_bundle(self):

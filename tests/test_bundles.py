@@ -205,11 +205,8 @@ def test_lab_bundle(db_conn):
     assert response
 
 
-def test_med_pat_bundle(db_conn):
-    # Get patient_id that has resources from the resource_list
-    resource_list = [
-        'medication_request', 'medication_administration'
-    ]  # Add medication_dispense after updating IG
+def test_medreq_bundle(db_conn):
+    resource_list = ['medication_request']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
     split_flag = False  # Do not break up meds right now, need to test further
 
@@ -220,9 +217,72 @@ def test_med_pat_bundle(db_conn):
     bundler.generate_patient_bundle()
     bundler.patient_bundle.request(FHIR_SERVER)
 
-    #  Generate and post micro bundle
-    bundler.generate_med_bundle()
+    #  Generate and post medreq bundle
+    bundler.generate_medreq_bundle()
     response = bundler.med_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+    logging.error(patient_id)
+    assert response
+
+
+def test_meddisp_bundle(db_conn):
+    resource_list = ['medication_dispense']
+    patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = False  # Do not break up meds right now, need to test further
+
+    # Create bundle
+    bundler = Bundler(patient_id, db_conn)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    bundler.generate_patient_bundle()
+    bundler.patient_bundle.request(FHIR_SERVER)
+
+    #  Generate and post medreq bundle
+    bundler.generate_meddisp_bundle()
+    response = bundler.meddisp_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+    logging.error(patient_id)
+    assert response
+
+
+def test_medadmin_bundle(db_conn):
+    resource_list = ['medication_administration']
+    patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = False  # Do not break up meds right now, need to test further
+
+    # Create bundle
+    bundler = Bundler(patient_id, db_conn)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    bundler.generate_patient_bundle()
+    bundler.patient_bundle.request(FHIR_SERVER)
+
+    #  Generate and post medreq bundle
+    bundler.generate_medadmin_bundle()
+    response = bundler.medadmin_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+    logging.error(patient_id)
+    assert response
+
+
+def test_medadmin_icu_bundle(db_conn):
+    resource_list = ['medication_administration_icu']
+    patient_id = get_pat_id_with_links(db_conn, resource_list)
+    split_flag = False  # Do not break up meds right now, need to test further
+
+    # Create bundle
+    bundler = Bundler(patient_id, db_conn)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    bundler.generate_patient_bundle()
+    bundler.patient_bundle.request(FHIR_SERVER)
+
+    #  Generate and post medreq bundle
+    bundler.generate_medadmin_icu_bundle()
+    response = bundler.medadmin_icu_bundle.request(
         FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
     )
     logging.error(patient_id)
@@ -232,7 +292,18 @@ def test_med_pat_bundle(db_conn):
 # Only passing a small portion of the meds here (~100)
 def test_med_data_bundle(med_data_bundle_resources):
     # Can pass all meds if slicing is dropped
-    resources = med_data_bundle_resources[0:100]
+    resources = med_data_bundle_resources  #[0:100]
+    split_flag = True  # Divide up bundles into smaller chunks
+    bundle = Bundle()
+    bundle.add_entry(resources)
+    response = bundle.request(FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH)
+    logging.error(response)
+    assert response
+
+
+def test_med_mix_data_bundle(med_mix_data_bundle_resources):
+    # Can pass all meds if slicing is dropped
+    resources = med_mix_data_bundle_resources  #[0:100]
     split_flag = True  # Divide up bundles into smaller chunks
     bundle = Bundle()
     bundle.add_entry(resources)

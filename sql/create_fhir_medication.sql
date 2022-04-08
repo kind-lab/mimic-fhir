@@ -1,7 +1,7 @@
 -- Create medication tables
 
 \echo Create medication base table
-\i medication_base.sql
+\i medication/medication_base.sql
 
 -- medication functions
 \echo fn_build_medication_identifier
@@ -12,13 +12,10 @@
 
 -- medication data generation
 \echo Medication formulary drug code
-\i medication_formulary_drug_cd.sql
+\i medication/medication_formulary_drug_cd.sql
 
 \echo Medication prescriptions
 \i medication/medication_prescriptions.sql
-
-\echo Medication mix
-\i medication/medication_mix.sql
 
 \echo Medication name
 \i medication/medication_name.sql

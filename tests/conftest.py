@@ -278,8 +278,19 @@ def specimen_lab_resource(validator, db_conn):
 # Grab a handful of medication data resoruces to send to the server
 @pytest.fixture(scope="session")
 def med_data_bundle_resources(db_conn):
-    n_limit = 15000
+    n_limit = 50000
     q_resources = f'SELECT fhir FROM mimic_fhir.medication LIMIT {n_limit}'
+    med_resources = pd.read_sql_query(q_resources, db_conn)
+
+    resources = []
+    [resources.append(fhir) for fhir in med_resources.fhir]
+    return resources
+
+
+@pytest.fixture(scope="session")
+def med_mix_data_bundle_resources(db_conn):
+    n_limit = 10000
+    q_resources = f'SELECT fhir FROM mimic_fhir.medication_mix LIMIT {n_limit}'
     med_resources = pd.read_sql_query(q_resources, db_conn)
 
     resources = []
