@@ -130,13 +130,10 @@ class Bundler():
         self.specimen_bundle = Bundle()
         self.micro_bundle = Bundle()
         self.med_bundle = Bundle()
-        self.medreq_bundle = Bundle()
-        self.meddisp_bundle = Bundle()
-        self.medadmin_bundle = Bundle()
-        self.medadmin_icu_bundle = Bundle()
         self.lab_bundle = Bundle()
         self.icu_enc_bundle = Bundle()
         self.icu_base_bundle = Bundle()
+        self.icu_medadmin_bundle = Bundle()
         self.icu_obs_bundle = Bundle()
         self.icu_ce_bundle = Bundle()
         self.db_conn = db_conn
@@ -149,10 +146,11 @@ class Bundler():
         self.generate_procedure_bundle()
         self.generate_specimen_bundle()
         self.generate_micro_bundle()
-        #self.generate_med_bundle() # Activate when medication PR is integrated
+        self.generate_med_bundle()
         self.generate_lab_bundle()
         self.generate_icu_enc_bundle()
         self.generate_icu_base_bundle()
+        self.generate_icu_medadmin_bundle()
         self.generate_icu_obs_bundle()
 
     # Add all resources from table_list for the patient to the bundle
@@ -208,22 +206,7 @@ class Bundler():
         ]
         self.fill_bundle(self.med_bundle, table_list)
 
-    def generate_medreq_bundle(self):
-        logger.info('Generating medication request bundle')
-        table_list = ['medication_request']
-        self.fill_bundle(self.lab_bundle, table_list)
-
-    def generate_meddisp_bundle(self):
-        logger.info('Generating medication dispense bundle')
-        table_list = ['medication_dispense']
-        self.fill_bundle(self.lab_bundle, table_list)
-
-    def generate_medadmin_bundle(self):
-        logger.info('Generating medication administration bundle')
-        table_list = ['medication_administration']
-        self.fill_bundle(self.lab_bundle, table_list)
-
-    def generate_medadmin_icu_bundle(self):
+    def generate_icu_medadmin_bundle(self):
         logger.info('Generating medication administration ICU bundle')
         table_list = ['medication_administration_icu']
         self.fill_bundle(self.lab_bundle, table_list)
@@ -292,7 +275,11 @@ class Bundler():
             self.micro_bundle.request(fhir_server, err_path=err_path)
         )
 
-        #self.med_bundle.request(fhir_server)
+        logger.info('Post med bundle')
+        response_list.append(
+            self.med_bundle.request(fhir_server, split_flag, err_path)
+        )
+
         logger.info('Post lab bundle')
         response_list.append(
             self.lab_bundle.request(fhir_server, split_flag, err_path)
@@ -306,6 +293,11 @@ class Bundler():
         logger.info('Post icu_base bundle')
         response_list.append(
             self.icu_base_bundle.request(fhir_server, split_flag, err_path)
+        )
+
+        logger.info('Post icu_medadmin bundle')
+        response_list.append(
+            self.icu_medadmin_bundle.request(fhir_server, split_flag, err_path)
         )
 
         logger.info('Post icu_obs bundle')

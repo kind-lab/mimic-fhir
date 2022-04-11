@@ -54,7 +54,9 @@ WITH prescript_request AS (
         , CAST(ph.entertime AS TIMESTAMPTZ) AS ph_ENTERTIME
         
         -- dosage information from prescriptions
-        , SPLIT_PART(pr.dose_val_rx,'-',1) AS pr_DOSE_VAL_RX -- grab lower bound OF ANY ranges
+        , CASE WHEN pr.dose_val_rx ~ '^[0-9\.]+$' THEN 
+             pr.dose_val_rx
+        ELSE NULL END AS pr_DOSE_VAL_RX 
         , TRIM(pr.dose_unit_rx) AS pr_DOSE_UNIT_RX
         , pr.form_val_disp AS pr_FORM_VAL_DISP
         , pr.form_unit_disp AS pr_FORM_UNIT_DISP
@@ -178,8 +180,7 @@ SELECT
         ) ELSE NULL END     
     )) AS fhir  
 FROM
-	fhir_medication_request
-LIMIT 10;
+	fhir_medication_request;
 	
 	
 	
@@ -215,7 +216,7 @@ WITH prescriptions AS (
         , uuid_generate_v5(ns_medication_request.uuid, poe.poe_id) AS uuid_MEDICATION_REQUEST 
         , CASE 
             WHEN pm.medication IS NOT NULL THEN
-                uuid_generate_v5(ns_medication_name.uuid, pm.medication) 
+                uuid_generate_v5(ns_medication_name.uuid, TRIM(REGEXP_REPLACE(pm.medication, '\s+', ' ', 'g'))) 
             WHEN pm.order_type IN ('TPN', 'IV therapy') THEN
                 uuid_generate_v5(ns_medication_poe.uuid, pm.order_type)  
         END AS uuid_MEDICATION 
@@ -244,7 +245,9 @@ WITH prescriptions AS (
         --status mapping
         LEFT JOIN fhir_etl.map_medreq_status stat
             ON poe.order_status = stat.mimic_status   
-    WHERE poe.order_type IN ('IV therapy', 'TPN')
+    WHERE 
+        poe.order_type IN ('IV therapy', 'TPN')
+        OR pm.medication IS NOT NULL 
 )
 INSERT INTO mimic_fhir.medication_request
 SELECT 

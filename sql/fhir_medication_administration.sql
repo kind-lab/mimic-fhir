@@ -15,7 +15,10 @@ CREATE TABLE mimic_fhir.medication_administration(
 --    2) emar.medication -> when no product code
 --    3) poe.order_type -> this is for IV fluids
 --    4) if nothing is present then store as Unknown medication
-WITH fhir_medication_administration AS (
+WITH prescriptions AS (
+    SELECT DISTINCT pharmacy_id 
+    FROM mimic_hosp.prescriptions 
+), fhir_medication_administration AS (
     SELECT
         emd.emar_id || '-' || emd.parent_field_ordinal AS em_MEDADMIN_ID
         , CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
@@ -61,15 +64,22 @@ WITH fhir_medication_administration AS (
             emd.emar_id || '-' || emd.parent_field_ordinal
         ) AS uuid_MEDADMIN
         
-        , uuid_generate_v5(ns_medication_request.uuid, CAST(emd.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST
         , uuid_generate_v5(ns_patient.uuid, CAST(em.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(em.hadm_id AS TEXT)) AS uuid_HADM_ID
+        
+        , CASE 
+            WHEN pr.pharmacy_id IS NOT NULL THEN
+                uuid_generate_v5(ns_medication_request.uuid, CAST(pr.pharmacy_id AS TEXT))
+            ELSE
+                uuid_generate_v5(ns_medication_request.uuid, poe.poe_id)
+        END AS uuid_MEDICATION_REQUEST
+        
         
         , CASE 
             WHEN emd.product_code IS NOT NULL THEN 
                 uuid_generate_v5(ns_medication_cd.uuid, emd.product_code)
             WHEN em.medication IS NOT NULL THEN
-                uuid_generate_v5(ns_medication_name.uuid, em.medication)
+                uuid_generate_v5(ns_medication_name.uuid, TRIM(REGEXP_REPLACE(em.medication, '\s+', ' ', 'g')))
             WHEN poe.order_type IN ('TPN', 'IV therapy') THEN
                 uuid_generate_v5(ns_medication_poe.uuid, poe.order_type)
         ELSE NULL END AS uuid_MEDICATION
@@ -83,6 +93,8 @@ WITH fhir_medication_administration AS (
             ON emd.emar_id = em.emar_id
         LEFT JOIN mimic_hosp.poe poe
             ON em.poe_id = poe.poe_id 
+        LEFT JOIN prescriptions pr
+            ON emd.pharmacy_id = pr.pharmacy_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -100,8 +112,10 @@ WITH fhir_medication_administration AS (
     WHERE
         -- Select each individual dose given in the emar_detail row, skipping the summary row
         emd.parent_field_ordinal IS NOT NULL 
+        AND (pr.pharmacy_id IS NOT NULL
+            OR em.medication IS NOT NULL 
+            OR poe.order_type IN ('TPN', 'IV therapy'))
         
-        -- need to fix this eventually, but no sources for some meds, so can't have admin 
         
 )
 

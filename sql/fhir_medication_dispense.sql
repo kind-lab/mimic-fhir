@@ -11,9 +11,13 @@ CREATE TABLE mimic_fhir.medication_dispense(
 );
 
 
+WITH distinct_prescriptions AS (
+    SELECT DISTINCT pharmacy_id
+    FROM mimic_hosp.prescriptions 
+)
 -- Collect all pharmacy_id in pharmacy. 
 -- There are some pharmacy_id in prescriptions that will not have a related pharmacy_id in pharmacy
-WITH fhir_medication_dispense AS (
+, fhir_medication_dispense AS (
     SELECT 
         CAST(ph.pharmacy_id AS TEXT) AS ph_PHARMACY_ID
         
@@ -30,14 +34,20 @@ WITH fhir_medication_dispense AS (
         
         -- reference uuids
         , uuid_generate_v5(ns_medication_dispense.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_DISPENSE
-        , uuid_generate_v5(ns_medication_request.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_REQUEST 
-        , uuid_generate_v5(ns_medication.uuid, ph.medication) AS uuid_MEDICATION 
+        
+        -- Some pharmacy_ids exist in pharmacy but not in prescriptions, so no medication request would have been created
+        , CASE WHEN pr.pharmacy_id IS NOT NULL THEN
+            uuid_generate_v5(ns_medication_request.uuid, CAST(ph.pharmacy_id AS TEXT)) 
+        ELSE NULL END AS uuid_MEDICATION_REQUEST 
+        , uuid_generate_v5(ns_medication.uuid, TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g'))) AS uuid_MEDICATION 
         , uuid_generate_v5(ns_patient.uuid, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM 
         mimic_hosp.pharmacy ph 
         INNER JOIN fhir_etl.subjects sub 
             ON ph.subject_id = sub.subject_id 
+        LEFT JOIN distinct_prescriptions pr
+            ON ph.pharmacy_id = pr.pharmacy_id
             
         -- UUID namespaces
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
@@ -56,7 +66,8 @@ WITH fhir_medication_dispense AS (
             ON ph.duration_interval = medu.mimic_unit 
     
     -- only create medication dispense if medication is specified
-    WHERE ph.medication IS NOT NULL
+    WHERE 
+        ph.medication IS NOT NULL
 ) 
 
 INSERT INTO mimic_fhir.medication_dispense
@@ -85,9 +96,12 @@ SELECT
               THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
               ELSE NULL
             END
-        , 'authorizingPrescription', jsonb_build_array(jsonb_build_object(
-            'reference', 'MedicationRequest/' || uuid_MEDICATION_REQUEST
-        ))  
+        , 'authorizingPrescription', 
+            CASE WHEN uuid_MEDICATION_REQUEST IS NOT NULL THEN
+                jsonb_build_array(jsonb_build_object(
+                    'reference', 'MedicationRequest/' || uuid_MEDICATION_REQUEST
+                ))  
+            ELSE NULL END
         , 'quantity', 
             CASE WHEN ph_FILL_QUANTITY IS NOT NULL THEN 
                 jsonb_build_object(

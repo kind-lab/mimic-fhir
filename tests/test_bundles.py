@@ -205,8 +205,10 @@ def test_lab_bundle(db_conn):
     assert response
 
 
-def test_medreq_bundle(db_conn):
-    resource_list = ['medication_request']
+def test_med_bundle(db_conn):
+    resource_list = [
+        'medication_request', 'medication_dispense', 'medication_administration'
+    ]
     patient_id = get_pat_id_with_links(db_conn, resource_list)
     split_flag = False  # Do not break up meds right now, need to test further
 
@@ -218,7 +220,7 @@ def test_medreq_bundle(db_conn):
     bundler.patient_bundle.request(FHIR_SERVER)
 
     #  Generate and post medreq bundle
-    bundler.generate_medreq_bundle()
+    bundler.generate_med_bundle()
     response = bundler.med_bundle.request(
         FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
     )
@@ -226,49 +228,7 @@ def test_medreq_bundle(db_conn):
     assert response
 
 
-def test_meddisp_bundle(db_conn):
-    resource_list = ['medication_dispense']
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = False  # Do not break up meds right now, need to test further
-
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
-
-    # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    #  Generate and post medreq bundle
-    bundler.generate_meddisp_bundle()
-    response = bundler.meddisp_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
-    assert response
-
-
-def test_medadmin_bundle(db_conn):
-    resource_list = ['medication_administration']
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = False  # Do not break up meds right now, need to test further
-
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
-
-    # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    #  Generate and post medreq bundle
-    bundler.generate_medadmin_bundle()
-    response = bundler.medadmin_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
-    assert response
-
-
-def test_medadmin_icu_bundle(db_conn):
+def test_icu_medadmin_bundle(db_conn):
     resource_list = ['medication_administration_icu']
     patient_id = get_pat_id_with_links(db_conn, resource_list)
     split_flag = False  # Do not break up meds right now, need to test further
@@ -281,8 +241,8 @@ def test_medadmin_icu_bundle(db_conn):
     bundler.patient_bundle.request(FHIR_SERVER)
 
     #  Generate and post medreq bundle
-    bundler.generate_medadmin_icu_bundle()
-    response = bundler.medadmin_icu_bundle.request(
+    bundler.generate_icu_medadmin_bundle()
+    response = bundler.icu_medadmin_bundle.request(
         FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
     )
     logging.error(patient_id)
@@ -347,6 +307,24 @@ def test_icu_enc_bundle_n_patients(db_conn):
         bundler = Bundler(patient_id, db_conn)
         bundler.generate_icu_enc_bundle()
         response = bundler.icu_enc_bundle.request(
+            FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+        )
+
+        if response == False:
+            result = False
+    assert result
+
+
+def test_med_bundle_n_patients(db_conn):
+    patient_ids = get_n_patient_id(db_conn, 20)
+    split_flag = False  # Do not subdivide, may cause issues in medications
+
+    # Create bundle and post it
+    result = True
+    for patient_id in patient_ids:
+        bundler = Bundler(patient_id, db_conn)
+        bundler.generate_med_bundle()
+        response = bundler.med_bundle.request(
             FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
         )
 
