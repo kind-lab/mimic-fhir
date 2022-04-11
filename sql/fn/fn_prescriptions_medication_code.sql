@@ -15,7 +15,7 @@ begin
         WHEN gsn IS NOT NULL AND gsn != '' THEN
             jsonb_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-gsn'  
-                , 'code', gsn
+                , 'code', TRIM(REGEXP_REPLACE(gsn , '\s+', ' ', 'g'))
             )::TEXT   
         WHEN formulary_drug_cd IS NOT NULL AND formulary_drug_cd != '' THEN
             jsonb_build_object(
