@@ -71,7 +71,7 @@ def test_bundle_patient_all_resources(db_conn):
     split_flag = True  # flag for breaking up bundles to smaller chunks
 
     # Create bundle and post it
-    bundler = Bundler(patient_id)
+    bundler = Bundler(patient_id, db_conn)
     bundler.generate_all_bundles()
     response_list = bundler.post_all_bundles(
         FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
@@ -84,7 +84,7 @@ def test_bundle_patient_all_resources(db_conn):
 
 
 def test_bundle_all_patient_bundles(db_conn):
-    patient_ids = get_n_patient_id(db_conn, 1)
+    patient_ids = get_n_patient_id(db_conn, 5)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
@@ -104,7 +104,7 @@ def test_bundle_all_patient_bundles(db_conn):
 
 def test_bundle_multiple_patient_all_resources(db_conn):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 10)
+    patient_ids = get_n_patient_id(db_conn, 1)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it
@@ -256,8 +256,8 @@ def test_microbio_bundle(db_conn):
     bundler.patient_bundle.request(FHIR_SERVER)
 
     # Generate and post specimen bundle, must do first to avoid referencing issues
-    bundler.generate_spec_bundle()
-    bundler.spec_bundle.request(FHIR_SERVER)
+    bundler.generate_specimen_bundle()
+    bundler.specimen_bundle.request(FHIR_SERVER)
 
     #  Generate and post micro bundle
     bundler.generate_micro_bundle()
@@ -280,6 +280,10 @@ def test_lab_bundle(db_conn):
     # Generate and post patient bundle, must do first to avoid referencing issues
     bundler.generate_patient_bundle()
     bundler.patient_bundle.request(FHIR_SERVER)
+
+    # Generate and post specimen bundle, must do first to avoid referencing issues
+    bundler.generate_specimen_bundle()
+    bundler.specimen_bundle.request(FHIR_SERVER)
 
     #  Generate and post lab bundle
     bundler.generate_lab_bundle()
@@ -317,7 +321,7 @@ def test_med_pat_bundle(db_conn):
 # Only passing a small portion of the meds here (~100)
 def test_med_data_bundle(med_data_bundle_resources):
     # Can pass all meds if slicing is dropped
-    resources = med_data_bundle_resources[0:100]
+    resources = med_data_bundle_resources[0:10000]
     split_flag = True  # Divide up bundles into smaller chunks
     bundle = Bundle()
     bundle.add_entry(resources)
@@ -342,6 +346,12 @@ def test_icu_base_bundle(db_conn):
     bundler.generate_patient_bundle()
     bundler.patient_bundle.request(FHIR_SERVER)
 
+    # Generate encounter icu bundle to avoid referencing issues
+    bundler.generate_icu_enc_bundle()
+    response = bundler.icu_enc_bundle.request(
+        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
+    )
+
     #  Generate and post icu base bundle
     bundler.generate_icu_base_bundle()
     response = bundler.icu_base_bundle.request(
@@ -352,7 +362,7 @@ def test_icu_base_bundle(db_conn):
 
 
 def test_icu_enc_bundle_n_patients(db_conn):
-    patient_ids = get_n_patient_id(db_conn, 2)
+    patient_ids = get_n_patient_id(db_conn, 1)
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
     # Create bundle and post it

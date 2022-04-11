@@ -66,6 +66,16 @@ def test_bad_patient_gender(validator):
     assert result == False
 
 
+def test_bad_resource_type(validator):
+    pat_resource = {
+        'resourceType': 'Porcupine',
+        'id': '222222',
+    }
+    result = validate_resource(validator, pat_resource)
+    logging.error(result)
+    assert result == True
+
+
 def test_organization_validation(validator, organization_resource):
     result = validate_resource(validator, organization_resource)
     assert result

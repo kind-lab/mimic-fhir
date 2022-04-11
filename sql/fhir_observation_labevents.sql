@@ -19,19 +19,18 @@ WITH fhir_observation_labevents AS (
         , lab.comments AS lab_COMMENTS
         , lab.ref_range_lower AS lab_REF_RANGE_LOWER
         , lab.ref_range_upper AS lab_REF_RANGE_UPPER
-        , lab.valueuom AS lab_VALUEUOM
+        , CASE WHEN lab.valueuom = ' ' THEN NULL ELSE lab.valueuom END AS lab_VALUEUOM
         , lab.value AS lab_VALUE
         , lab.priority AS lab_PRIORITY
   
         -- Parse values with a comparator and pulling out numeric value
         , CASE 
+            WHEN valuenum IS NOT NULL THEN valuenum
             WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
             WHEN value LIKE '%<%' THEN CAST(split_part(lab.value,'<',2) AS NUMERIC)
             WHEN value LIKE '%>=%' THEN CAST(split_part(lab.value,'>=',2) AS NUMERIC)
-            WHEN value LIKE '%>%' THEN CAST(split_part(lab.value,'>',2) AS NUMERIC)
-            WHEN value LIKE '%GREATER THAN%' THEN CAST(split_part(lab.value,'GREATER THAN',2) AS NUMERIC)
-            WHEN value LIKE '%LESS THAN%' THEN CAST(split_part(lab.value,'LESS THAN',2) AS NUMERIC)
-            ELSE lab.valuenum
+            WHEN value LIKE '%>%' THEN CAST(split_part(lab.value,'>',2) AS NUMERIC)     
+            ELSE NULL
         END as lab_VALUENUM
         , CASE 
             WHEN value LIKE '%<=%' THEN '<='
@@ -114,7 +113,7 @@ SELECT
             CASE WHEN lab_VALUENUM IS NOT NULL THEN
                 jsonb_build_object(
                     'value', lab_VALUENUM
-                    , 'unit', lab_VALUEUOM
+                    ,  'unit', lab_VALUEUOM
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
                     , 'code', lab_VALUEUOM 
                     , 'comparator', VALUE_COMPARATOR
@@ -167,4 +166,4 @@ SELECT
             ELSE NULL END
     )) as fhir 
 FROM
-    fhir_observation_labevents
+    fhir_observation_labevents;
