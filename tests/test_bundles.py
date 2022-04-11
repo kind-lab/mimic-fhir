@@ -316,7 +316,7 @@ def test_icu_enc_bundle_n_patients(db_conn):
 
 
 def test_med_bundle_n_patients(db_conn):
-    patient_ids = get_n_patient_id(db_conn, 20)
+    patient_ids = get_n_patient_id(db_conn, 1)
     split_flag = False  # Do not subdivide, may cause issues in medications
 
     # Create bundle and post it

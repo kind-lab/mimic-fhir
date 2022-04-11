@@ -96,6 +96,13 @@ def test_medadmin_icu_validation(validator, medadmin_icu_resource):
     assert result
 
 
+def test_medication_dispense_validation(
+    validator, medication_dispense_resource
+):
+    result = validate_resource(validator, medication_dispense_resource)
+    assert result
+
+
 def test_medication_request_validation(validator, medication_request_resource):
     result = validate_resource(validator, medication_request_resource)
     assert result

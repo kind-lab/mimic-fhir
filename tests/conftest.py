@@ -178,6 +178,12 @@ def medication_request_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'medication_request')
 
 
+# Return a single medication dispense resource
+@pytest.fixture(scope="session")
+def medication_dispense_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'medication_dispense')
+
+
 # Return a single medication resource
 @pytest.fixture(scope="session")
 def medication_resource(validator, db_conn):

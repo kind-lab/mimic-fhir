@@ -107,7 +107,7 @@ SELECT
             , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
             , 'type', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
-                    'value', 'phid'
+                    'code', 'phid'
                     , 'display', 'Pharmacy identifier'
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
                 ))
@@ -150,13 +150,7 @@ SELECT
                 )
                 , 'repeat', CASE WHEN ph_DURATION IS NOT NULL THEN jsonb_build_object(
                     'duration', ph_DURATION
-                    , 'durationUnit', jsonb_build_object(
-                        'coding', jsonb_build_array(jsonb_build_object(
-                            'code', medu_FHIR_UNIT
-                            , 'system', 'http://unitsofmeasure.org'
-                        ))
-                    )
-                        
+                    , 'durationUnit', medu_FHIR_UNIT                                                
                 ) ELSE NULL END
                 
             )
@@ -266,7 +260,7 @@ SELECT
             , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
             , 'type', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
-                    'value', 'poe'
+                    'code', 'poe'
                     , 'display', 'Provider Order Entry'
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
                 ))
