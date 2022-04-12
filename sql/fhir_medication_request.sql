@@ -55,7 +55,7 @@ WITH prescript_request AS (
         
         -- dosage information from prescriptions
         , CASE WHEN pr.dose_val_rx ~ '^[0-9\.]+$' THEN 
-             pr.dose_val_rx
+             CAST(pr.dose_val_rx AS DECIMAL)
         ELSE NULL END AS pr_DOSE_VAL_RX 
         , TRIM(pr.dose_unit_rx) AS pr_DOSE_UNIT_RX
         , pr.form_val_disp AS pr_FORM_VAL_DISP
