@@ -176,28 +176,36 @@ def test_export_medication_request():
 def test_export_medication_dispense():
     resource_type = 'MedicationDispense'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
-    result = io.export_resource(resource_type, limit)
+    result = io.export_resource(
+        resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
+    )
     assert result
 
 
 def test_export_medication_administration():
     resource_type = 'MedicationAdministration'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
-    result = io.export_resource(resource_type, limit)
+    result = io.export_resource(
+        resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
+    )
     assert result
 
 
 def test_export_medication_administration_icu():
     resource_type = 'MedicationAdministrationICU'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
-    result = io.export_resource(resource_type, limit)
+    result = io.export_resource(
+        resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
+    )
     assert result
 
 
 def test_export_medication():
     resource_type = 'Medication'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
-    result = io.export_resource(resource_type, limit)
+    result = io.export_resource(
+        resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
+    )
     assert result
 
 
@@ -230,6 +238,15 @@ def test_export_procedure_icu():
 
 def test_export_specimen():
     resource_type = 'Specimen'
+    limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
+    result = io.export_resource(
+        resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
+    )
+    assert result
+
+
+def test_export_specimen_lab():
+    resource_type = 'SpecimenLab'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
     result = io.export_resource(
         resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
