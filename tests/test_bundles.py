@@ -316,13 +316,18 @@ def test_icu_enc_bundle_n_patients(db_conn):
 
 
 def test_med_bundle_n_patients(db_conn):
-    patient_ids = get_n_patient_id(db_conn, 1)
+    patient_ids = get_n_patient_id(db_conn, 20)
     split_flag = False  # Do not subdivide, may cause issues in medications
 
     # Create bundle and post it
     result = True
     for patient_id in patient_ids:
         bundler = Bundler(patient_id, db_conn)
+
+        # Generate and post patient bundle, must do first to avoid referencing issues
+        bundler.generate_patient_bundle()
+        bundler.patient_bundle.request(FHIR_SERVER)
+
         bundler.generate_med_bundle()
         response = bundler.med_bundle.request(
             FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH

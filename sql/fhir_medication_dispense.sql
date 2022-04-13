@@ -25,7 +25,9 @@ WITH distinct_prescriptions AS (
         , ph.route AS ph_ROUTE
         , ph.frequency AS ph_FREQUENCY
         , ph.disp_sched AS ph_DISP_SCHED
-        , ph.one_hr_max AS ph_ONE_HR_MAX
+        , CASE WHEN ph.one_hr_max ~ '^[0-9\.]+$' THEN 
+            CAST(ph.one_hr_max AS DECIMAL) 
+        ELSE NULL END AS ph_ONE_HR_MAX
         , ph.doses_per_24_hrs AS ph_DOSES_PER_24_HRS
         , ph.duration AS ph_DURATION
         , medu.fhir_unit AS medu_FHIR_UNIT

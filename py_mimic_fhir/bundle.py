@@ -210,7 +210,7 @@ class Bundler():
     def generate_icu_medadmin_bundle(self):
         logger.info('Generating medication administration ICU bundle')
         table_list = ['medication_administration_icu']
-        self.fill_bundle(self.lab_bundle, table_list)
+        self.fill_bundle(self.icu_medadmin_bundle, table_list)
 
     # Add all lab resources associated with the Patient to the bundle
     def generate_lab_bundle(self):
@@ -273,12 +273,12 @@ class Bundler():
 
         logger.info('Post micro bundle')
         response_list.append(
-            self.micro_bundle.request(fhir_server, err_path=err_path)
+            self.micro_bundle.request(fhir_server, False, err_path)
         )
 
         logger.info('Post med bundle')
         response_list.append(
-            self.med_bundle.request(fhir_server, split_flag, err_path)
+            self.med_bundle.request(fhir_server, False, err_path)
         )
 
         logger.info('Post lab bundle')

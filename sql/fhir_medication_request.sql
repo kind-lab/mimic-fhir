@@ -48,7 +48,9 @@ WITH prescript_request AS (
   		-- without a pharmacy entry will just have NULL values (could Coalesce for clarity)
   		, TRIM(REGEXP_REPLACE(ph.frequency, '\s+', ' ', 'g')) AS ph_FREQUENCY -- trim FOR whitespace rules IN FHIR
   		--, ph.disp_sched AS ph_DISP_SCHED -- CONVERT TO HH:MM:SS format AND split BY comma
-  		, ph.one_hr_max AS ph_ONE_HR_MAX
+  		, CASE WHEN ph.one_hr_max ~ '^[0-9\.]+$'  THEN 
+  		    CAST(ph.one_hr_max AS DECIMAL) 
+  		ELSE NULL END AS ph_ONE_HR_MAX
   		, ph.duration AS ph_DURATION 
         , medu.fhir_unit AS medu_FHIR_UNIT
         , CAST(ph.entertime AS TIMESTAMPTZ) AS ph_ENTERTIME
@@ -203,7 +205,7 @@ WITH prescriptions AS (
 ), fhir_poe_medication_request AS (
     SELECT
         poe.poe_id AS poe_POE_ID
-        , poe.ordertime AS poe_ORDERTIME 
+        , CAST(poe.ordertime AS TIMESTAMPTZ) AS poe_ORDERTIME 
          , COALESCE(stat.fhir_status, 'unknown') AS stat_FHIR_STATUS
     
         -- reference uuids

@@ -37,13 +37,16 @@ begin
         || CASE WHEN ((ndc IS NOT NULL AND ndc != '0' AND ndc != '') 
                         OR (gsn IS NOT NULL AND gsn != '') 
                         OR (formulary_drug_cd IS NOT NULL AND formulary_drug_cd != ''))
-                        AND drug IS NOT NULL
+                        AND drug != ''
                 THEN ',' ELSE '' END
         -- drug name is never NULL, so just set the name here
-        || jsonb_build_object(
+        || CASE WHEN drug != ''  
+            THEN jsonb_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
                 , 'value', drug
-            )::text
+            )::TEXT
+           ELSE ''
+        END
     
         || ']' AS output_value      
         
