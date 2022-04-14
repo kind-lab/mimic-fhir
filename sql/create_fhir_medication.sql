@@ -25,3 +25,7 @@
 
 \echo Medication ICU
 \i medication/medication_icu.sql
+
+-- medication mix generation
+\echo Medication mix
+\i medication/medication_mix.sql

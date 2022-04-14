@@ -29,8 +29,14 @@ WITH prescript_request AS (
         , MAX(form_val_disp) AS form_val_disp    
         , MAX(form_unit_disp) AS form_unit_disp
         , MAX(prod_strength) AS prod_strength
-        , STRING_AGG(
-            CONCAT(pr.ndc,'--', pr.gsn,'--',pr.formulary_drug_cd, '--', pr.drug)
+        , STRING_AGG( 
+            drug
+            || CASE WHEN (ndc IS NOT NULL) AND (ndc !='0') AND (ndc != '') 
+                    THEN '--' || ndc ELSE '' END
+            || CASE WHEN (gsn IS NOT NULL) AND (gsn != '') 
+                    THEN '--' || gsn ELSE '' END
+            || CASE WHEN (formulary_drug_cd IS NOT NULL) AND (formulary_drug_cd != '') 
+                    THEN '--' || formulary_drug_cd ELSE '' END      
             , '_' ORDER BY pr.drug_type DESC, pr.drug ASC
         ) AS drug_code  
     FROM 

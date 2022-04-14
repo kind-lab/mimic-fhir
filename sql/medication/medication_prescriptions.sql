@@ -16,7 +16,15 @@ WITH prescriptions_ndc AS (
         , CASE WHEN pr.gsn = '' THEN NULL ELSE pr.gsn END  AS pr_GSN
         , pr.drug AS pr_DRUG
         , pr.formulary_drug_cd AS pr_FORMULARY_DRUG_CD        
-        , uuid_generate_v5(ns_medication.uuid, CONCAT(pr.ndc,'--', pr.gsn,'--',pr.formulary_drug_cd, '--', pr.drug)) AS med_UUID        
+        , uuid_generate_v5(ns_medication.uuid,   
+            drug
+            || CASE WHEN (ndc IS NOT NULL) AND (ndc !='0') AND (ndc != '') 
+                    THEN '--' || ndc ELSE '' END
+            || CASE WHEN (gsn IS NOT NULL) AND (gsn != '') 
+                    THEN '--' || gsn ELSE '' END
+            || CASE WHEN (formulary_drug_cd IS NOT NULL) AND (formulary_drug_cd != '') 
+                    THEN '--' || formulary_drug_cd ELSE '' END    
+        ) AS med_UUID        
     FROM 
         mimic_hosp.prescriptions pr
         LEFT JOIN fhir_etl.uuid_namespace ns_medication

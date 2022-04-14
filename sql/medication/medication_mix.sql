@@ -1,9 +1,24 @@
---------------------------------------------------------------
---------------------- medication-mix -------------------------
---------------------------------------------------------------
+-- Purpose: Generate a FHIR Medication mix from prescriptions table
+-- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+
+DROP TABLE IF EXISTS mimic_fhir.medication_mix;
+CREATE TABLE mimic_fhir.medication_mix(
+    id          uuid PRIMARY KEY,
+    fhir        jsonb NOT NULL 
+);
+
+
 WITH medication_identifier AS (
     SELECT 
-        CONCAT(pr.ndc,'--', pr.gsn,'--',pr.formulary_drug_cd, '--', pr.drug) AS med_id
+       (    
+            drug
+            || CASE WHEN (ndc IS NOT NULL) AND (ndc !='0') AND (ndc != '') 
+                    THEN '--' || ndc ELSE '' END
+            || CASE WHEN (gsn IS NOT NULL) AND (gsn != '') 
+                    THEN '--' || gsn ELSE '' END
+            || CASE WHEN (formulary_drug_cd IS NOT NULL) AND (formulary_drug_cd != '') 
+                    THEN '--' || formulary_drug_cd ELSE '' END    
+        ) AS med_id
         , pharmacy_id
         , drug
         , drug_type
@@ -16,12 +31,9 @@ WITH medication_identifier AS (
         jsonb_agg(jsonb_build_object(
             'itemReference', 
                 jsonb_build_object('reference', 'Medication/' || 
-                    uuid_generate_v5(
-                        ns_medication.uuid
-                        , TRIM(REGEXP_REPLACE(mid.med_id, '\s+', ' ', 'g'))
-                    )                    
+                    uuid_generate_v5(ns_medication.uuid, mid.med_id)                    
                 )
-        ) ORDER BY pr.drug_type DESC, mid.med_id ASC) as pr_INGREDIENTS
+        ) ORDER BY pr.drug_type DESC, pr.drug  ASC) as pr_INGREDIENTS
     
     
     
@@ -29,8 +41,8 @@ WITH medication_identifier AS (
         -- Multiple additives are allowed, so these are ordered alphabetically 
         , STRING_AGG(mid.med_id, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) AS medmix_id   
         
-        -- Use formulary_drug_cd here to make medmix code more readable
-        , STRING_AGG(pr.formulary_drug_cd , '_' ORDER BY pr.drug_type DESC, pr.formulary_drug_cd  ASC) AS medmix_code  
+        -- Use drug name here to make medmix code more readable
+       , STRING_AGG(pr.drug , '_' ORDER BY pr.drug_type DESC, pr.drug  ASC) AS medmix_code  
     FROM 
         mimic_hosp.prescriptions pr
         LEFT JOIN medication_identifier mid
@@ -53,7 +65,7 @@ WITH medication_identifier AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_medication 
             ON ns_medication.name = 'MedicationPrescriptions'
 )
-INSERT INTO mimic_fhir.medication
+INSERT INTO mimic_fhir.medication_mix
 SELECT 
     medmix_UUID AS id
     , jsonb_strip_nulls(jsonb_build_object(
