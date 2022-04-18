@@ -12,6 +12,7 @@ WITH fhir_specimen AS (
     SELECT 
         CAST(mi.micro_specimen_id AS TEXT)  AS mi_MICRO_SPECIMEN_ID
         , CAST(MAX(mi.charttime) AS TIMESTAMPTZ) AS mi_CHARTTIME
+        , MAX(spec_type_desc) AS mi_SPEC_TYPE_DESC
 
         , uuid_generate_v5(ns_specimen.uuid, CAST(mi.micro_specimen_id AS TEXT)) AS uuid_SPECIMEN
         , uuid_generate_v5(ns_patient.uuid, CAST(MAX(mi.subject_id) AS TEXT)) as uuid_SUBJECT_ID 
@@ -36,14 +37,25 @@ SELECT
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Specimen'
         , 'id', uuid_SPECIMEN 
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen'
+            )
+        ) 
         , 'identifier',   jsonb_build_array(jsonb_build_object(
             'value', mi_MICRO_SPECIMEN_ID
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/lab-specimen'
-        ))      
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/specimen-micro'
+        ))          
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'collection', jsonb_build_object(
             'collectedDateTime', mi_CHARTTIME
         ) 
+        , 'type', jsonb_build_object(
+            'coding', jsonb_build_array(jsonb_build_object(
+                'code', mi_SPEC_TYPE_DESC
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/spec-type-desc'
+            ))
+        )
     )) AS fhir
 FROM
     fhir_specimen;

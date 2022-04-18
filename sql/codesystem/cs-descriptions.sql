@@ -33,5 +33,6 @@ VALUES
     , ('procedure_category', 'The procedure category codes for MIMIC')
     , ('procedure_icd9', 'The procedure ICD9 codes for MIMIC')
     , ('procedure_icd10', 'The procedure ICD10 codes for MIMIC')
+    , ('spec_type_desc', 'The specimen type codes for microbiologyevents')
     , ('units', 'The units used throughout MIMIC')
 

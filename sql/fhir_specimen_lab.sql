@@ -39,12 +39,12 @@ SELECT
         , 'id', uuid_SPECIMEN 
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen-lab'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen'
             )
         ) 
         , 'identifier',   jsonb_build_array(jsonb_build_object(
             'value', lab_SPECIMEN_ID
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/lab-specimen'
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/specimen-lab'
         ))      
         , 'type', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
