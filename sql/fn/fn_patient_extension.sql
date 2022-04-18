@@ -1,14 +1,14 @@
 CREATE OR REPLACE FUNCTION fn_patient_extension(race VARCHAR(30), ethnicity VARCHAR(50), birthsex VARCHAR(10))
-  returns jsonb
-  language 'plpgsql'
-as
+  RETURNS jsonb
+  LANGUAGE 'plpgsql'
+AS
 $$
-declare
+DECLARE
 	fhir_extension jsonb;
-begin
-	SELECT  
-    	CASE WHEN (race is not null) or (ethnicity is not null) or (birthsex is not null) THEN '[' END                                                                   		
-        || CASE WHEN race is not NULL 
+BEGIN
+	SELECT
+    	CASE WHEN (race IS NOT NULL) OR (ethnicity IS NOT NULL) OR (birthsex IS NOT NULL) THEN '[' END
+        || CASE WHEN race IS NOT NULL
         	THEN jsonb_build_object(
 			  'extension', jsonb_build_array(
                 	jsonb_build_object(
@@ -22,14 +22,13 @@ begin
                     jsonb_build_object(
                     	'url', 'text',
                       	'valueString', map_race.fhir_race_omb_display
-                      	
-                    )                    
-			)	
-			, 'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race' )::text
-            ELSE '' 
+                    )
+            )
+			, 'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race' )::TEXT
+            ELSE ''
          END 
-         || CASE WHEN race is not null and ethnicity is not null THEN ',' ELSE '' END
-         || CASE WHEN ethnicity is not NULL 
+         || CASE WHEN race IS NOT NULL and ethnicity IS NOT NULL THEN ',' ELSE '' END
+         || CASE WHEN ethnicity IS NOT NULL
         	THEN jsonb_build_object(
 			  'extension', jsonb_build_array(
                 	jsonb_build_object(
@@ -45,29 +44,24 @@ begin
                       	 'valueString', map_eth.fhir_ethnicity_display
                     )
 			)	
-			, 'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity' )::text 
+			, 'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity' )::TEXT
             ELSE ''
          END  
-         || CASE WHEN (race is not null or ethnicity is not null) and birthsex is not null THEN ',' ELSE '' END
-         || CASE WHEN birthsex is not NULL 
+         || CASE WHEN (race IS NOT NULL OR ethnicity IS NOT NULL) AND birthsex IS NOT NULL THEN ',' ELSE '' END
+         || CASE WHEN birthsex IS NOT NULL
         	THEN jsonb_build_object(
-			  'valueCode', birthsex,	
-			  'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex')::text 
+			  'valueCode', birthsex,
+			  'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex')::TEXT
             ELSE ''
-         END   
-         || CASE WHEN (race is not null) or (ethnicity is not null) or (birthsex is not null) THEN ']' END  as output_value      
-        
-		
+         END
+         || CASE WHEN (race IS NOT NULL) OR (ethnicity IS NOT NULL) OR (birthsex IS NOT NULL) THEN ']' END  AS output_value
     INTO fhir_extension
     FROM 
         fhir_etl.map_ethnicity map_eth
         LEFT JOIN fhir_etl.map_race_omb map_race
-            ON map_race.mimic_race = race        
-    WHERE map_eth.mimic_ethnicity = ethnicity
+            ON map_race.mimic_race = race
+    WHERE map_eth.mimic_ethnicity = ethnicity;      
     
-    ;   
-    
-    
-    return fhir_extension;
-end;
+    RETURN fhir_extension;
+END;
 $$;

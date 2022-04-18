@@ -43,11 +43,3 @@ VALUES
     ('UNABLE TO OBTAIN', 'unknown', 'UNK', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'),
     ('UNKNOWN', 'unknown', 'UNK', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'),
     ('OTHER', 'unknown', 'UNK', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor');
-
- 
-
-
-
-
-
-
