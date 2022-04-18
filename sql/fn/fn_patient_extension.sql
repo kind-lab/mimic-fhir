@@ -14,13 +14,14 @@ begin
                 	jsonb_build_object(
                         'url', 'ombCategory',
                         'valueCoding', jsonb_build_object(
-                            'display', race,
-                            'system', 'urn:oid:2.16.840.1.113883.6.238'
+                            'code', map_race.fhir_race_omb_code,
+                            'display', map_race.fhir_race_omb_display,
+                            'system', map_race.fhir_system
                          )
                     ),
                     jsonb_build_object(
                     	'url', 'text',
-                      	'valueString', race 
+                      	'valueString', map_race.fhir_race_omb_display
                       	
                     )                    
 			)	
@@ -34,13 +35,14 @@ begin
                 	jsonb_build_object(
                       'url', 'ombCategory',
                       'valueCoding', jsonb_build_object(
-                          'display', ethnicity,
-                          'system', 'urn:oid:2.16.840.1.113883.6.238'
+                          'code', map_eth.fhir_ethnicity_code,
+                          'display', map_eth.fhir_ethnicity_display,
+                          'system', map_eth.fhir_system
                         )
                     ),
                 	jsonb_build_object(
                     	 'url', 'text',
-                      	 'valueString', ethnicity  
+                      	 'valueString', map_eth.fhir_ethnicity_display
                     )
 			)	
 			, 'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity' )::text 
@@ -56,7 +58,14 @@ begin
          || CASE WHEN (race is not null) or (ethnicity is not null) or (birthsex is not null) THEN ']' END  as output_value      
         
 		
-    INTO fhir_extension;   
+    INTO fhir_extension
+    FROM 
+        fhir_etl.map_ethnicity map_eth
+        LEFT JOIN fhir_etl.map_race_omb map_race
+            ON map_race.mimic_race = race        
+    WHERE map_eth.mimic_ethnicity = ethnicity
+    
+    ;   
     
     
     return fhir_extension;
