@@ -50,12 +50,14 @@ SELECT
         , 'collection', jsonb_build_object(
             'collectedDateTime', mi_CHARTTIME
         ) 
-        , 'type', jsonb_build_object(
-            'coding', jsonb_build_array(jsonb_build_object(
-                'code', mi_SPEC_TYPE_DESC
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/spec-type-desc'
-            ))
-        )
+        , 'type', CASE WHEN mi_SPEC_TYPE_DESC IS NOT NULL AND mi_SPEC_TYPE_DESC != '' THEN
+            jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'code', mi_SPEC_TYPE_DESC
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/spec-type-desc'
+                ))
+            )
+        ELSE NULL END
     )) AS fhir
 FROM
     fhir_specimen;

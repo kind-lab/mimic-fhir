@@ -40,9 +40,9 @@ MIMIC_FHIR_PROFILE_URL = {
     'ProcedureICU':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-icu',
     'Specimen':
-        '',
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen',
     'SpecimenLab':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen-lab'
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen'
 }
 
 MIMIC_FHIR_RESOURCES = {
@@ -86,7 +86,8 @@ MIMIC_CODESYSTEMS = [
     'medadmin_category_icu', 'medication_method', 'medication_route',
     'medication_site', 'microbiology_antibiotic', 'microbiology_interpretation',
     'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'procedure_icd9', 'procedure_icd10', 'units'
+    'procedure_category', 'procedure_icd9', 'procedure_icd10', 'spec_type_desc',
+    'units'
 ]
 
 MIMIC_VALUESETS = [
@@ -97,14 +98,14 @@ MIMIC_VALUESETS = [
     'medication_route', 'medication_site', 'microbiology_antibiotic',
     'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
     'observation_category', 'outputevents_d_items', 'procedure_category',
-    'procedureevents_d_items', 'procedure_icd', 'units'
+    'procedureevents_d_items', 'procedure_icd', 'specimen_type', 'units'
 ]
 
 VALUESETS_CODED = [
     'chartevents_d_items', 'datetimeevents_d_items', 'outputevents_d_items',
     'procedureevents_d_items'
 ]
-VALUESETS_DOUBLE_SYSTEM = ['procedure_icd', 'diagnosis_icd']
+VALUESETS_DOUBLE_SYSTEM = ['procedure_icd', 'diagnosis_icd', 'specimen_type']
 
 # ValueSets that are full encapulsation of the CodeSystem
 VALUESETS_CANONICAL = [
