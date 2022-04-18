@@ -256,8 +256,8 @@ def test_microbio_bundle(db_conn):
     bundler.patient_bundle.request(FHIR_SERVER)
 
     # Generate and post specimen bundle, must do first to avoid referencing issues
-    bundler.generate_spec_bundle()
-    bundler.spec_bundle.request(FHIR_SERVER)
+    bundler.generate_specimen_bundle()
+    bundler.specimen_bundle.request(FHIR_SERVER)
 
     #  Generate and post micro bundle
     bundler.generate_micro_bundle()
@@ -280,6 +280,10 @@ def test_lab_bundle(db_conn):
     # Generate and post patient bundle, must do first to avoid referencing issues
     bundler.generate_patient_bundle()
     bundler.patient_bundle.request(FHIR_SERVER)
+
+    # Generate and post specimen bundle, must do first to avoid referencing issues
+    bundler.generate_specimen_bundle()
+    bundler.specimen_bundle.request(FHIR_SERVER)
 
     #  Generate and post lab bundle
     bundler.generate_lab_bundle()
