@@ -1,17 +1,41 @@
+SET client_min_messages TO WARNING; -- ignore notices, lots of small ones for drop tables
+DROP SCHEMA IF EXISTS mimic_fhir CASCADE;
+DROP SCHEMA IF EXISTS fhir_etl CASCADE;
+
 CREATE SCHEMA IF NOT EXISTS mimic_fhir;
 CREATE SCHEMA IF NOT EXISTS fhir_etl;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- prepare tables necessary for ETL
+\echo =========================== fhir_etl tables ====================================
 \echo subjects
 \i fhir_etl/subjects.sql
 
 \echo uuid_namespace
 \i fhir_etl/uuid_namespace.sql
 
+\echo fhir_etl.map_gender
+\i fhir_etl/map_gender.sql
+
+\echo fhir_etl.map_marital_status
+\i fhir_etl/map_marital_status.sql
+
+\echo fhir_etl.map_medreq_status
+\i fhir_etl/map_medreq_status.sql
+
+\echo fhir_etl.map_status_procedure_icu
+\i fhir_etl/map_status_procedure_icu.sql
+
+\echo map ethnicity
+\i fhir_etl/map_ethnicity.sql
+
+\echo map race
+\i fhir_etl/map_race_omb.sql
+
 -- prepare MIMIC-IV tables
 
 -- institutional resources
+\echo =========================== mimic_fhir tables ====================================
 \echo fhir_organization
 \i fhir_organization.sql
 
@@ -40,6 +64,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 \echo fhir_specimen
 \i fhir_specimen.sql
+
+\echo fhir_specimen_lab
+\i fhir_specimen_lab.sql
 
 -- data resources: medications
 \echo fhir_medadmin_icu
@@ -81,4 +108,4 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- fhir terminology tables
 \echo create_fhir_terminology
-\i fhir_terminology.sql
+\i create_fhir_terminology.sql

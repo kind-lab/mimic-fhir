@@ -1,10 +1,10 @@
 -- Generate all terminology tables
 -- These tables will be used to generate CodeSystems/ValueSets in FHIR
-
+DROP SCHEMA IF EXISTS fhir_trm CASCADE;
 CREATE SCHEMA IF NOT EXISTS fhir_trm;
 
 -- Encounter CodeSystems
-\echo ==== CodeSystems ====
+\echo =========================== fhir_trm CodeSystems ====================================
 \echo Admission Class
 \i codesystem/cs-admission-class.sql
 
@@ -100,7 +100,7 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 
 
 -- ValueSets
-\echo ==== ValueSets ====
+\echo =========================== fhir_trm ValueSets ====================================
 \echo Chartevents D Items
 \i codesystem/vs-chartevents-d-items.sql
 

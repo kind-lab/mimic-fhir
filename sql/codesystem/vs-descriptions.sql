@@ -35,4 +35,5 @@ VALUES
     , ('procedure_category', 'The procedure category codes for MIMIC')
     , ('procedure_icd', 'The procedure ICD9 and ICD10 codes for MIMIC')
     , ('procedureevents_d_items', 'The procedure item codes used in the ICU for MIMIC')
+    , ('specimen_type', 'The specimen type codes for both lab and micro specimen for MIMIC')
     , ('units', 'The units used throughout MIMIC')

@@ -8,4 +8,5 @@ CREATE TABLE fhir_trm.cs_lab_priority(
 
 INSERT INTO fhir_trm.cs_lab_priority 
 SELECT DISTINCT priority 
-FROM mimic_hosp.labevents; 
+FROM mimic_hosp.labevents
+WHERE priority IS NOT NULL; 

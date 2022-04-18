@@ -5,12 +5,13 @@ DROP TABLE IF EXISTS mimic_fhir.procedure_icu;
 CREATE TABLE mimic_fhir.procedure_icu(
     id          uuid PRIMARY KEY,
     patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
+    fhir        jsonb NOT NULL
 );
 
 WITH fhir_procedure_icu AS (
     SELECT
-        pe.ordercategoryname AS pe_ORDERCATEGORYNAME
+        pe.stay_id || '-' || pe.orderid || '-' || pe.itemid AS pe_IDENTIFIER
+        , pe.ordercategoryname AS pe_ORDERCATEGORYNAME
         , CAST(pe.itemid AS TEXT) AS pe_ITEMID
         , CAST(pe.starttime AS TIMESTAMPTZ) AS pe_STARTTIME
         , CAST(pe.endtime AS TIMESTAMPTZ) AS pe_ENDTIME
@@ -25,7 +26,7 @@ WITH fhir_procedure_icu AS (
     FROM
         mimic_icu.procedureevents pe
         INNER JOIN fhir_etl.subjects sub
-            ON pe.subject_id = sub.subject_id 
+            ON pe.subject_id = sub.subject_id
         LEFT JOIN mimic_icu.d_items di
             ON pe.itemid = di.itemid
         LEFT JOIN fhir_etl.map_status_procedure_icu map_status
@@ -41,15 +42,19 @@ WITH fhir_procedure_icu AS (
 INSERT INTO mimic_fhir.procedure_icu
 SELECT 
     uuid_PROCEDUREEVENT AS id
-    , uuid_SUBJECT_ID AS patient_id 
+    , uuid_SUBJECT_ID AS patient_id
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Procedure'
-        , 'id', uuid_PROCEDUREEVENT	 
+        , 'id', uuid_PROCEDUREEVENT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-icu'
-            )  
-        ) 
+            )
+        )
+        , 'identifier',  jsonb_build_array(jsonb_build_object(
+            'value', pe_IDENTIFIER
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/procedure-icu'
+        ))
         , 'status', fhir_STATUS
         , 'category', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
@@ -57,8 +62,7 @@ SELECT
                 , 'code', pe_ORDERCATEGORYNAME
             ))
         )
-          
-        -- Procedure item codes   
+        -- Procedure item codes
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
@@ -66,23 +70,22 @@ SELECT
                 , 'display', di_LABEL
             ))
         )
-          
         -- Body location where procedure was applied  
-        , 'bodySite', 
+        , 'bodySite',
             CASE WHEN pe_LOCATION IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/bodysite'  
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/bodysite'
                         , 'code', pe_LOCATION
                     ))
                 ))
             ELSE NULL END
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-        , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
+        , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)
         , 'performedPeriod', jsonb_build_object(
             'start', pe_STARTTIME
             , 'end', pe_ENDTIME
         )
-    )) AS fhir 
+    )) AS fhir
 FROM
-    fhir_procedure_icu
+    fhir_procedure_icu;
