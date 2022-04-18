@@ -8,4 +8,5 @@ CREATE TABLE fhir_trm.cs_spec_type_desc(
 
 INSERT INTO fhir_trm.cs_spec_type_desc 
 SELECT DISTINCT spec_type_desc 
-FROM mimic_hosp.microbiologyevents;
+FROM mimic_hosp.microbiologyevents
+WHERE spec_type_desc != '';

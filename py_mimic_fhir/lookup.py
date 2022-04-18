@@ -82,12 +82,12 @@ MIMIC_FHIR_PROFILE_NAMES = [
 MIMIC_CODESYSTEMS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
     'bodysite', 'd_items', 'd_labitems', 'diagnosis_icd9',
-    'discharge_disposition', 'identifier_type', 'lab_flags', 'lab_priority',
-    'medadmin_category_icu', 'medication_method', 'medication_route',
-    'medication_site', 'microbiology_antibiotic', 'microbiology_interpretation',
-    'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'procedure_icd9', 'procedure_icd10', 'spec_type_desc',
-    'units'
+    'discharge_disposition', 'identifier_type', 'lab_flags', 'lab_fluid',
+    'lab_priority', 'medadmin_category_icu', 'medication_method',
+    'medication_route', 'medication_site', 'microbiology_antibiotic',
+    'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
+    'observation_category', 'procedure_category', 'procedure_icd9',
+    'procedure_icd10', 'spec_type_desc', 'units'
 ]
 
 MIMIC_VALUESETS = [
