@@ -19,19 +19,20 @@ WITH fhir_observation_labevents AS (
         , lab.comments AS lab_COMMENTS
         , lab.ref_range_lower AS lab_REF_RANGE_LOWER
         , lab.ref_range_upper AS lab_REF_RANGE_UPPER
-        , lab.valueuom AS lab_VALUEUOM
+        , CASE WHEN lab.valueuom != ' ' THEN
+            lab.valueuom 
+        ELSE NULL END AS lab_VALUEUOM
         , lab.value AS lab_VALUE
         , lab.priority AS lab_PRIORITY
   
         -- Parse values with a comparator and pulling out numeric value
         , CASE 
+            WHEN lab.valuenum IS NOT NULL THEN lab.valuenum
             WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
             WHEN value LIKE '%<%' THEN CAST(split_part(lab.value,'<',2) AS NUMERIC)
             WHEN value LIKE '%>=%' THEN CAST(split_part(lab.value,'>=',2) AS NUMERIC)
             WHEN value LIKE '%>%' THEN CAST(split_part(lab.value,'>',2) AS NUMERIC)
-            WHEN value LIKE '%GREATER THAN%' THEN CAST(split_part(lab.value,'GREATER THAN',2) AS NUMERIC)
-            WHEN value LIKE '%LESS THAN%' THEN CAST(split_part(lab.value,'LESS THAN',2) AS NUMERIC)
-            ELSE lab.valuenum
+            ELSE NULL
         END as lab_VALUENUM
         , CASE 
             WHEN value LIKE '%<=%' THEN '<='
@@ -61,7 +62,7 @@ WITH fhir_observation_labevents AS (
         INNER JOIN fhir_etl.subjects sub
             ON lab.subject_id =sub.subject_id 
         LEFT JOIN mimic_hosp.d_labitems dlab
-            ON lab.itemid = dlab.itemid                   	   		
+            ON lab.itemid = dlab.itemid                             
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -86,7 +87,7 @@ SELECT
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', lab_LABEVENT_ID
             , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labevents'
-        ))		 
+        ))       
         , 'status', lab_STATUS
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
@@ -132,7 +133,7 @@ SELECT
                     ))
                 ))
             ELSE NULL END
-      	    
+            
         -- Add clinical notes    
         , 'note', 
             CASE WHEN lab_COMMENTS IS NOT NULL THEN
@@ -142,20 +143,24 @@ SELECT
             ELSE NULL END
         , 'specimen', jsonb_build_object('reference', 'Specimen/' || uuid_SPECIMEN_ID) 
         , 'referenceRange', 
-            CASE WHEN lab_REF_RANGE_LOWER IS NOT NULL THEN	
+            CASE WHEN (lab_REF_RANGE_LOWER IS NOT NULL) OR (lab_REF_RANGE_UPPER IS NOT NULL) THEN   
                 jsonb_build_array(jsonb_build_object(
-                    'low', jsonb_build_object(
-                        'value', lab_REF_RANGE_LOWER
-                        , 'unit', lab_VALUEUOM
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
-                        , 'code', lab_VALUEUOM
-                    )
-                    , 'high', jsonb_build_object(
-                        'value', lab_REF_RANGE_UPPER
-                        , 'unit', lab_VALUEUOM
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
-                        , 'code', lab_VALUEUOM
-                    )
+                    'low', CASE WHEN lab_REF_RANGE_LOWER IS NOT NULL THEN 
+                        jsonb_strip_nulls(jsonb_build_object(
+                            'value', lab_REF_RANGE_LOWER
+                            , 'unit', lab_VALUEUOM
+                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                            , 'code', lab_VALUEUOM
+                        ))
+                    ELSE NULL END
+                    , 'high', CASE WHEN lab_REF_RANGE_UPPER IS NOT NULL THEN 
+                        jsonb_strip_nulls(jsonb_build_object(
+                            'value', lab_REF_RANGE_UPPER
+                            , 'unit', lab_VALUEUOM
+                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                            , 'code', lab_VALUEUOM
+                        ))
+                    ELSE NULL END
                 ))
             ELSE NULL END
         , 'extension', 
@@ -167,4 +172,4 @@ SELECT
             ELSE NULL END
     )) as fhir 
 FROM
-    fhir_observation_labevents
+    fhir_observation_labevents;
