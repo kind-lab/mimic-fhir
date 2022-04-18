@@ -10,7 +10,8 @@ CREATE TABLE mimic_fhir.observation_chartevents(
 
 WITH fhir_observation_ce as (
     SELECT  		
-        CAST(ce.itemid AS TEXT) AS ce_ITEMID
+        ce.stay_id || '-' || ce.charttime || '-' || ce.itemid || '-' ||ce.value AS ce_IDENTIFIER
+        , CAST(ce.itemid AS TEXT) AS ce_ITEMID
         , CAST(ce.charttime AS TIMESTAMPTZ) AS ce_CHARTTIME
         , CAST(ce.storetime AS TIMESTAMPTZ) AS ce_STORETIME   		
         , ce.valueuom AS ce_VALUEUOM
@@ -51,6 +52,10 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevents'
             )
         ) 
+        , 'identifier',  jsonb_build_array(jsonb_build_object(
+            'value', ce_IDENTIFIER
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-chartevents'
+        ))  
         , 'status', 'final' -- All observations considered final
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
