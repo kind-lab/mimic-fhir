@@ -325,6 +325,14 @@ def get_resource_by_id(db_conn, profile, profile_id):
     return resource.fhir[0]
 
 
+def get_n_patient_id(db_conn, n_patient):
+    q_resource = f"SELECT * FROM mimic_fhir.patient LIMIT {n_patient}"
+    resource = pd.read_sql_query(q_resource, db_conn)
+    patient_ids = [fhir['id'] for fhir in resource.fhir]
+
+    return patient_ids
+
+
 # After changes have been made to correct bundle errors, the bundle can be rerurn from file
 def rerun_bundle_from_file(err_filename, db_conn, fhir_server):
     bundle_result = []
