@@ -1,12 +1,12 @@
--- Diagnosis ICD Valueset
--- Combine the ICD9 and ICD10 codesystems into one Valueset 
+-- Specimen Type Valueset
+-- Combine the specimen type codesystems from microbiology and labs
 
-DROP TABLE IF EXISTS fhir_trm.vs_diagnosis_icd;
-CREATE TABLE fhir_trm.vs_diagnosis_icd(
+DROP TABLE IF EXISTS fhir_trm.vs_specimen_type;
+CREATE TABLE fhir_trm.vs_specimen_type(
     system      VARCHAR NOT NULL
 );
 
-INSERT INTO fhir_trm.vs_diagnosis_icd (system)
+INSERT INTO fhir_trm.vs_specimen_type (system)
 VALUES
-    ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9')
-    , ('http://hl7.org/fhir/ValueSet/icd-10')
+    ('http://fhir.mimic.mit.edu/CodeSystem/lab-fluid')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/spec-type-desc')
