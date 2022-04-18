@@ -9,6 +9,18 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo uuid_namespace
 \i fhir_etl/uuid_namespace.sql
 
+\echo fhir_etl.map_gender
+\i fhir_etl/map_gender.sql
+
+\echo fhir_etl.map_marital_status
+\i fhir_etl/map_marital_status.sql
+
+\echo fhir_etl.map_medreq_status
+\i fhir_etl/map_medreq_status.sql
+
+\echo fhir_etl.map_status_procedure_icu
+\i fhir_etl/map_status_procedure_icu.sql
+
 -- prepare MIMIC-IV tables
 
 -- institutional resources
