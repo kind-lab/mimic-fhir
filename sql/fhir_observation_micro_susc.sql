@@ -15,6 +15,7 @@ WITH fhir_observation_micro_susc AS (
         , mi.subject_id AS mi_SUBJECT_ID
         , mi.interpretation AS mi_INTERPRETATION
         , CAST(mi.storetime AS TIMESTAMPTZ) AS mi_STORETIME
+        , mi.comments AS mi_COMMENTS
         
         -- dilution details
         , mi.dilution_value AS mi_DILUTION_VALUE
@@ -86,6 +87,9 @@ SELECT
             ))
         )
         , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_ORG)) 
+        , 'note', jsonb_build_array(jsonb_build_object(
+            'text',  mi_COMMENTS
+        ))
         , 'extension', CASE
             WHEN mi_DILUTION_COMPARISON IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
@@ -104,6 +108,7 @@ SELECT
                      )
                 ))
             ELSE NULL END 
+      
         
     )) AS fhir
 FROM
