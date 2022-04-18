@@ -65,6 +65,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_specimen
 \i fhir_specimen.sql
 
+\echo fhir_specimen_lab
+\i fhir_specimen_lab.sql
+
 -- data resources: medications
 \echo fhir_medadmin_icu
 \i fhir_medadmin_icu.sql
