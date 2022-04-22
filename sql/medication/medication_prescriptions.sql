@@ -41,10 +41,10 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
             )
         ) 
-        , 'identifier', fn_build_medication_identifier(pr_NDC,pr_GSN,pr_FORMULARY_DRUG_CD, pr_DRUG)
+        , 'identifier', fhir_etl.fn_build_medication_identifier(pr_NDC,pr_GSN,pr_FORMULARY_DRUG_CD, pr_DRUG)
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(
-                fn_prescriptions_medication_code(pr_NDC, pr_GSN, pr_FORMULARY_DRUG_CD, pr_DRUG)
+                fhir_etl.fn_prescriptions_medication_code(pr_NDC, pr_GSN, pr_FORMULARY_DRUG_CD, pr_DRUG)
             )
         )   
     )) AS fhir 

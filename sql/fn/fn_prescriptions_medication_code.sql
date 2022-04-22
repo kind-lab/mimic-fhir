@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_prescriptions_medication_code(ndc VARCHAR(25), gsn VARCHAR(255), formulary_drug_cd VARCHAR(120), drug VARCHAR(255))
+CREATE OR REPLACE FUNCTION fhir_etl.fn_prescriptions_medication_code(ndc VARCHAR(25), gsn VARCHAR(255), formulary_drug_cd VARCHAR(120), drug VARCHAR(255))
   returns jsonb
   language 'plpgsql'
 as

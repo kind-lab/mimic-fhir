@@ -96,7 +96,7 @@ SELECT
             ELSE NULL END
         , 'birthDate', pat_BIRTH_DATE
         , 'deceasedDateTime', pat_DOD
-        , 'extension', fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_BIRTHSEX)
+        , 'extension', fhir_etl.fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_BIRTHSEX)
     
         -- Set preferred language if present
         , 'communication',

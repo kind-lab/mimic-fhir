@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fn_patient_extension(race VARCHAR(30), ethnicity VARCHAR(50), birthsex VARCHAR(10))
+CREATE OR REPLACE FUNCTION fhir_etl.fn_patient_extension(race VARCHAR(30), ethnicity VARCHAR(50), birthsex VARCHAR(10))
   RETURNS jsonb
   LANGUAGE 'plpgsql'
 AS
