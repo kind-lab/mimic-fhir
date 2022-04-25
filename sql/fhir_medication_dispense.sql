@@ -33,6 +33,7 @@ WITH distinct_prescriptions AS (
         , medu.fhir_unit AS medu_FHIR_UNIT
         , ph.dispensation AS ph_DISPENSATION
         , ph.fill_quantity AS ph_FILL_QUANTITY
+        , TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g')) AS ph_MEDICATION
         
         -- reference uuids
         , uuid_generate_v5(ns_medication_dispense.uuid, CAST(ph.pharmacy_id AS TEXT)) AS uuid_MEDICATION_DISPENSE
@@ -41,7 +42,6 @@ WITH distinct_prescriptions AS (
         , CASE WHEN pr.pharmacy_id IS NOT NULL THEN
             uuid_generate_v5(ns_medication_request.uuid, CAST(ph.pharmacy_id AS TEXT)) 
         ELSE NULL END AS uuid_MEDICATION_REQUEST 
-        , uuid_generate_v5(ns_medication.uuid, TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g'))) AS uuid_MEDICATION 
         , uuid_generate_v5(ns_patient.uuid, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM 
@@ -56,8 +56,6 @@ WITH distinct_prescriptions AS (
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
-        LEFT JOIN fhir_etl.uuid_namespace ns_medication
-            ON ns_medication.name = 'MedicationName'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_request
             ON ns_medication_request.name = 'MedicationRequest'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_dispense
@@ -89,9 +87,12 @@ SELECT
               , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-dispense'
         ))    
         , 'status', 'completed' -- assumed all complete dispense in mimic
-        , 'medicationReference', jsonb_build_object(
-            'reference', 'Medication/' || uuid_MEDICATION
-        )
+        , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
+            'coding', jsonb_build_object(
+                'code', ph_MEDICATION
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
+            )
+        ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
             CASE WHEN uuid_HADM_ID IS NOT NULL

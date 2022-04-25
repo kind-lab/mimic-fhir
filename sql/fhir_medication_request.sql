@@ -218,10 +218,17 @@ WITH prescriptions AS (
         , uuid_generate_v5(ns_medication_request.uuid, poe.poe_id) AS uuid_MEDICATION_REQUEST 
         , CASE 
             WHEN pm.medication IS NOT NULL THEN
-                uuid_generate_v5(ns_medication_name.uuid, TRIM(REGEXP_REPLACE(pm.medication, '\s+', ' ', 'g'))) 
+                TRIM(REGEXP_REPLACE(pm.medication, '\s+', ' ', 'g')) 
             WHEN pm.order_type IN ('TPN', 'IV therapy') THEN
-                uuid_generate_v5(ns_medication_poe.uuid, pm.order_type)  
-        END AS uuid_MEDICATION 
+                pm.order_type
+        END AS pm_MEDICATION 
+        
+        , CASE 
+            WHEN pm.medication IS NOT NULL THEN
+                'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
+            WHEN pm.order_type IN ('TPN', 'IV therapy') THEN
+                'http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv'
+        END AS pm_MEDICATION_SYSTEM
         
         , uuid_generate_v5(ns_patient.uuid, CAST(poe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(poe.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -276,7 +283,12 @@ SELECT
         )) 
         , 'status', stat_FHIR_STATUS
         , 'intent', 'order'
-        , 'medicationReference', jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
+        , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
+            'coding', jsonb_build_object(
+                'code', pm_MEDICATION
+                , 'system', pm_MEDICATION_SYSTEM
+            )
+        ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', 
             CASE WHEN uuid_HADM_ID IS NOT NULL

@@ -77,12 +77,25 @@ WITH prescriptions AS (
         
         , CASE 
             WHEN emd.product_code IS NOT NULL THEN 
-                uuid_generate_v5(ns_medication_cd.uuid, emd.product_code)
+                emd.product_code
             WHEN em.medication IS NOT NULL THEN
-                uuid_generate_v5(ns_medication_name.uuid, TRIM(REGEXP_REPLACE(em.medication, '\s+', ' ', 'g')))
+                TRIM(REGEXP_REPLACE(em.medication, '\s+', ' ', 'g'))
             WHEN poe.order_type IN ('TPN', 'IV therapy') THEN
-                uuid_generate_v5(ns_medication_poe.uuid, poe.order_type)
-        ELSE NULL END AS uuid_MEDICATION
+                poe.order_type
+            ELSE 
+                'UNK'  
+        END AS emd_MEDICATION
+        
+        , CASE 
+            WHEN emd.product_code IS NOT NULL THEN 
+                'http://fhir.mimic.mit.edu/CodeSystem/medication-formulary-drug-cd' 
+            WHEN em.medication IS NOT NULL THEN
+                'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
+            WHEN poe.order_type IN ('TPN', 'IV therapy') THEN
+                'http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv' 
+            ELSE 
+                'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'
+        END AS emd_MEDICATION_SYSTEM
             
         
     FROM
@@ -143,20 +156,13 @@ SELECT
             )
         ))	
         , 'status', 'completed' -- All medication adminstrations considered complete
-        , 'medicationReference', 
-            CASE WHEN uuid_MEDICATION IS NOT NULL THEN
-                jsonb_build_object('reference', 'Medication/' || uuid_MEDICATION)
-            ELSE NULL END
         , 'medicationCodeableConcept',
-            CASE WHEN uuid_MEDICATION IS NULL THEN
-                jsonb_build_object(
-                    'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'  
-                        , 'code', 'UNK'
-                        , 'display', 'unknown'
-                    ))
-                )
-            ELSE NULL END        
+            jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'system', emd_MEDICATION_SYSTEM
+                    , 'code', emd_MEDICATION
+                ))
+            )   
         , 'request', jsonb_build_object('reference', 'MedicationRequest/' || uuid_MEDICATION_REQUEST)
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
@@ -211,4 +217,4 @@ SELECT
         )
     )) as fhir 
 FROM
-    fhir_medication_administration
+    fhir_medication_administration;
