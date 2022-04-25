@@ -354,6 +354,18 @@ def get_n_patient_id(db_conn, n_patient):
     return patient_ids
 
 
+def get_n_resources(db_conn, table, n_limit=0):
+    if n_limit == 0:
+        q_resource = f"SELECT * FROM mimic_fhir.{table}"
+    else:
+        q_resource = f"SELECT * FROM mimic_fhir.{table} LIMIT {n_limit}"
+    resource = pd.read_sql_query(q_resource, db_conn)
+
+    resources = []
+    [resources.append(fhir) for fhir in resource.fhir]
+    return resources
+
+
 # After changes have been made to correct bundle errors, the bundle can be rerurn from file
 def rerun_bundle_from_file(err_filename, db_conn, fhir_server):
     bundle_result = []

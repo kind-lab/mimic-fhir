@@ -88,6 +88,13 @@ def parse_arguments(arguments=None):
         help='Export Resources',
         required=True
     )
+    parser.add_argument(
+        '--err_path',
+        action=EnvDefault,
+        envvar='FHIR_BUNDLE_ERROR_PATH',
+        help='Error log file path for bundles',
+        required=True
+    )
     # More for debugging, output to console
     parser.add_argument(
         '--stdout',
@@ -132,6 +139,12 @@ def parse_arguments(arguments=None):
         type=float,
         default=1,
         help='Number of patients'
+    )
+    arg_validate.add_argument(
+        '--init',
+        required=False,
+        action='store_true',
+        help='Initialize hapi fhir with data bundles'
     )
 
     # Export - can be run separate from validation
