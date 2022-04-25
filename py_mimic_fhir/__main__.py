@@ -207,7 +207,6 @@ def terminology(args):
 # Logger can be written out to file or stdout, user chooses
 def set_logger(log_path, stdout=False):
     if stdout:
-        print('getting here')
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
@@ -215,6 +214,10 @@ def set_logger(log_path, stdout=False):
             force=True
         )
     else:
+        # create log folder if it does not exist
+        if not os.path.isdir(log_path):
+            os.mkdir(log_path)
+
         day_of_week = datetime.now().strftime('%A').lower()
         logging.basicConfig(
             filename=f'{log_path}log_mimic_fhir_{day_of_week}.log',

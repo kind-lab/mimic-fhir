@@ -9,6 +9,7 @@
 import logging
 import requests
 import json
+import os
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -41,6 +42,9 @@ class ErrBundle():
 
     # Write err bundle to file
     def write(self, err_path):
+        if not os.path.isdir(err_path):
+            os.mkdir(err_path)
+
         day_of_week = datetime.now().strftime('%A').lower(
         )  # will overwrite each week
         with open(f'{err_path}err-bundles-{day_of_week}.json', 'a+') as errfile:
