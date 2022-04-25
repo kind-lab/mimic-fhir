@@ -63,7 +63,7 @@ def parse_arguments(arguments=None):
     parser.add_argument(
         '--host',
         action=EnvDefault,
-        envvar='HOST',
+        envvar='DBHOST',
         help='Database Host',
         required=True
     )

@@ -12,13 +12,13 @@ import py_mimic_fhir.terminology as trm
 from py_mimic_fhir.terminology import TerminologyMetaData
 
 # Load environment variables
-load_dotenv(Path(Path.cwd()).parents[0] / '.env')
+load_dotenv(Path(Path.cwd()) / '.env')  # this is based on cwd, so can change...
 
 SQLUSER = os.getenv('SQLUSER')
 SQLPASS = os.getenv('SQLPASS')
 DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
 DBNAME_HAPI = os.getenv('DBNAME_HAPI')
-HOST = os.getenv('HOST')
+HOST = os.getenv('DBHOST')
 TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 
 
