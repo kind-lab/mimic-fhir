@@ -29,6 +29,7 @@ WITH mimic_units AS (
     
     -- Outputevents units 
     SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_icu.outputevents  
+    UNION
     
     -- Prescription units 
     SELECT DISTINCT TRIM(dose_unit_rx) AS unit FROM mimic_hosp.prescriptions p   
@@ -39,7 +40,3 @@ FROM mimic_units
 WHERE 
     unit IS NOT NULL 
     AND unit != ''
-
-
-
-
