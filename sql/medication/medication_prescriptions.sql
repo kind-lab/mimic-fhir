@@ -12,7 +12,7 @@
 
 WITH prescriptions_ndc AS (
     SELECT DISTINCT 
-        CASE WHEN pr.ndc = '' THEN NULL ELSE pr.ndc END AS pr_NDC
+        CASE WHEN (pr.ndc = '' OR pr.ndc = '0') THEN NULL ELSE pr.ndc END AS pr_NDC
         , CASE WHEN pr.gsn = '' THEN NULL ELSE pr.gsn END  AS pr_GSN
         , pr.drug AS pr_DRUG
         , pr.formulary_drug_cd AS pr_FORMULARY_DRUG_CD        

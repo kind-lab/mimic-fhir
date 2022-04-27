@@ -23,7 +23,7 @@ VALUES
     , ('lab_flags', 'The lab alarm flags for abnormal lab events in MIMIC')
     , ('lab_priority', 'The priority of the lab item in MIMIC')   
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
-    , ('medication', 'All medication codesystems combined for MIMIC. Contains medication-formulary-drug-cd, medication-name, medication-mix, medication-poe-iv, medication-icu')
+    , ('medication', 'All medication codesystems combined for MIMIC. Contains medication-formulary-drug-cd, medication-gsn, medication-ndc, medication-name, medication-mix, medication-poe-iv, medication-icu')
     , ('medication_method', 'The medication delivery method for MIMIC')
     , ('medication_route', 'The medication route during administration for MIMIC')
     , ('medication_site', 'The medication site for administration in MIMIC')

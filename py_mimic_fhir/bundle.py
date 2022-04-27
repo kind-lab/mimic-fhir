@@ -205,7 +205,7 @@ class Bundler():
     def generate_med_bundle(self):
         logger.info('Generating med bundle')
         table_list = [
-            'medication_request ', 'medication_dispense',
+            'medication_request', 'medication_dispense',
             'medication_administration'
         ]
 
