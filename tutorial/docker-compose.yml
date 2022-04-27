@@ -1,0 +1,12 @@
+version: "3"
+services:
+  pathling:
+    image: aehrc/pathling:5
+    ports:
+      - 8080:8080
+    volumes:
+      - pathling:/usr/share/warehouse
+      - /home/me/data:/usr/share/staging
+volumes:
+  pathling:
+    driver: local
