@@ -120,3 +120,31 @@ VALUESETS_CANONICAL = [
     'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
     'observation_category', 'procedure_category', 'units'
 ]
+
+# ORDER MATTERS!!
+# The patient bundle must be first and the icu_encounter bundle must be before all other icu bundles
+MIMIC_BUNDLE_TABLE_LIST = {
+    'patient': ['patient', 'encounter'],
+    'procedure': ['procedure'],
+    'condition': ['condition'],
+    'specimen': ['specimen', 'specimen_lab'],
+    'lab': ['observation_labevents'],
+    'microbiology':
+        [
+            'observation_micro_test', 'observation_micro_org',
+            'observation_micro_susc'
+        ],
+    'medication':
+        [
+            'medication_request', 'medication_dispense',
+            'medication_administration'
+        ],
+    'icu_encounter': ['encounter_icu'],
+    'icu_medication': ['medication_administration_icu'],
+    'icu_procedure': ['procedure_icu'],
+    'icu_observation':
+        [
+            'observation_chartevents', 'observation_datetimeevents',
+            'observation_outputevents'
+        ]
+}

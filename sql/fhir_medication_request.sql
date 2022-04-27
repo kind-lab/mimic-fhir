@@ -188,7 +188,7 @@ FROM
 	
 	
 -- Create medicationRequest resources poe table for emar events without pharmacy_id
--- And for now just grab emar events with non-null medication values
+-- And for now just grab emar events with non-null medication valuesjsonb_build_object(
 
 -- get unique poe_id that show up in emar, without pharmacy_id and with medication or poe iv order
 WITH prescriptions AS (
@@ -284,10 +284,10 @@ SELECT
         , 'status', stat_FHIR_STATUS
         , 'intent', 'order'
         , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
-            'coding', jsonb_build_object(
+            'coding', jsonb_build_array(jsonb_build_object(
                 'code', pm_MEDICATION
                 , 'system', pm_MEDICATION_SYSTEM
-            )
+            ))
         ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', 

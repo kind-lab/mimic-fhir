@@ -2,7 +2,8 @@
 import pandas as pd
 import logging
 from py_mimic_fhir import db
-from py_mimic_fhir.bundle import Bundle, Bundler, get_n_resources
+from py_mimic_fhir.bundle import Bundle, get_n_resources
+from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +34,26 @@ def validate_n_patients(args):
 
     # Create bundle and post it
     result = True
+    response_list = []
     for patient_id in patient_ids:
-        bundler = Bundler(patient_id, db_conn)
-        bundler.generate_all_bundles()
-        response_list = bundler.post_all_bundles(
-            args.fhir_server, split_flag, args.err_path
+        validate_all_bundles(
+            patient_id, db_conn, args.fhir_server, args.err_path
         )
-
         if False in response_list:
             result = False
+
     return result
+
+
+def validate_all_bundles(patient_id, db_conn, fhir_server, err_path):
+    response_list = []
+    for name, table_list in MIMIC_BUNDLE_TABLE_LIST.items():
+        logger.info(f'{name} bundle')
+        # Create bundle and post it
+        bundle = Bundle(name, table_list)
+        bundle.generate(patient_id, db_conn)
+        response_list.append(bundle.request(fhir_server, err_path))
+    return response_list
 
 
 # Post data bundles before patient bundles. This includes Organization and Medication
@@ -55,11 +66,10 @@ def init_data_bundles(db_conn, fhir_server, err_path):
     for table in data_tables:
         logger.info(f'{table} data being uploaded to HAPI')
         resources = get_n_resources(db_conn, table)
-        init_data_bundle(resources, fhir_server, err_path)
+        init_data_bundle(table, resources, fhir_server, err_path)
 
 
-def init_data_bundle(resources, fhir_server, err_path):
-    split_flag = True  # Divide up bundles into smaller chunks
-    bundle = Bundle()
+def init_data_bundle(table, resources, fhir_server, err_path):
+    bundle = Bundle(f'init_{table}')
     bundle.add_entry(resources)
-    response = bundle.request(fhir_server, split_flag, err_path)
+    response = bundle.request(fhir_server, err_path)

@@ -1,8 +1,7 @@
 # Bundle classes and useful functions
-# Three main bundle classes made here:
+# Two bundle classes made here:
 #    1. Bundle - a FHIR transaction bundle with resources as entries
-#    2. Bundler - Create bundles for each of the MIMIC resources
-#    3. ErrBundle - When a bundle fails it is reorganized with ErrBundle and output
+#    2. ErrBundle - When a bundle fails it is reorganized with ErrBundle and output
 #
 # The useful functions are primarily used to get links and resources for patient bundles
 
@@ -54,7 +53,9 @@ class ErrBundle():
 
 # FHIR bundle class with options to add entries and send requests to the server
 class Bundle():
-    def __init__(self):
+    def __init__(self, name, table_list=[]):
+        self.name = name
+        self.table_list = table_list
         self.resourceType = 'Bundle'
         self.type = 'transaction'
         self.entry = []
@@ -76,18 +77,28 @@ class Bundle():
 
             self.entry.append(new_entry)
 
+    def generate(self, patient_id, db_conn):
+        for table_name in self.table_list:
+            resources = get_resources_by_pat(db_conn, table_name, patient_id)
+            self.add_entry(resources)
+
     def json(self):
-        return self.__dict__
+        bundle_json = self.__dict__
+        bundle_json.pop('name')
+        bundle_json.pop('table_list')
+        return bundle_json
 
     # Send request out to HAPI server, validates on the server
     def request(
         self,
         fhir_server,
-        split_flag=False,
         err_path=None,
+        split_flag=True,
         bundle_size=60,  # optimal based on testing, seems small but if no links is quick!
     ):
         output = True  # True until proven false
+        if self.name in ['microbiology', 'medication']:
+            split_flag = False
 
         # Split the entry into smaller bundles to speed up posting
         if split_flag:
@@ -101,9 +112,11 @@ class Bundle():
                 resources = [entry['resource'] for entry in entries]
 
                 # Recreate smaller bundles and post
-                bundle = Bundle()
+                bundle = Bundle(self.name, self.table_list)
                 bundle.add_entry(resources)
-                output_temp = bundle.request(fhir_server, err_path=err_path)
+                output_temp = bundle.request(
+                    fhir_server, err_path=err_path, split_flag=False
+                )
                 if output_temp == False:
                     output = False
         else:
@@ -124,195 +137,6 @@ class Bundle():
         return output
 
 
-# Class to bundle all resources associated with one patient
-class Bundler():
-    def __init__(self, patient_id, db_conn):
-        self.patient_id = patient_id
-        self.patient_bundle = Bundle()
-        self.condition_bundle = Bundle()
-        self.procedure_bundle = Bundle()
-        self.specimen_bundle = Bundle()
-        self.micro_bundle = Bundle()
-        self.med_bundle = Bundle()
-        self.lab_bundle = Bundle()
-        self.icu_enc_bundle = Bundle()
-        self.icu_base_bundle = Bundle()
-        self.icu_medadmin_bundle = Bundle()
-        self.icu_obs_bundle = Bundle()
-        self.icu_ce_bundle = Bundle()
-        self.db_conn = db_conn
-        logger.info('----------- NEW BUNDLE -----------')
-        logger.info(f'Patient_id: {patient_id}')
-
-    def generate_all_bundles(self):
-        self.generate_patient_bundle()
-        self.generate_condition_bundle()
-        self.generate_procedure_bundle()
-        self.generate_specimen_bundle()
-        self.generate_micro_bundle()
-        self.generate_med_bundle()
-        self.generate_lab_bundle()
-        self.generate_icu_enc_bundle()
-        self.generate_icu_base_bundle()
-        self.generate_icu_medadmin_bundle()
-        self.generate_icu_obs_bundle()
-
-    # Add all resources from table_list for the patient to the bundle
-    def fill_bundle(self, bundle, table_list):
-        for table_name in table_list:
-            resources = get_resources_by_pat(
-                self.db_conn, table_name, self.patient_id
-            )
-            bundle.add_entry(resources)
-
-    def generate_patient_bundle(self):
-        logger.info('Generating patient bundle')
-        table_list = ['encounter']
-
-        # Add individual patient
-        pat_resource = get_patient_resource(self.db_conn, self.patient_id)
-        self.patient_bundle.add_entry([pat_resource])
-
-        # Add all base patient resources for the Patient to the bundle
-        self.fill_bundle(self.patient_bundle, table_list)
-
-    def generate_condition_bundle(self):
-        logger.info('Generating condition bundle')
-        table_list = ['condition']
-        self.fill_bundle(self.condition_bundle, table_list)
-
-    def generate_procedure_bundle(self):
-        logger.info('Generating procedure bundle')
-        table_list = ['procedure']
-        self.fill_bundle(self.procedure_bundle, table_list)
-
-    def generate_specimen_bundle(self):
-        logger.info('Generating specimen bundle')
-        table_list = ['specimen', 'specimen_lab']
-        self.fill_bundle(self.specimen_bundle, table_list)
-
-    # Add all micro resources associated with the Patient to the bundle
-    def generate_micro_bundle(self):
-        logger.info('Generating micro bundle')
-        table_list = [
-            'observation_micro_test', 'observation_micro_org',
-            'observation_micro_susc'
-        ]
-
-        self.fill_bundle(self.micro_bundle, table_list)
-
-    # Add all medication resources associated with the Patient to the bundle
-    def generate_med_bundle(self):
-        logger.info('Generating med bundle')
-        table_list = [
-            'medication_request', 'medication_dispense',
-            'medication_administration'
-        ]
-
-        self.fill_bundle(self.med_bundle, table_list)
-
-    def generate_icu_medadmin_bundle(self):
-        logger.info('Generating medication administration ICU bundle')
-        table_list = ['medication_administration_icu']
-        self.fill_bundle(self.icu_medadmin_bundle, table_list)
-
-    # Add all lab resources associated with the Patient to the bundle
-    def generate_lab_bundle(self):
-        logger.info('Generating lab bundle')
-        table_list = ['observation_labevents']
-        self.fill_bundle(self.lab_bundle, table_list)
-
-    # Add all ICU base resources associated with the Patient to the bundle
-    def generate_icu_enc_bundle(self):
-        logger.info('Generating icu enc bundle')
-        table_list = ['encounter_icu']
-        self.fill_bundle(self.icu_enc_bundle, table_list)
-
-    # Add all ICU base resources associated with the Patient to the bundle
-    def generate_icu_base_bundle(self):
-        logger.info('Generating icu base bundle')
-        table_list = ['procedure_icu']  #, 'medication_administration_icu']
-        self.fill_bundle(self.icu_base_bundle, table_list)
-
-    # Add all ICU observation resources associated with the Patient to the bundle
-    def generate_icu_obs_bundle(self):
-        logger.info('Generating icu obs bundle')
-        table_list = [
-            'observation_chartevents', 'observation_datetimeevents',
-            'observation_outputevents'
-        ]
-        self.fill_bundle(self.icu_obs_bundle, table_list)
-
-    # Add all ICU observation chartevents resources associated with the Patient to the bundle
-    # Useful in testing to get just the chartevents, since it is a larger grouping
-    def generate_icu_ce_bundle(self):
-        logger.info('Generating icu obs bundle')
-        table_list = ['observation_chartevents']
-        self.fill_bundle(self.icu_ce_bundle, table_list)
-
-    # Post all bundles to the fhir server, recording their result status
-    def post_all_bundles(self, fhir_server, split_flag=False, err_path=None):
-        logger.info('------ POSTING BUNDLES ----------')
-        response_list = []
-
-        logger.info('Post patient bundle')
-        response_list.append(
-            self.patient_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post condition bundle')
-        response_list.append(
-            self.condition_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post procedure bundle')
-        response_list.append(
-            self.procedure_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post specimen bundle')
-        response_list.append(
-            self.specimen_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post micro bundle')
-        response_list.append(
-            self.micro_bundle.request(fhir_server, False, err_path)
-        )
-
-        logger.info('Post med bundle')
-        response_list.append(
-            self.med_bundle.request(fhir_server, False, err_path)
-        )
-
-        logger.info('Post lab bundle')
-        response_list.append(
-            self.lab_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post icu_enc bundle')
-        response_list.append(
-            self.icu_enc_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post icu_base bundle')
-        response_list.append(
-            self.icu_base_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post icu_medadmin bundle')
-        response_list.append(
-            self.icu_medadmin_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        logger.info('Post icu_obs bundle')
-        response_list.append(
-            self.icu_obs_bundle.request(fhir_server, split_flag, err_path)
-        )
-
-        return response_list
-
-
 #----------------------------------------------------------------------------
 # ---------------------- Bundle Support Functions ---------------------------
 #----------------------------------------------------------------------------
@@ -320,9 +144,14 @@ class Bundler():
 
 # Generic function to get resources linked to patient from the DB
 def get_resources_by_pat(db_conn, table_name, patient_id):
+    if table_name == 'patient':
+        id_field = 'id'
+    else:
+        id_field = 'patient_id'
+
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.{table_name}
-        WHERE patient_id = '{patient_id}'
+        WHERE {id_field} = '{patient_id}'
     """
     pd_resources = pd.read_sql_query(q_resource, db_conn)
     resources = pd_resources.fhir.to_list()

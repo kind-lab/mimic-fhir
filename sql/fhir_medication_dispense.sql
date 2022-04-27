@@ -88,10 +88,10 @@ SELECT
         ))    
         , 'status', 'completed' -- assumed all complete dispense in mimic
         , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
-            'coding', jsonb_build_object(
+            'coding', jsonb_build_array(jsonb_build_object(
                 'code', ph_MEDICATION
                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
-            )
+            ))
         ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
