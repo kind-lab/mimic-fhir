@@ -10,12 +10,19 @@
 --    because we want to store the additional information. But we also don't want to assign 
 --    values that are not true. Ie a NDC can link to multiple formulary_drug_cd, so can't just create one ndc med
 
-WITH prescriptions_ndc AS (
+DROP TABLE IF EXISTS mimic_fhir.medication;
+CREATE TABLE mimic_fhir.medication(
+    id      uuid PRIMARY KEY,
+    fhir    jsonb NOT NULL 
+);
+
+
+WITH prescriptions_med AS (
     SELECT DISTINCT 
         CASE WHEN (pr.ndc = '' OR pr.ndc = '0') THEN NULL ELSE pr.ndc END AS pr_NDC
         , CASE WHEN pr.gsn = '' THEN NULL ELSE pr.gsn END  AS pr_GSN
         , pr.drug AS pr_DRUG
-        , pr.formulary_drug_cd AS pr_FORMULARY_DRUG_CD        
+        , pr.formulary_drug_cd AS pr_FORMULARY_DRUG_CD    
         , uuid_generate_v5(ns_medication.uuid,   
             drug
             || CASE WHEN (ndc IS NOT NULL) AND (ndc !='0') AND (ndc != '') 
@@ -49,5 +56,5 @@ SELECT
         )   
     )) AS fhir 
 FROM
-    prescriptions_ndc
+    prescriptions_med
     

@@ -7,7 +7,7 @@ CREATE TABLE fhir_trm.cs_medication_gsn(
 );
 
 INSERT INTO fhir_trm.cs_medication_gsn 
-SELECT DISTINCT TRIM(gsn) AS code
+SELECT DISTINCT UNNEST(STRING_TO_ARRAY(TRIM(gsn),' ')) AS code
 FROM mimic_hosp.prescriptions 
 WHERE 
     gsn IS NOT NULL;
