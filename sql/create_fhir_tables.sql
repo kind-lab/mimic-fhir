@@ -46,8 +46,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \i fhir_organization.sql
 
 -- patient tracking resources
-
-
 \echo fhir_patient
 \i fhir_patient.sql
 
@@ -98,12 +96,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 \echo fhir_observation_labevents
 \i fhir_observation_labevents.sql
-
-\echo fhir_observation_micro_org
-\i fhir_observation_micro_org.sql
-
-\echo fhir_observation_micro_susc
-\i fhir_observation_micro_susc.sql
+\echo Chartevents D Items
 
 \echo fhir_observation_micro_test
 \i fhir_observation_micro_test.sql
