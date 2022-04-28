@@ -7,19 +7,16 @@ from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 
 logger = logging.getLogger(__name__)
 
-# Get N patient ids from mimic_fhir
-
 
 # Validate n patients and all their associated resources
-def validate_n_patients(args):
+def validate_n_patients(args, margs):
     # initialize db connection
     db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
 
-    margs = MimicArgs(args.fhir_server, args.err_path)
     if args.init:
-        init_data_bundles(db_conn, args.fhir_server, args.err_path)
+        init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
 
     logger.info('---------- Validating patients -----------------')
     logger.info(f'patient num: {args.num_patients}')
@@ -72,9 +69,3 @@ def init_data_bundle(table, resources, fhir_server, err_path):
     bundle = Bundle(f'init_{table}')
     bundle.add_entry(resources)
     response = bundle.request(fhir_server, err_path)
-
-
-class MimicArgs():
-    def __init__(self, fhir_server, err_path):
-        self.fhir_server = fhir_server
-        self.err_path = err_path

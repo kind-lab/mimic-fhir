@@ -28,6 +28,12 @@ class EnvDefault(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
+class MimicArgs():
+    def __init__(self, fhir_server, err_path):
+        self.fhir_server = fhir_server
+        self.err_path = err_path
+
+
 def dir_path(string):
     return Path(string)
 
@@ -194,7 +200,8 @@ def parse_arguments(arguments=None):
 
 # Validate all resources for user specified number of patients
 def validate(args):
-    validation_result = validate_n_patients(args)
+    margs = MimicArgs(args.fhir_server, args.err_path)
+    validation_result = validate_n_patients(args, margs)
     if validation_result == True:
         logger.info('Validation successful')
     else:

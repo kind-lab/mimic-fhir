@@ -9,7 +9,7 @@ import pytest
 
 from py_mimic_fhir.db import get_n_resources, connect_db
 import py_mimic_fhir.terminology as trm
-from py_mimic_fhir.validate import MimicArgs
+from py_mimic_fhir import MimicArgs
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent.resolve() / '.env')
