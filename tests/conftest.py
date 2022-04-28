@@ -7,12 +7,12 @@ import os
 import tkinter as tk
 import pytest
 
-from py_mimic_fhir import db
+from py_mimic_fhir.db import get_n_resources, connect_db
 import py_mimic_fhir.terminology as trm
-from py_mimic_fhir.terminology import TerminologyMetaData
+from py_mimic_fhir.validate import MimicArgs
 
 # Load environment variables
-load_dotenv(Path(Path.cwd()) / '.env')  # this is based on cwd, so can change...
+load_dotenv(Path(__file__).parent.parent.resolve() / '.env')
 
 SQLUSER = os.getenv('SQLUSER')
 SQLPASS = os.getenv('SQLPASS')
@@ -20,6 +20,8 @@ DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
 DBNAME_HAPI = os.getenv('DBNAME_HAPI')
 HOST = os.getenv('DBHOST')
 TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
+FHIR_SERVER = os.getenv('FHIR_SERVER')
+FHIR_BUNDLE_ERROR_PATH = os.getenv('FHIR_BUNDLE_ERROR_PATH')
 
 
 # Example patient that has links to all other resources
@@ -75,7 +77,7 @@ def validator():
 # Initialize database connection to mimic
 @pytest.fixture(scope="session")
 def db_conn():
-    conn = db.db_conn(SQLUSER, SQLPASS, DBNAME_MIMIC, HOST)
+    conn = connect_db(SQLUSER, SQLPASS, DBNAME_MIMIC, HOST)
     return conn
 
 
@@ -91,6 +93,13 @@ def db_conn_hapi():
         dbname=dbname, user=sqluser, password=sqlpass, host=host
     )
     return conn
+
+
+# Initialize mimic args
+@pytest.fixture(scope="session")
+def margs():
+    mimic_args = MimicArgs(FHIR_SERVER, FHIR_BUNDLE_ERROR_PATH)
+    return mimic_args
 
 
 # Generic function to initialize resources based on VALIDATOR
@@ -111,22 +120,6 @@ def initialize_single_resource(validator, db_conn, table_name):
 # Generic function to get single resource from the DB
 def get_single_resource(db_conn, table_name):
     q_resource = f"SELECT * FROM mimic_fhir.{table_name} LIMIT 1"
-    resource = pd.read_sql_query(q_resource, db_conn)
-
-    return resource.fhir[0]
-
-
-# Generic function to get N resources from the DB
-def get_n_resources(db_conn, table_name, n_limit):
-    q_resources = f"SELECT * FROM mimic_fhir.{table_name} LIMIT {n_limit}"
-    resources = pd.read_sql_query(q_resources, db_conn)
-
-    return resources
-
-
-# Get a single resource with a link to a specific patient
-def get_single_resource_by_pat(db_conn, table_name):
-    q_resource = f"SELECT * FROM mimic_fhir.{table_name} WHERE patient_id = '{patient_id()}' LIMIT 1"
     resource = pd.read_sql_query(q_resource, db_conn)
 
     return resource.fhir[0]
@@ -284,23 +277,13 @@ def specimen_lab_resource(validator, db_conn):
 # Grab a handful of medication data resoruces to send to the server
 @pytest.fixture(scope="session")
 def med_data_bundle_resources(db_conn):
-    n_limit = 50000
-    q_resources = f'SELECT fhir FROM mimic_fhir.medication LIMIT {n_limit}'
-    med_resources = pd.read_sql_query(q_resources, db_conn)
-
-    resources = []
-    [resources.append(fhir) for fhir in med_resources.fhir]
+    resources = get_n_resources(db_conn, 'medication')
     return resources
 
 
 @pytest.fixture(scope="session")
 def med_mix_data_bundle_resources(db_conn):
-    n_limit = 10000
-    q_resources = f'SELECT fhir FROM mimic_fhir.medication_mix LIMIT {n_limit}'
-    med_resources = pd.read_sql_query(q_resources, db_conn)
-
-    resources = []
-    [resources.append(fhir) for fhir in med_resources.fhir]
+    resources = get_n_resources(db_conn, 'medication_mix')
     return resources
 
 

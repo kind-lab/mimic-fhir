@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import pytest
-from py_mimic_fhir.bundle import get_resource_by_id
+from py_mimic_fhir.db import get_resource_by_id
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
