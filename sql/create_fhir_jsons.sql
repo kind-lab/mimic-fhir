@@ -54,8 +54,8 @@ SELECT fhir FROM mimic_fhir.medication_dispense;
 \o :outputdir/medadmin.ndjson
 SELECT fhir FROM mimic_fhir.medication_administration;
 
-\echo medadmin_icu
-\o :outputdir/medadmin_icu.ndjson
+\echo medication_administration_icu
+\o :outputdir/medication_administration_icu.ndjson
 SELECT fhir FROM mimic_fhir.medication_administration_icu;
 
 
