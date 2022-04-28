@@ -23,8 +23,7 @@ VALUES
     , ('lab_priority', 'The priority of the lab item in MIMIC')    
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
     , ('medication_formulary_drug_cd', 'Medication formulary drug codes for use in prescriptions and emar')
-    , ('medication_icu', 'All medication found in the ICU, derived from mimic_icu.d_items')
-    , ('medication_gsn', 'Medication Generic Sequence Number (GSN) for use in prescriptions')       
+    , ('medication_icu', 'All medication found in the ICU, derived from mimic_icu.d_items')   
     , ('medication_method', 'The medication delivery method for MIMIC')
     , ('medication_mix', 'Medication mixes consisting of prescription with multiple formulary drug codes')
     , ('medication_name', 'The standard medication name used in MIMIC. Used in pharmacy, prescriptions, and emar')
@@ -42,4 +41,3 @@ VALUES
     , ('procedure_icd10', 'The procedure ICD10 codes for MIMIC')
     , ('spec_type_desc', 'The specimen type codes for microbiologyevents')
     , ('units', 'The units used throughout MIMIC')
-

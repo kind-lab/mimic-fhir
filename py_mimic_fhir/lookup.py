@@ -85,11 +85,11 @@ MIMIC_CODESYSTEMS = [
     'discharge_disposition', 'identifier_type', 'lab_flags', 'lab_fluid',
     'lab_priority', 'medadmin_category_icu', 'medication_icu',
     'medication_formulary_drug_cd', 'medication_method', 'medication_mix',
-    'medication_name', 'medication_poe_iv', 'medication_route',
-    'medication_site', 'microbiology_antibiotic', 'microbiology_interpretation',
-    'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'procedure_icd9', 'procedure_icd10', 'spec_type_desc',
-    'units'
+    'medication_name', 'medication_ndc', 'medication_poe_iv',
+    'medication_route', 'medication_site', 'microbiology_antibiotic',
+    'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
+    'observation_category', 'procedure_category', 'procedure_icd9',
+    'procedure_icd10', 'spec_type_desc', 'units'
 ]
 
 MIMIC_VALUESETS = [

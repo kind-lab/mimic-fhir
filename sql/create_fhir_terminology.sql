@@ -47,6 +47,9 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Medication Name
 \i codesystem/cs-medication-name.sql
 
+\echo Medication NDC
+\i codesystem/cs-medication-ndc.sql
+
 \echo Medication POE IV
 \i codesystem/cs-medication-poe-iv.sql
 

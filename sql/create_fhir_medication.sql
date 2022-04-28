@@ -1,8 +1,5 @@
 -- Create medication tables
 
-\echo Create medication base table
-\i medication/medication_base.sql
-
 -- medication fhir_etl functions
 \echo fn_build_medication_identifier
 \i fn/fn_build_medication_identifier.sql
@@ -11,7 +8,6 @@
 \i fn/fn_prescriptions_medication_code.sql
 
 -- medication data generation
-
 \echo Medication prescriptions
 \i medication/medication_prescriptions.sql
 

@@ -12,12 +12,10 @@ WITH medication_identifier AS (
     SELECT 
        (    
             drug
-            || CASE WHEN (ndc IS NOT NULL) AND (ndc !='0') AND (ndc != '') 
-                    THEN '--' || ndc ELSE '' END
-            || CASE WHEN (gsn IS NOT NULL) AND (gsn != '') 
-                    THEN '--' || gsn ELSE '' END
             || CASE WHEN (formulary_drug_cd IS NOT NULL) AND (formulary_drug_cd != '') 
                     THEN '--' || formulary_drug_cd ELSE '' END    
+            || CASE WHEN (ndc IS NOT NULL) AND (ndc !='0') AND (ndc != '') 
+                    THEN '--' || ndc ELSE '' END
         ) AS med_id
         , pharmacy_id
         , drug
