@@ -22,41 +22,14 @@ import pandas as pd
 from datetime import datetime
 
 #from fhir.resources.bundle import Bundle
-from py_mimic_fhir.bundle import Bundle, Bundler, rerun_bundle_from_file, get_n_patient_id
-
-FHIR_SERVER = os.getenv('FHIR_SERVER')
-FHIR_BUNDLE_ERROR_PATH = os.getenv('FHIR_BUNDLE_ERROR_PATH')
-
-# ---------------- Test Support Functions -----------------------
-
-
-# Function to find links between a patient and certain resources.
-# Allows for more complete testing if sending full bundle
-def get_pat_id_with_links(db_conn, resource_list):
-    q_resource = 'SELECT pat.fhir FROM mimic_fhir.patient pat'
-
-    # Dynamically create query to find links between a patient and certain resources
-    for idx, resource in enumerate(resource_list):
-        q_resource = f"""{q_resource} 
-            INNER JOIN mimic_fhir.{resource} t{idx}
-                ON pat.id = t{idx}.patient_id 
-        """
-    q_resource = f'{q_resource} LIMIT 20;'
-
-    resource = pd.read_sql_query(q_resource, db_conn)
-    return resource.fhir[0]['id']
+from py_mimic_fhir.bundle import Bundle, rerun_bundle_from_file
+from py_mimic_fhir.db import get_n_patient_id, get_pat_id_with_links
+from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
+from py_mimic_fhir.validate import validate_bundle
 
 
 # ---------------- Test Functions --------------------
-
-
-def test_bundler(db_conn):
-    patient_id = get_n_patient_id(db_conn, 1)[0]
-    bundler = Bundler(patient_id, db_conn)
-    assert True
-
-
-def test_bad_bundle(db_conn):
+def test_bad_bundle(db_conn, margs):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.patient LIMIT 1
     """
@@ -64,220 +37,167 @@ def test_bad_bundle(db_conn):
     resource = pd_resources.fhir[0]
     resource['gender'] = 'FAKE CODE'  # Will cause bundle to fail
 
-    bundle = Bundle()
+    bundle = Bundle('bad_bundle')
     bundle.add_entry([resource])
-    response = bundle.request(FHIR_SERVER, err_path=FHIR_BUNDLE_ERROR_PATH)
+    response = bundle.request(margs.fhir_server, margs.err_path)
     assert response == False
 
 
-def test_patient_bundle(db_conn):
+def test_patient_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['encounter']
+    resource_list = ['encounter']  # omit patient table for this search
     patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = True  # Divide up bundles into smaller chunks
 
     # Create bundle and post it
-    bundler = Bundler(patient_id, db_conn)
-    bundler.generate_patient_bundle()
-    response = bundler.patient_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
+    response = validate_bundle('patient', patient_id, db_conn, margs)
     assert response
 
 
-def test_condition_bundle(db_conn):
+def test_condition_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['condition']
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = True  # Divide up bundles into smaller chunks
-
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
+    bundle_name = 'condition'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    #  Generate and post lab bundle
-    bundler.generate_condition_bundle()
-    response = bundler.condition_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+    validate_bundle('patient', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
 
 
-def test_procedure_bundle(db_conn):
+def test_procedure_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['procedure']
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = True  # Divide up bundles into smaller chunks
-
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
+    bundle_name = 'procedure'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    #  Generate and post lab bundle
-    bundler.generate_procedure_bundle()
-    response = bundler.procedure_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+    validate_bundle('patient', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
 
 
 # Test posting specimen resources
-def test_specimen_bundle(db_conn):
+def test_specimen_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['specimen', 'specimen_lab']
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = True
-    bundler = Bundler(patient_id, db_conn)
+    bundle_name = 'specimen'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
 
-    # Generate patient first to make sure references are good
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    #  Generate and post spec bundle
-    bundler.generate_specimen_bundle()
-    response = bundler.specimen_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
 
 
-def test_microbio_bundle(db_conn):
+def test_microbiology_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = [
-        'observation_micro_test', 'observation_micro_org',
-        'observation_micro_susc'
-    ]
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = False  #Do not want to split up micro bundles
+    bundle_name = 'microbiology'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
 
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
-
-    # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    # Generate and post specimen bundle, must do first to avoid referencing issues
-    bundler.generate_specimen_bundle()
-    bundler.specimen_bundle.request(FHIR_SERVER)
-
-    #  Generate and post micro bundle
-    bundler.generate_micro_bundle()
-    response = bundler.micro_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+    # Generate and post patient and specimen bundle, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    validate_bundle('specimen', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
 
 
-def test_lab_bundle(db_conn):
+def test_lab_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = ['observation_labevents']
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = True  # Divide up bundles into smaller chunks
+    bundle_name = 'lab'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
 
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
-
-    # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    # Generate and post specimen bundle, must do first to avoid referencing issues
-    bundler.generate_specimen_bundle()
-    bundler.specimen_bundle.request(FHIR_SERVER)
-
-    #  Generate and post lab bundle
-    bundler.generate_lab_bundle()
-    response = bundler.lab_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+    # Generate and post patient and spcimen bundle, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    validate_bundle('specimen', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
 
 
-def test_med_pat_bundle(db_conn):
+def test_med_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = [
-        'medication_request', 'medication_administration'
-    ]  # Add medication_dispense after updating IG
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = False  # Do not break up meds right now, need to test further
-
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
+    bundle_name = 'medication'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
+    validate_bundle('patient', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    assert response
 
-    #  Generate and post micro bundle
-    bundler.generate_med_bundle()
-    response = bundler.med_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+
+def test_icu_medication_bundle(db_conn, margs):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'icu_medication'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    validate_bundle('icu_encounter', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    assert response
+
+
+def test_icu_encounter_bundle(db_conn, margs):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'icu_encounter'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    assert response
+
+
+def test_icu_procedure_bundle(db_conn, margs):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'icu_procedure'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    validate_bundle('icu_encounter', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
 
 
 # Only passing a small portion of the meds here (~100)
-def test_med_data_bundle(med_data_bundle_resources):
+def test_med_data_bundle(med_data_bundle_resources, margs):
     # Can pass all meds if slicing is dropped
     resources = med_data_bundle_resources[0:100]
     split_flag = True  # Divide up bundles into smaller chunks
-    bundle = Bundle()
+    bundle = Bundle('init_medication')
     bundle.add_entry(resources)
-    response = bundle.request(FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH)
+    response = bundle.request(margs.fhir_server, margs.err_path)
     logging.error(response)
     assert response
 
 
-# Test icu base bundle that include EncounterICU and MedicationAdminstrationICU
-def test_icu_base_bundle(db_conn):
-    # Get patient_id that has resources from the resource_list
-    resource_list = [
-        'encounter_icu', 'procedure_icu', 'medication_administration_icu'
-    ]
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
+def test_med_mix_data_bundle(med_mix_data_bundle_resources, margs):
+    # Can pass all meds if slicing is dropped
+    resources = med_mix_data_bundle_resources[0:100]
     split_flag = True  # Divide up bundles into smaller chunks
-
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
-
-    # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    #  Generate and post icu base bundle
-    bundler.generate_icu_base_bundle()
-    response = bundler.icu_base_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+    bundle = Bundle('init_medication_mix')
+    bundle.add_entry(resources)
+    response = bundle.request(margs.fhir_server, margs.err_path)
+    logging.error(response)
     assert response
 
 
-def test_icu_enc_bundle_n_patients(db_conn):
-    patient_ids = get_n_patient_id(db_conn, 2)
-    split_flag = True  # Flag to subdivide bundles to speed up posting
+def test_med_bundle_n_patients(db_conn, margs):
+    patient_ids = get_n_patient_id(db_conn, 1)
 
     # Create bundle and post it
     result = True
     for patient_id in patient_ids:
-        bundler = Bundler(patient_id, db_conn)
-        bundler.generate_icu_enc_bundle()
-        response = bundler.icu_enc_bundle.request(
-            FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-        )
+        # Generate and post patient bundle, must do first to avoid referencing issues
+        validate_bundle('patient', patient_id, db_conn, margs)
+        response = validate_bundle('medication', patient_id, db_conn, margs)
 
         if response == False:
             result = False
@@ -285,30 +205,14 @@ def test_icu_enc_bundle_n_patients(db_conn):
 
 
 # Test all observation resources coming out of the ICU
-def test_icu_observation_bundle(db_conn):
+def test_icu_observation_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    resource_list = [
-        'observation_datetimeevents', 'observation_outputevents',
-        'observation_chartevents'
-    ]
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
-    split_flag = True  # Flag to subdivide bundles to speed up posting
+    bundle_name = 'icu_observation'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
 
-    # Create bundle
-    bundler = Bundler(patient_id, db_conn)
-
-    # Generate and post patient bundle, must do first to avoid referencing issues
-    bundler.generate_patient_bundle()
-    bundler.patient_bundle.request(FHIR_SERVER)
-
-    # Generate and post icu enc bundle to avoid referencing issues
-    bundler.generate_icu_enc_bundle()
-    bundler.icu_enc_bundle.request(FHIR_SERVER)
-
-    #  Generate and post icu observation bundle
-    bundler.generate_icu_obs_bundle()
-    response = bundler.icu_obs_bundle.request(
-        FHIR_SERVER, split_flag, FHIR_BUNDLE_ERROR_PATH
-    )
-    logging.error(patient_id)
+    # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    validate_bundle('icu_encounter', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response

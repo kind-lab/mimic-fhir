@@ -32,24 +32,27 @@ base_path = Path(MIMIC_TERMINOLOGY_PATH)
 version = '0.1.1'  # Need to change version to trigger expansion (does not need to be greater just different)
 
 codesystems = [
-    'admission-class', 'admission-type', 'admission-type-icu', 'admit-source',
-    'bodysite', 'd-items', 'd-labitems', 'diagnosis-icd9', 'diagnosis-icd10',
-    'discharge-disposition', 'lab-flags', 'medadmin-category-icu',
-    'medication-method', 'medication-route', 'medication-site',
-    'microbiology-antibiotic', 'microbiology-interpretation',
-    'microbiology-organism', 'microbiology-test', 'observation-category',
-    'procedure-category', 'procedure-icd9', 'procedure-icd10', 'units'
+    'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
+    'bodysite', 'd_items', 'd_labitems', 'diagnosis_icd9',
+    'discharge_disposition', 'identifier_type', 'lab_flags', 'lab_fluid',
+    'lab_priority', 'medadmin_category_icu', 'medication_icu',
+    'medication_formulary_drug_cd', 'medication_method', 'medication_mix',
+    'medication_name', 'medication_poe_iv', 'medication_route',
+    'medication_site', 'microbiology_antibiotic', 'microbiology_interpretation',
+    'microbiology_organism', 'microbiology_test', 'observation_category',
+    'procedure_category', 'procedure_icd9', 'procedure_icd10', 'spec_type_desc',
+    'units'
 ]
 
 valuesets = [
-    'admission-class', 'admission-type', 'admission-type-icu', 'admit-source',
-    'bodysite', 'chartevents-d-items', 'datetime-d-items', 'd-labitems',
-    'diagnosis-icd', 'discharge-disposition', 'lab-flags',
-    'medadmin-category-icu', 'medication-method', 'medication-route',
-    'medication-site', 'microbiology-antibiotic', 'microbiology-interpretation',
-    'microbiology-organism', 'microbiology-test', 'observation-category',
-    'outputevents-d-items', 'procedure-category', 'procedure-d-items',
-    'procedure-icd', 'units'
+    'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
+    'bodysite', 'chartevents_d_items', 'd_labitems', 'datetimeevents_d_items',
+    'diagnosis_icd', 'discharge_disposition', 'identifier_type', 'lab_flags',
+    'lab_priority', 'medadmin_category_icu', 'medication', 'medication_method',
+    'medication_route', 'medication_site', 'microbiology_antibiotic',
+    'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
+    'observation_category', 'outputevents_d_items', 'procedure_category',
+    'procedureevents_d_items', 'procedure_icd', 'specimen_type', 'units'
 ]
 
 for codesystem in codesystems:

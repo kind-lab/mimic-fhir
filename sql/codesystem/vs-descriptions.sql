@@ -8,7 +8,7 @@ CREATE TABLE fhir_trm.vs_descriptions(
 
 INSERT INTO fhir_trm.vs_descriptions(valueset, description)
 VALUES
-  ('admission_class', 'The admission class for MIMIC')
+    ('admission_class', 'The admission class for MIMIC')
     , ('admission_type', 'The admission type for MIMIC')
     , ('admission_type_icu', 'The admission type for ICU encounters in MIMIC')
     , ('admit_source', 'The admission source for MIMIC')
@@ -23,6 +23,7 @@ VALUES
     , ('lab_flags', 'The lab alarm flags for abnormal lab events in MIMIC')
     , ('lab_priority', 'The priority of the lab item in MIMIC')   
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
+    , ('medication', 'All medication codesystems combined for MIMIC. Contains medication-formulary-drug-cd, medication-ndc, medication-name, medication-mix, medication-poe-iv, medication-icu')
     , ('medication_method', 'The medication delivery method for MIMIC')
     , ('medication_route', 'The medication route during administration for MIMIC')
     , ('medication_site', 'The medication site for administration in MIMIC')

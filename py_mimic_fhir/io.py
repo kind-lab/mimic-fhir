@@ -21,18 +21,11 @@ logger = logging.getLogger(__name__)
 def export_all_resources(fhir_server, output_path, limit=10000):
     result_dict = {}
 
-    # REMOVE ONCE MEDICATION BRANCH COMPLETE!!!
-    bypass_profiles = [
-        'Medication', 'MedicationRequest', 'MedicationDispense',
-        'MedicationAdministration', 'MedicationAdministrationICU'
-    ]
-
     # Export each resource based on its profile name
     for profile in MIMIC_FHIR_PROFILE_NAMES:
-        if profile not in bypass_profiles:
-            logger.info(f'Export {profile}')
-            result = export_resource(profile, fhir_server, output_path, limit)
-            result_dict[profile] = result
+        logger.info(f'Export {profile}')
+        result = export_resource(profile, fhir_server, output_path, limit)
+        result_dict[profile] = result
 
     if False in result_dict.values():
         logger.error(f'Result dictionary: {result_dict}')
@@ -118,6 +111,7 @@ def write_exported_resource_to_ndjson(
     # Check if any resources were found in the export call
     if 'output' not in resp_poll_json:
         logger.error(f'No matching {profile} resources found on the server')
+        logger.error(resp_poll.text)
         return False
 
     # Delete the file if it exists since all writing will be appended in the next step

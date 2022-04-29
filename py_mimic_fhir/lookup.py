@@ -83,7 +83,9 @@ MIMIC_CODESYSTEMS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
     'bodysite', 'd_items', 'd_labitems', 'diagnosis_icd9',
     'discharge_disposition', 'identifier_type', 'lab_flags', 'lab_fluid',
-    'lab_priority', 'medadmin_category_icu', 'medication_method',
+    'lab_priority', 'medadmin_category_icu', 'medication_icu',
+    'medication_formulary_drug_cd', 'medication_method', 'medication_mix',
+    'medication_name', 'medication_ndc', 'medication_poe_iv',
     'medication_route', 'medication_site', 'microbiology_antibiotic',
     'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
     'observation_category', 'procedure_category', 'procedure_icd9',
@@ -94,7 +96,7 @@ MIMIC_VALUESETS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
     'bodysite', 'chartevents_d_items', 'd_labitems', 'datetimeevents_d_items',
     'diagnosis_icd', 'discharge_disposition', 'identifier_type', 'lab_flags',
-    'lab_priority', 'medadmin_category_icu', 'medication_method',
+    'lab_priority', 'medadmin_category_icu', 'medication', 'medication_method',
     'medication_route', 'medication_site', 'microbiology_antibiotic',
     'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
     'observation_category', 'outputevents_d_items', 'procedure_category',
@@ -105,7 +107,9 @@ VALUESETS_CODED = [
     'chartevents_d_items', 'datetimeevents_d_items', 'outputevents_d_items',
     'procedureevents_d_items'
 ]
-VALUESETS_DOUBLE_SYSTEM = ['procedure_icd', 'diagnosis_icd', 'specimen_type']
+VALUESETS_DOUBLE_SYSTEM = [
+    'procedure_icd', 'diagnosis_icd', 'medication', 'specimen_type'
+]
 
 # ValueSets that are full encapulsation of the CodeSystem
 VALUESETS_CANONICAL = [
@@ -116,3 +120,31 @@ VALUESETS_CANONICAL = [
     'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
     'observation_category', 'procedure_category', 'units'
 ]
+
+# ORDER MATTERS!!
+# The patient bundle must be first and the icu_encounter bundle must be before all other icu bundles
+MIMIC_BUNDLE_TABLE_LIST = {
+    'patient': ['patient', 'encounter'],
+    'procedure': ['procedure'],
+    'condition': ['condition'],
+    'specimen': ['specimen', 'specimen_lab'],
+    'lab': ['observation_labevents'],
+    'microbiology':
+        [
+            'observation_micro_test', 'observation_micro_org',
+            'observation_micro_susc'
+        ],
+    'medication':
+        [
+            'medication_request', 'medication_dispense',
+            'medication_administration'
+        ],
+    'icu_encounter': ['encounter_icu'],
+    'icu_medication': ['medication_administration_icu'],
+    'icu_procedure': ['procedure_icu'],
+    'icu_observation':
+        [
+            'observation_chartevents', 'observation_datetimeevents',
+            'observation_outputevents'
+        ]
+}

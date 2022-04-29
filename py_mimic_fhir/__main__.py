@@ -28,6 +28,12 @@ class EnvDefault(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
+class MimicArgs():
+    def __init__(self, fhir_server, err_path):
+        self.fhir_server = fhir_server
+        self.err_path = err_path
+
+
 def dir_path(string):
     return Path(string)
 
@@ -63,7 +69,7 @@ def parse_arguments(arguments=None):
     parser.add_argument(
         '--host',
         action=EnvDefault,
-        envvar='HOST',
+        envvar='DBHOST',
         help='Database Host',
         required=True
     )
@@ -86,6 +92,13 @@ def parse_arguments(arguments=None):
         action=EnvDefault,
         envvar='MIMIC_FHIR_LOG_PATH',
         help='Export Resources',
+        required=True
+    )
+    parser.add_argument(
+        '--err_path',
+        action=EnvDefault,
+        envvar='FHIR_BUNDLE_ERROR_PATH',
+        help='Error log file path for bundles',
         required=True
     )
     # More for debugging, output to console
@@ -132,6 +145,12 @@ def parse_arguments(arguments=None):
         type=float,
         default=1,
         help='Number of patients'
+    )
+    arg_validate.add_argument(
+        '--init',
+        required=False,
+        action='store_true',
+        help='Initialize hapi fhir with data bundles'
     )
 
     # Export - can be run separate from validation
@@ -181,7 +200,8 @@ def parse_arguments(arguments=None):
 
 # Validate all resources for user specified number of patients
 def validate(args):
-    validation_result = validate_n_patients(args)
+    margs = MimicArgs(args.fhir_server, args.err_path)
+    validation_result = validate_n_patients(args, margs)
     if validation_result == True:
         logger.info('Validation successful')
     else:
@@ -207,7 +227,6 @@ def terminology(args):
 # Logger can be written out to file or stdout, user chooses
 def set_logger(log_path, stdout=False):
     if stdout:
-        print('getting here')
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
@@ -215,6 +234,10 @@ def set_logger(log_path, stdout=False):
             force=True
         )
     else:
+        # create log folder if it does not exist
+        if not os.path.isdir(log_path):
+            os.mkdir(log_path)
+
         day_of_week = datetime.now().strftime('%A').lower()
         logging.basicConfig(
             filename=f'{log_path}log_mimic_fhir_{day_of_week}.log',

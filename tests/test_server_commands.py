@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import pytest
-from py_mimic_fhir.bundle import get_resource_by_id
+from py_mimic_fhir.db import get_resource_by_id
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
@@ -93,6 +93,13 @@ def test_medadmin_validation(validator, medadmin_resource):
 
 def test_medadmin_icu_validation(validator, medadmin_icu_resource):
     result = validate_resource(validator, medadmin_icu_resource)
+    assert result
+
+
+def test_medication_dispense_validation(
+    validator, medication_dispense_resource
+):
+    result = validate_resource(validator, medication_dispense_resource)
     assert result
 
 

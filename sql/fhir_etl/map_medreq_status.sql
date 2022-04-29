@@ -9,13 +9,14 @@ INSERT INTO fhir_etl.map_medreq_status
 	(mimic_status, fhir_status)
 VALUES 
 	('Discontinued via patient discharge', 'completed'),
-	('Inactive (Due to a change order)', 'ended'),
+	('Inactive (Due to a change order)', 'stopped'),
 	('TPN Order (Acknowledged, Not Pumped)', 'draft'),
 	('U', 'unknown'),
-	('Expired', 'ended'),
+	('Expired', 'stopped'),
 	('Active', 'active'),
 	('Discontinued', 'completed'),
-	('H', 'unknown')
+	('H', 'unknown'),
+	('Inactive',  'stopped') -- just FOR poe order_status
 	
 
 	

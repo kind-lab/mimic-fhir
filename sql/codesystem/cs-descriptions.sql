@@ -22,7 +22,13 @@ VALUES
     , ('lab_fluid', 'The lab fluid that is captured for the specimen')
     , ('lab_priority', 'The priority of the lab item in MIMIC')    
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
+    , ('medication_formulary_drug_cd', 'Medication formulary drug codes for use in prescriptions and emar')
+    , ('medication_icu', 'All medication found in the ICU, derived from mimic_icu.d_items')   
     , ('medication_method', 'The medication delivery method for MIMIC')
+    , ('medication_mix', 'Medication mixes consisting of prescription with multiple formulary drug codes')
+    , ('medication_name', 'The standard medication name used in MIMIC. Used in pharmacy, prescriptions, and emar')
+    , ('medication_ndc', 'Medication National Drug Codes (NDC) for use in prescriptions') 
+    , ('medication_poe_iv', 'The IV medication that is ordered through POE')
     , ('medication_route', 'The medication route during administration for MIMIC')
     , ('medication_site', 'The medication site for administration in MIMIC')
     , ('microbiology_antibiotic', 'The microbiology antibiotic being tested on an organism in MIMIC')
@@ -35,4 +41,3 @@ VALUES
     , ('procedure_icd10', 'The procedure ICD10 codes for MIMIC')
     , ('spec_type_desc', 'The specimen type codes for microbiologyevents')
     , ('units', 'The units used throughout MIMIC')
-
