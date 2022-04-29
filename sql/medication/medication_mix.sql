@@ -1,5 +1,6 @@
 -- Purpose: Generate a FHIR Medication mix from prescriptions table
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
+-- No medication.code set since there is no one code that encapsulates the medication. Medicaiton are stored in ingredients
 
 DROP TABLE IF EXISTS mimic_fhir.medication_mix;
 CREATE TABLE mimic_fhir.medication_mix(
@@ -38,9 +39,6 @@ WITH medication_identifier AS (
         -- format of medication mixes will be MAIN-BASE-ADDITIVE if all drug_types are present
         -- Multiple additives are allowed, so these are ordered alphabetically 
         , STRING_AGG(mid.med_id, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) AS medmix_id   
-        
-        -- Use drug name here to make medmix code more readable
-       , STRING_AGG(pr.drug , '_' ORDER BY pr.drug_type DESC, pr.drug  ASC) AS medmix_code  
     FROM 
         mimic_hosp.prescriptions pr
         LEFT JOIN medication_identifier mid
@@ -55,8 +53,7 @@ WITH medication_identifier AS (
         COUNT(mid.med_id) > 1
 ), fhir_medication_mix  AS (
     SELECT 
-        TRIM(REGEXP_REPLACE(mix.medmix_code, '\s+', ' ', 'g')) AS mix_MEDMIX_CODE
-        , uuid_generate_v5(ns_medication.uuid, mix.medmix_id) AS medmix_UUID      
+        uuid_generate_v5(ns_medication.uuid, mix.medmix_id) AS medmix_UUID      
         , pr_INGREDIENTS
     FROM 
         medication_mix mix
@@ -74,12 +71,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
             )
         ) 
-        , 'code', jsonb_build_object(
-            'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-mix'  
-                , 'code', mix_MEDMIX_CODE
-            ))
-        )   
         , 'ingredient', pr_INGREDIENTS
     )) AS fhir 
 FROM

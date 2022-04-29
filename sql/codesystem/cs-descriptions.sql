@@ -25,7 +25,7 @@ VALUES
     , ('medication_formulary_drug_cd', 'Medication formulary drug codes for use in prescriptions and emar')
     , ('medication_icu', 'All medication found in the ICU, derived from mimic_icu.d_items')   
     , ('medication_method', 'The medication delivery method for MIMIC')
-    , ('medication_mix', 'Medication mixes consisting of prescription with multiple formulary drug codes')
+    , ('medication_method_icu', 'The medication delivery method used in the ICU for MIMIC')
     , ('medication_name', 'The standard medication name used in MIMIC. Used in pharmacy, prescriptions, and emar')
     , ('medication_ndc', 'Medication National Drug Codes (NDC) for use in prescriptions') 
     , ('medication_poe_iv', 'The IV medication that is ordered through POE')

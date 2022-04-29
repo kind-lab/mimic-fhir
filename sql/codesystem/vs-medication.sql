@@ -11,7 +11,6 @@ INSERT INTO fhir_trm.vs_medication (system)
 VALUES
     ('http://fhir.mimic.mit.edu/CodeSystem/medication-formulary-drug-cd')
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-icu')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-mix')
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-name')
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-ndc')    
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv')

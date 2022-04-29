@@ -89,6 +89,9 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Microbiology Test
 \i codesystem/cs-microbiology-test.sql
 
+\echo Specimen Type Desc
+\i codeystem/cs-spec-type-desc.sql
+
 
 -- ICD CodeSystems procedure/diagnosis
 \echo Diagnosis ICD9
@@ -134,6 +137,10 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 -- Medication
 \echo Medication ValueSet
 \i codesystem/vs-medication.sql
+
+--Specimen
+\echo Specimen Type 
+\i codesystem/vs-specimen-type.sql
 
 -- ICD Valuesets
 \echo Diagnosis ICD
