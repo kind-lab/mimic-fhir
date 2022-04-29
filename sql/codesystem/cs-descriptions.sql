@@ -23,6 +23,7 @@ VALUES
     , ('lab_priority', 'The priority of the lab item in MIMIC')    
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
     , ('medication_formulary_drug_cd', 'Medication formulary drug codes for use in prescriptions and emar')
+    , ('medication_frequency', 'The medication frequency reported for medication delivery in MIMIC')
     , ('medication_icu', 'All medication found in the ICU, derived from mimic_icu.d_items')   
     , ('medication_method', 'The medication delivery method for MIMIC')
     , ('medication_method_icu', 'The medication delivery method used in the ICU for MIMIC')
