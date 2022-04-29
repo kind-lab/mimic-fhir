@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 import json
 
-from py_mimic_fhir import db
+from py_mimic_fhir.db import connect_db, get_table
 from py_mimic_fhir.lookup import (
     MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED,
     VALUESETS_DOUBLE_SYSTEM, VALUESETS_CANONICAL
@@ -30,19 +30,15 @@ class TerminologyMetaData():
         self.set_vs_descriptions(db_conn)
 
     def set_cs_descriptions(self, db_conn):
-        self.cs_descriptions = db.get_table(
-            db_conn, 'fhir_trm', 'cs_descriptions'
-        )
+        self.cs_descriptions = get_table(db_conn, 'fhir_trm', 'cs_descriptions')
 
     def set_vs_descriptions(self, db_conn):
-        self.vs_descriptions = db.get_table(
-            db_conn, 'fhir_trm', 'vs_descriptions'
-        )
+        self.vs_descriptions = get_table(db_conn, 'fhir_trm', 'vs_descriptions')
 
 
 # Master terminology function. Creates all CodeSystems and ValueSets
 def generate_all_terminology(args):
-    db_conn = db.db_conn(
+    db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
     meta = TerminologyMetaData(db_conn, args.version, args.status)
@@ -79,7 +75,7 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
     ]['description'].iloc[0]
 
     # Generate code/display combos from the fhir_trm table
-    df_codesystem = db.get_table(db_conn, 'fhir_trm', f'cs_{mimic_codesystem}')
+    df_codesystem = get_table(db_conn, 'fhir_trm', f'cs_{mimic_codesystem}')
     concept = generate_concept(df_codesystem)
     codesystem.concept = concept
 
@@ -107,7 +103,7 @@ def generate_valueset(mimic_valueset, db_conn, meta):
     if mimic_valueset in VALUESETS_CODED:
         logger.info('coded valueset')
         # Generate code/display combos from the fhir_trm tables
-        df_valueset = db.get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
+        df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
         include_dict = {}
         # Only coded values right now are d-items valuesets, would need to change system otherwise
         include_dict['system'] = f'{meta.base_url}CodeSystem/d-items'
@@ -122,7 +118,7 @@ def generate_valueset(mimic_valueset, db_conn, meta):
         logger.info('double system valueset')
 
         # Grab systems from fhir_trm table
-        df_valueset = db.get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
+        df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
 
         include_list = []
         for sys in df_valueset.system:
