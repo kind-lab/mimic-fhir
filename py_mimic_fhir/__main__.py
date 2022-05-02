@@ -28,12 +28,6 @@ class EnvDefault(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
-class MimicArgs():
-    def __init__(self, fhir_server, err_path):
-        self.fhir_server = fhir_server
-        self.err_path = err_path
-
-
 def dir_path(string):
     return Path(string)
 
