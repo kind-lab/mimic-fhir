@@ -6,7 +6,7 @@ import logging
 import pandas as pd
 from pathlib import Path
 
-from py_mimic_fhir.validate import validate_n_patients, revalidate_bad_bundles
+from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
 from py_mimic_fhir.config import MimicArgs
@@ -147,6 +147,13 @@ def parse_arguments(arguments=None):
         help='Rerun any failed bundles'
     )
 
+    arg_validate.add_argument(
+        '--cores',
+        type=int,
+        default=1,
+        help='Number of cores to use when validating'
+    )
+
     # Export - can be run separate from validation
     arg_export = subparsers.add_parser(
         "export", help=("Export options for mimic-fhir data")
@@ -214,7 +221,8 @@ def validate(args):
     if args.rerun:
         validation_result = revalidate_bad_bundles(args, margs)
     else:
-        validation_result = validate_n_patients(args, margs)
+        multiprocess_validate(args, margs)
+        #validation_result = validate_n_patients(args, margs)
 
     if validation_result == True:
         logger.info('Validation successful')
@@ -222,7 +230,7 @@ def validate(args):
         logger.error('Validation failed')
 
     # Only export if validation is successful
-    if validation_result == True and args.export == True:
+    if args.export == True:
         export_all_resources(
             args.fhir_server, args.output_path, args.export_limit
         )

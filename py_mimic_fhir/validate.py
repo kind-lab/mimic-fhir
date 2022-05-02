@@ -4,12 +4,51 @@ import logging
 import shutil
 import os
 import json
+import multiprocessing as mp
 from datetime import datetime
 from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id
 from py_mimic_fhir.bundle import Bundle, get_n_resources
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST, MIMIC_DATA_BUNDLE_LIST
 
 logger = logging.getLogger(__name__)
+
+
+def multiprocess_validate(args, margs):
+    num_workers = args.cores
+    max_workers = mp.cpu_count()
+    if num_workers > max_workers:
+        num_workers = max_workers
+
+    pool = mp.Pool(num_workers)
+    logger.info('in multiproces validate!')
+    logger.info(f'num workers: {num_workers}')
+
+    db_conn = connect_db(
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+    )
+
+    if args.init:
+        init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
+
+    patient_ids = get_n_patient_id(db_conn, args.num_patients)
+    logger.info(f'Patient ids: {patient_ids}')
+    for patient_id in patient_ids:
+        pool.apply_async(func_before_validate, args=(patient_id, args, margs))
+
+    logger.info('after processes')
+    pool.close()
+    pool.join()
+
+
+def func_before_validate(patient_id, args, margs):
+    try:
+        db_conn = connect_db(
+            args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+        )
+        logger.info(f'---- Patient id: {patient_id} ----')
+        validate_all_bundles(patient_id, db_conn, margs)
+    except Exception as e:
+        logger.error(e)
 
 
 # Validate n patients and all their associated resources
