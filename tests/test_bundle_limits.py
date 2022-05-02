@@ -84,13 +84,22 @@ def test_bundle_multiple_lab_resources(db_conn, margs):
     assert result
 
 
-def test_largest_bundle():
+def test_largest_bundle(db_conn, margs):
     # Bundle is 44,277 resources!
     # Ran for ~20 minutes without finishing...
     # I was posting 1000 resources in 6 seconds, so ~44,000 should be about 5 minutes...
     # Keep playing with this
     patient_id = '77e10fd0-6a1c-5547-a130-fae1341acf36'
     bundle_name = 'icu_observation'
+
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    assert response
+
+
+def test_large_med_bundle(db_conn, margs):
+    # Bundle originally failed with over 6,000 resources sent
+    patient_id = 'cb70e6ae-90b1-562b-8ab0-467c65d18d5e'
+    bundle_name = 'medication_administration'
 
     response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
