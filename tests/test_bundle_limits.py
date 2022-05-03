@@ -3,7 +3,7 @@ import pytest
 import pandas as pd
 
 from py_mimic_fhir.bundle import Bundle
-from py_mimic_fhir.db import get_n_patient_id
+from py_mimic_fhir.db import get_n_patient_id, get_n_resources
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file
 
@@ -67,6 +67,22 @@ def test_post_100_resources(db_conn, margs):
     bundle = Bundle('test_100')
     bundle.add_entry(resources)
     resp = bundle.request(margs.fhir_server, margs.err_path)
+    assert resp
+
+
+def test_bundle_size(db_conn, margs):
+    bundle_size = 50
+    resources = get_n_resources(
+        db_conn, 'observation_chartevents', n_limit=1000
+    )
+    bundle = Bundle('test_1000')
+    bundle.add_entry(resources)
+    resp = bundle.request(
+        margs.fhir_server,
+        margs.err_path,
+        split_flag=True,
+        bundle_size=bundle_size
+    )
     assert resp
 
 
