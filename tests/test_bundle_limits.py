@@ -47,7 +47,7 @@ def test_n_patient_bundles_all_resources(db_conn, margs):
 
 
 def test_rerun_bundle(db_conn, margs):
-    day_of_week = 'sunday2'  #datetime.now().strftime('%A').lower()
+    day_of_week = datetime.now().strftime('%A').lower()
     err_file = f'{margs.err_path}err-bundles-{day_of_week}.json'
     resp_list = revalidate_bundle_from_file(err_file, db_conn, margs)
 
