@@ -2,10 +2,10 @@ import os
 import pytest
 import pandas as pd
 
-from py_mimic_fhir.bundle import Bundle, rerun_bundle_from_file
+from py_mimic_fhir.bundle import Bundle
 from py_mimic_fhir.db import get_n_patient_id
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
-from py_mimic_fhir.validate import validate_all_bundles, validate_bundle
+from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file
 
 
 def test_bundle_with_lookup(db_conn, margs):
@@ -47,13 +47,13 @@ def test_n_patient_bundles_all_resources(db_conn, margs):
 
 
 def test_rerun_bundle(db_conn, margs):
-    day_of_week = datetime.now().strftime('%A').lower()
-    err_file = f'{FHIR_BUNDLE_ERROR_PATH}err-bundles-{day_of_week}.json'
-    resp = rerun_bundle_from_file(err_file, db_conn, margs.fhir_server)
+    day_of_week = 'sunday2'  #datetime.now().strftime('%A').lower()
+    err_file = f'{margs.err_path}err-bundles-{day_of_week}.json'
+    resp_list = revalidate_bundle_from_file(err_file, db_conn, margs)
 
     # If only test_bad_bundle has been run then this should pass, if other issues run then it will fail
     # If other tests have failed and written to the log, this will fail since the root causes won't be solved
-    assert resp == True
+    assert False not in resp_list
 
 
 def test_post_100_resources(db_conn, margs):

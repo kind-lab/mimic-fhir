@@ -26,6 +26,8 @@ class ErrBundle():
     def __init__(self, issue, bundle):
         self.issue = issue
         self.bundle_list = []
+        self.patient_id = bundle.patient_id
+        self.bundle_name = bundle.name
         self.set_id_list(bundle)
 
     def json(self):
@@ -62,6 +64,7 @@ class Bundle():
         self.resourceType = 'Bundle'
         self.type = 'transaction'
         self.entry = []
+        self.patient_id = None
 
     # Create bundle entry with given resources
     def add_entry(self, resources):
@@ -81,6 +84,7 @@ class Bundle():
             self.entry.append(new_entry)
 
     def generate(self, patient_id, db_conn):
+        self.patient_id = patient_id
         for table_name in self.table_list:
             resources = get_resources_by_pat(db_conn, table_name, patient_id)
             self.add_entry(resources)
@@ -100,7 +104,7 @@ class Bundle():
         bundle_size=60,  # optimal based on testing, seems small but if no links is quick!
     ):
         output = True  # True until proven false
-        if self.name in ['microbiology', 'medication']:
+        if self.name in ['microbiology', 'medication_preparation']:
             split_flag = False
 
         # Split the entry into smaller bundles to speed up posting
@@ -138,34 +142,3 @@ class Bundle():
                 logger.error(resp_text)
                 output = False
         return output
-
-
-#----------------------------------------------------------------------------
-# ---------------------- Bundle Support Functions ---------------------------
-#----------------------------------------------------------------------------
-
-
-# After changes have been made to correct bundle errors, the bundle can be rerurn from file
-def rerun_bundle_from_file(err_filename, db_conn, fhir_server):
-    bundle_result = []
-
-    with open(err_filename, 'r') as err_file:
-        for err in err_file:
-            bundle_list = json.loads(err)['bundle_list']
-            for entry in bundle_list:
-                resources = []
-
-                #drop mimic prefix from profile to get mimic table name
-                profile = entry['fhir_profile'].replace('-', '_')[6:]
-                fhir_id = entry['id']
-                resource = get_resource_by_id(db_conn, profile, fhir_id)
-                resources.append(resource)
-            bundle = Bundle()
-            bundle.add_entry(resources)
-            resp = bundle.request(fhir_server)
-            bundle_result.append(resp)
-
-    output = True
-    if False in bundle_result:
-        output = False
-    return output

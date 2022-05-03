@@ -137,11 +137,8 @@ MIMIC_BUNDLE_TABLE_LIST = {
             'observation_micro_test', 'observation_micro_org',
             'observation_micro_susc'
         ],
-    'medication':
-        [
-            'medication_request', 'medication_dispense',
-            'medication_administration'
-        ],
+    'medication_preparation': ['medication_request', 'medication_dispense'],
+    'medication_administration': ['medication_administration'],
     'icu_encounter': ['encounter_icu'],
     'icu_medication': ['medication_administration_icu'],
     'icu_procedure': ['procedure_icu'],

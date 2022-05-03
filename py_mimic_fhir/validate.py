@@ -1,7 +1,8 @@
 # Validation routines
 import pandas as pd
 import logging
-from py_mimic_fhir.db import connect_db, get_n_patient_id
+import json
+from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id
 from py_mimic_fhir.bundle import Bundle, get_n_resources
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 
@@ -69,3 +70,34 @@ def init_data_bundle(table, resources, fhir_server, err_path):
     bundle = Bundle(f'init_{table}')
     bundle.add_entry(resources)
     response = bundle.request(fhir_server, err_path)
+
+
+# After changes have been made to correct bundle errors, the bundle can be rerurn from file
+def revalidate_bundle_from_file(err_filename, db_conn, margs):
+    bundle_result = []
+
+    with open(err_filename, 'r') as err_file:
+        for err in err_file:
+            bundle_error = json.loads(err)
+            patient_id = bundle_error['patient_id']
+            bundle_name = bundle_error['bundle_name']
+            bundle_list = bundle_error['bundle_list']
+            if patient_id is not None:
+                response = validate_bundle(
+                    bundle_name, patient_id, db_conn, margs
+                )
+            else:
+                for entry in bundle_list:
+                    resources = []
+
+                    #drop mimic prefix from profile to get mimic table name
+                    profile = entry['fhir_profile'].replace('-', '_')[6:]
+                    fhir_id = entry['id']
+                    resource = get_resource_by_id(db_conn, profile, fhir_id)
+                    resources.append(resource)
+                bundle = Bundle(bundle_name)
+                bundle.add_entry(resources)
+                response = bundle.request(margs.fhir_server, margs.err_path)
+            bundle_result.append(response)
+
+    return bundle_result
