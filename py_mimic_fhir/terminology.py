@@ -106,7 +106,7 @@ def generate_valueset(mimic_valueset, db_conn, meta):
         df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
         include_dict = {}
         # Only coded values right now are d-items valuesets, would need to change system otherwise
-        include_dict['system'] = f'{meta.base_url}CodeSystem/d-items'
+        include_dict['system'] = f'{meta.base_url}/CodeSystem/d-items'
 
         # Create valueset codes
         concept = generate_concept(df_valueset)

@@ -13,6 +13,7 @@ VALUES
     , ('admission_type_icu', 'The admission type for ICU encounters in MIMIC')
     , ('admit_source', 'The admission source for MIMIC')
     , ('bodysite', 'The bodysite codes for MIMIC')
+    , ('chartevents_d_items', 'The chartevents item codes used in the ICU for MIMIC')
     , ('d_items', 'The item codes used throughout the ICU in MIMIC')
     , ('d_labitems', 'The lab item codes used in MIMIC')
     , ('diagnosis_icd9', 'The diagnosis ICD9 codes for MIMIC')

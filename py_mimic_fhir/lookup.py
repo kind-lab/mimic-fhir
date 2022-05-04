@@ -81,9 +81,9 @@ MIMIC_FHIR_PROFILE_NAMES = [
 
 MIMIC_CODESYSTEMS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
-    'bodysite', 'd_items', 'd_labitems', 'diagnosis_icd9',
-    'discharge_disposition', 'identifier_type', 'lab_flags', 'lab_fluid',
-    'lab_priority', 'medadmin_category_icu', 'medication_icu',
+    'bodysite', 'chartevents_d_items', 'd_items', 'd_labitems',
+    'diagnosis_icd9', 'discharge_disposition', 'identifier_type', 'lab_flags',
+    'lab_fluid', 'lab_priority', 'medadmin_category_icu', 'medication_icu',
     'medication_formulary_drug_cd', 'medication_frequency', 'medication_method',
     'medication_method_icu', 'medication_name', 'medication_ndc',
     'medication_poe_iv', 'medication_route', 'medication_site',
@@ -106,8 +106,7 @@ MIMIC_VALUESETS = [
 ]
 
 VALUESETS_CODED = [
-    'chartevents_d_items', 'datetimeevents_d_items', 'outputevents_d_items',
-    'procedureevents_d_items'
+    'datetimeevents_d_items', 'outputevents_d_items', 'procedureevents_d_items'
 ]
 VALUESETS_DOUBLE_SYSTEM = [
     'procedure_icd', 'diagnosis_icd', 'medication', 'specimen_type'
