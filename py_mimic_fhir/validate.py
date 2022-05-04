@@ -1,7 +1,10 @@
 # Validation routines
 import pandas as pd
 import logging
+import shutil
+import os
 import json
+from datetime import datetime
 from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id
 from py_mimic_fhir.bundle import Bundle, get_n_resources
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
@@ -39,7 +42,6 @@ def validate_all_bundles(patient_id, db_conn, margs):
     response_list = []
     logger.info(f'---------- patient_id: {patient_id}')
     for name, table_list in MIMIC_BUNDLE_TABLE_LIST.items():
-        logger.info(f'{name} bundle')
         # Create bundle and post it
         bundle_response = validate_bundle(name, patient_id, db_conn, margs)
         response_list.append(bundle_response)
@@ -47,6 +49,7 @@ def validate_all_bundles(patient_id, db_conn, margs):
 
 
 def validate_bundle(name, patient_id, db_conn, margs):
+    logger.info(f'{name} bundle')
     bundle = Bundle(name, MIMIC_BUNDLE_TABLE_LIST[name])
     bundle.generate(patient_id, db_conn)
     response = bundle.request(margs.fhir_server, margs.err_path)
@@ -69,11 +72,33 @@ def init_data_bundle(table, resources, fhir_server, err_path):
     response = bundle.request(fhir_server, err_path)
 
 
+#----------------- Revalidate bad bundles ----------------------------
+def revalidate_bad_bundles(args, margs):
+    day_of_week = datetime.now().strftime('%A').lower()
+    err_filename = f'err-bundles-{day_of_week}.json'
+    db_conn = connect_db(
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+    )
+
+    response_list = revalidate_bundle_from_file(err_filename, db_conn, margs)
+    if False in response_list:
+        validation_result = False
+    else:
+        validation_result = True
+    return validation_result
+
+
 # After changes have been made to correct bundle errors, the bundle can be rerurn from file
 def revalidate_bundle_from_file(err_filename, db_conn, margs):
     bundle_result = []
 
-    with open(err_filename, 'r') as err_file:
+    #make copy of file, since new errors will be written to the same file
+    old_err_filename = f'{margs.err_path}{err_filename}'
+    new_err_filename = f'{margs.err_path}rerun-{err_filename}'
+    shutil.copy(old_err_filename, new_err_filename)
+    os.remove(old_err_filename)
+
+    with open(new_err_filename, 'r') as err_file:
         for err in err_file:
             bundle_error = json.loads(err)
             patient_id = bundle_error['patient_id']
@@ -96,5 +121,5 @@ def revalidate_bundle_from_file(err_filename, db_conn, margs):
                 bundle.add_entry(resources)
                 response = bundle.request(margs.fhir_server, margs.err_path)
             bundle_result.append(response)
-
+        #os.remove(new_err_filename) # delete rerun file after done, leave for debugging right now
     return bundle_result

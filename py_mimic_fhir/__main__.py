@@ -6,7 +6,7 @@ import logging
 import pandas as pd
 from pathlib import Path
 
-from py_mimic_fhir.validate import validate_n_patients
+from py_mimic_fhir.validate import validate_n_patients, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology
 from py_mimic_fhir.config import MimicArgs
@@ -147,6 +147,12 @@ def parse_arguments(arguments=None):
         action='store_true',
         help='Initialize hapi fhir with data bundles'
     )
+    arg_validate.add_argument(
+        '--rerun',
+        required=False,
+        action='store_true',
+        help='Rerun any failed bundles'
+    )
 
     # Export - can be run separate from validation
     arg_export = subparsers.add_parser(
@@ -196,7 +202,11 @@ def parse_arguments(arguments=None):
 # Validate all resources for user specified number of patients
 def validate(args):
     margs = MimicArgs(args.fhir_server, args.err_path)
-    validation_result = validate_n_patients(args, margs)
+    if args.rerun:
+        validation_result = revalidate_bad_bundles(args, margs)
+    else:
+        validation_result = validate_n_patients(args, margs)
+
     if validation_result == True:
         logger.info('Validation successful')
     else:

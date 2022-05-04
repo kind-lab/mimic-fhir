@@ -49,8 +49,8 @@ class ErrBundle():
         if not os.path.isdir(err_path):
             os.mkdir(err_path)
 
-        day_of_week = datetime.now().strftime('%A').lower(
-        )  # will overwrite each week
+        #overwrite each week
+        day_of_week = datetime.now().strftime('%A').lower()
         with open(f'{err_path}err-bundles-{day_of_week}.json', 'a+') as errfile:
             json.dump(self.json(), errfile)
             errfile.write('\n')
