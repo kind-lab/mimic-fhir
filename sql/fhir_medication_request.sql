@@ -154,7 +154,7 @@ SELECT
                         , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-frequency'
                     ))
                 )
-                , 'repeat', CASE WHEN ph_DURATION IS NOT NULL THEN jsonb_build_object(
+                , 'repeat', CASE WHEN ph_DURATION IS NOT NULL AND medu_FHIR_UNIT IS NOT NULL THEN jsonb_build_object(
                     'duration', ph_DURATION
                     , 'durationUnit', medu_FHIR_UNIT                                                
                 ) ELSE NULL END
@@ -172,7 +172,7 @@ SELECT
             ) ELSE NULL END
             
         ))
-        , 'dispenseRequest', CASE WHEN ph_STARTTIME IS NOT NULL THEN jsonb_build_object(
+        , 'dispenseRequest', CASE WHEN ph_STARTTIME IS NOT NULL AND (ph_STARTTIME <= ph_STOPTIME) THEN jsonb_build_object(
         	 'validityPeriod', jsonb_build_object(
                	'start', ph_STARTTIME
                	, 'end', ph_STOPTIME

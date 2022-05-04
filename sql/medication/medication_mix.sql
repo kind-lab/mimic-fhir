@@ -55,6 +55,7 @@ WITH medication_identifier AS (
     SELECT 
         uuid_generate_v5(ns_medication.uuid, mix.medmix_id) AS medmix_UUID      
         , pr_INGREDIENTS
+        , medmix_id
     FROM 
         medication_mix mix
         LEFT JOIN fhir_etl.uuid_namespace ns_medication 
@@ -66,11 +67,19 @@ SELECT
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Medication'
         , 'id', medmix_UUID
+        , 'text', jsonb_build_object(
+            'status', 'generated',
+            'div', '<div><p><b>Temporary narrative for medication mix</b></p></div>'
+        )
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
             )
         ) 
+        , 'identifier', jsonb_build_array(jsonb_build_object(
+              'value', medmix_id
+              , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-mix'
+        ))    
         , 'ingredient', pr_INGREDIENTS
     )) AS fhir 
 FROM
