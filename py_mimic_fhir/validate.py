@@ -27,9 +27,8 @@ def validate_n_patients(args, margs):
 
     # Create bundle and post it
     result = True
-    response_list = []
     for patient_id in patient_ids:
-        validate_all_bundles(patient_id, db_conn, margs)
+        response_list = validate_all_bundles(patient_id, db_conn, margs)
         if False in response_list:
             result = False
 
@@ -38,14 +37,12 @@ def validate_n_patients(args, margs):
 
 def validate_all_bundles(patient_id, db_conn, margs):
     response_list = []
+    logger.info(f'---------- patient_id: {patient_id}')
     for name, table_list in MIMIC_BUNDLE_TABLE_LIST.items():
         logger.info(f'{name} bundle')
         # Create bundle and post it
         bundle_response = validate_bundle(name, patient_id, db_conn, margs)
         response_list.append(bundle_response)
-        # bundle = Bundle(name, table_list)
-        # bundle.generate(patient_id, db_conn)
-        # response_list.append(bundle.request(fhir_server, err_path))
     return response_list
 
 

@@ -113,7 +113,7 @@ SELECT
             , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
             , 'type', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
-                    'code', 'phid'
+                    'code', 'PHID'
                     , 'display', 'Pharmacy identifier'
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
                 ))
@@ -273,7 +273,7 @@ SELECT
             , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
             , 'type', jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
-                    'code', 'poe'
+                    'code', 'POE'
                     , 'display', 'Provider Order Entry'
                     , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
                 ))

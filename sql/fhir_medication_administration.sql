@@ -170,7 +170,7 @@ SELECT
                 THEN jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
             ELSE NULL END
         , 'effectiveDateTime', em_CHARTTIME
-        , 'dosage', jsonb_build_object(
+        , 'dosage', CASE WHEN emd_DOSE_GIVEN IS NOT NULL OR emd_INFUSION_RATE IS NOT NULL THEN jsonb_build_object(
             'text', emd_DOSE_GIVEN_TEXT
             , 'site', 
                 CASE WHEN emd_SITE IS NOT NULL THEN 
@@ -190,12 +190,12 @@ SELECT
                         ))
                     )
                 ELSE NULL END
-            , 'method', jsonb_build_object(
+            , 'method', CASE WHEN em_EVENT_TXT IS NOT NULL THEN jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
                     'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method'  
                     , 'code', em_EVENT_TXT
                 ))
-            )
+            ) ELSE NULL END
             , 'dose', 
                 CASE WHEN emd_DOSE_GIVEN IS NOT NULL THEN 
                     jsonb_build_object(
@@ -215,6 +215,7 @@ SELECT
                     )   
                 ELSE NULL END
         )
+        ELSE NULL END
     )) as fhir 
 FROM
     fhir_medication_administration;

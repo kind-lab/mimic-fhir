@@ -9,6 +9,7 @@ from pathlib import Path
 from py_mimic_fhir.validate import validate_n_patients
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology
+from py_mimic_fhir.config import MimicArgs
 
 logger = logging.getLogger(__name__)
 
