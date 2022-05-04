@@ -1,9 +1,9 @@
 DROP TABLE IF EXISTS fhir_etl.map_ethnicity;
 CREATE TABLE fhir_etl.map_ethnicity(
     mimic_ethnicity         VARCHAR NOT NULL,
-    fhir_ethnicity_display  VARCHAR NOT NULL,
-    fhir_ethnicity_code     VARCHAR NOT NULL,
-    fhir_system             VARCHAR NOT NULL
+    fhir_ethnicity_display  VARCHAR,
+    fhir_ethnicity_code     VARCHAR,
+    fhir_system             VARCHAR
 );
 
 
@@ -39,7 +39,9 @@ VALUES
     ('HISPANIC/LATINO - DOMINICAN', 'Hispanic or Latino', '2135-2', 'urn:oid:2.16.840.1.113883.6.238'),
     ('SOUTH AMERICAN', 'Hispanic or Latino', '2135-2', 'urn:oid:2.16.840.1.113883.6.238'),
     ('HISPANIC/LATINO - SALVADORAN', 'Hispanic or Latino', '2135-2', 'urn:oid:2.16.840.1.113883.6.238'),
-    ('PATIENT DECLINED TO ANSWER', 'asked but unknown', 'ASKU', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'),
-    ('UNABLE TO OBTAIN', 'unknown', 'UNK', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'),
-    ('UNKNOWN', 'unknown', 'UNK', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'),
-    ('OTHER', 'unknown', 'UNK', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor');
+    
+    -- MUST BE one of 'Hispanic or Latino' or 'Not Hispanic or Latino'. Set these to null so no ethnicity extension written
+    ('PATIENT DECLINED TO ANSWER', NULL, NULL, NULL),
+    ('UNABLE TO OBTAIN', NULL, NULL, NULL),
+    ('UNKNOWN', NULL, NULL, NULL),
+    ('OTHER', NULL, NULL, NULL);

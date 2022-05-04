@@ -7,7 +7,7 @@ DECLARE
 	fhir_extension jsonb;
 BEGIN
 	SELECT
-    	CASE WHEN (race IS NOT NULL) OR (ethnicity IS NOT NULL) OR (birthsex IS NOT NULL) THEN '[' END
+    	CASE WHEN (race IS NOT NULL) OR (map_eth.fhir_ethnicity_code IS NOT NULL) OR (birthsex IS NOT NULL) THEN '[' END
         || CASE WHEN race IS NOT NULL
         	THEN jsonb_build_object(
 			  'extension', jsonb_build_array(
@@ -27,8 +27,8 @@ BEGIN
 			, 'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race' )::TEXT
             ELSE ''
          END 
-         || CASE WHEN race IS NOT NULL and ethnicity IS NOT NULL THEN ',' ELSE '' END
-         || CASE WHEN ethnicity IS NOT NULL
+         || CASE WHEN race IS NOT NULL and map_eth.fhir_ethnicity_code IS NOT NULL THEN ',' ELSE '' END
+         || CASE WHEN map_eth.fhir_ethnicity_code IS NOT NULL
         	THEN jsonb_build_object(
 			  'extension', jsonb_build_array(
                 	jsonb_build_object(
@@ -47,7 +47,7 @@ BEGIN
 			, 'url', 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity' )::TEXT
             ELSE ''
          END  
-         || CASE WHEN (race IS NOT NULL OR ethnicity IS NOT NULL) AND birthsex IS NOT NULL THEN ',' ELSE '' END
+         || CASE WHEN (race IS NOT NULL OR map_eth.fhir_ethnicity_code IS NOT NULL) AND birthsex IS NOT NULL THEN ',' ELSE '' END
          || CASE WHEN birthsex IS NOT NULL
         	THEN jsonb_build_object(
 			  'valueCode', birthsex,
