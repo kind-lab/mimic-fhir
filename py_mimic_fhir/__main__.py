@@ -8,7 +8,7 @@ from pathlib import Path
 
 from py_mimic_fhir.validate import validate_n_patients, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
-from py_mimic_fhir.terminology import generate_all_terminology
+from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
 from py_mimic_fhir.config import MimicArgs
 
 logger = logging.getLogger(__name__)
@@ -97,7 +97,7 @@ def parse_arguments(arguments=None):
         required=True
     )
 
-    # Create subparsers for validation and export
+    # Create subparsers for validation, export, and terminology
     subparsers = parser.add_subparsers(dest="actions", title="actions")
     subparsers.required = True
 
@@ -177,7 +177,7 @@ def parse_arguments(arguments=None):
         '--version',
         required=False,
         type=str,
-        default='0.4',
+        default='2.0',
         help='Version for MIMIC terminology'
     )
 
@@ -187,6 +187,22 @@ def parse_arguments(arguments=None):
         type=str,
         default='draft',
         help='Content maturity level'
+    )
+
+    arg_terminology.add_argument(
+        '--generate_and_post',
+        required=False,
+        action='store_true',
+        help=
+        'Post terminology to server, needed to fully expand valuesets with HAPI'
+    )
+
+    arg_terminology.add_argument(
+        '--post',
+        required=False,
+        action='store_true',
+        help=
+        'Post terminology to server, needed to fully expand valuesets with HAPI'
     )
 
     return parser.parse_args(arguments)
@@ -219,7 +235,13 @@ def export(args):
 
 # Generate mimic-fhir terminology systems and write out to file
 def terminology(args):
-    generate_all_terminology(args)
+    if args.post:
+        post_terminology(args)
+    elif args.generate_and_post:
+        generate_all_terminology(args)
+        post_terminology(args)
+    else:
+        generate_all_terminology(args)
 
 
 # Logger will be written out to file and stdout

@@ -149,3 +149,14 @@ def write_exported_resource_to_ndjson(
 
     result = os.path.exists(output_file) and os.path.getsize(output_file) > 0
     return result
+
+
+# PUT resources to HAPI fhir server
+def put_resource(resource, fhir_data, fhir_server):
+    url = fhir_server + resource + '/' + fhir_data['id']
+
+    resp = requests.put(
+        url, json=fhir_data, headers={"Content-Type": "application/fhir+json"}
+    )
+    output = json.loads(resp.text)
+    return output

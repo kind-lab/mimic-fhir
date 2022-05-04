@@ -3,6 +3,7 @@ from fhir.resources.valueset import ValueSet
 from datetime import datetime
 import logging
 import pandas as pd
+from pathlib import Path
 import json
 
 from py_mimic_fhir.db import connect_db, get_table
@@ -10,6 +11,7 @@ from py_mimic_fhir.lookup import (
     MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED,
     VALUESETS_DOUBLE_SYSTEM, VALUESETS_CANONICAL
 )
+from py_mimic_fhir.io import put_resource
 
 logger = logging.getLogger(__name__)
 
@@ -152,3 +154,34 @@ def write_terminology(terminology, terminology_path):
     with open(output_filename, 'w') as outfile:
         # fhir.resources uses orjson package so not compatible for json.dump alone
         json.dump(json.loads(terminology.json()), outfile, indent=4)
+
+
+#---------------- POST Terminology -------------------------------
+
+
+def post_terminology(args):
+    # Base path to resources
+    base_path = Path(args.terminology_path)
+    version = args.version
+
+    for codesystem in MIMIC_CODESYSTEMS:
+        logger.info(f'Posting CodeSystem: {codesystem}')
+        codesystem = codesystem.replace('_', '-')
+        codesystem_file = f'CodeSystem-{codesystem}.json'
+        codesystem_path = base_path / codesystem_file
+        with open(codesystem_path, mode='r') as cs_content:
+            cs = json.load(cs_content)
+
+        cs['version'] = version
+        put_resource('CodeSystem', cs, args.fhir_server)
+
+    for valueset in MIMIC_VALUESETS:
+        logger.info(f'Posting ValueSet: {valueset}')
+        valueset = valueset.replace('_', '-')
+        valueset_file = f'ValueSet-{valueset}.json'
+        valueset_path = base_path / valueset_file
+        with open(valueset_path, mode='r') as vs_content:
+            vs = json.load(vs_content)
+
+        vs['version'] = version
+        put_resource('ValueSet', vs, args.fhir_server)
