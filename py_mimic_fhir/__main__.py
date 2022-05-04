@@ -96,13 +96,6 @@ def parse_arguments(arguments=None):
         help='Error log file path for bundles',
         required=True
     )
-    # More for debugging, output to console
-    parser.add_argument(
-        '--stdout',
-        action='store_true',
-        help='Log to standard console',
-        required=False
-    )
 
     # Create subparsers for validation and export
     subparsers = parser.add_subparsers(dest="actions", title="actions")
@@ -229,35 +222,29 @@ def terminology(args):
     generate_all_terminology(args)
 
 
-# Logger can be written out to file or stdout, user chooses
-def set_logger(log_path, stdout=False):
-    if stdout:
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-            datefmt='%m/%d/%Y %H:%M:%S',
-            force=True
-        )
-    else:
-        # create log folder if it does not exist
-        if not os.path.isdir(log_path):
-            os.mkdir(log_path)
+# Logger will be written out to file and stdout
+def set_logger(log_path):
+    if not os.path.isdir(log_path):
+        os.mkdir(log_path)
 
-        day_of_week = datetime.now().strftime('%A').lower()
-        logging.basicConfig(
-            filename=f'{log_path}log_mimic_fhir_{day_of_week}.log',
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-            datefmt='%m/%d/%Y %H:%M:%S',
-            force=True
-        )
+    day_of_week = datetime.now().strftime('%A').lower()
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+        datefmt='%m/%d/%Y %H:%M:%S',
+        force=True,
+        handlers=[
+            logging.FileHandler(f'{log_path}log_mimic_fhir_{day_of_week}.log'),
+            logging.StreamHandler()
+        ]
+    )
 
 
 def main(argv=sys.argv):
     """Entry point for package."""
 
     args = parse_arguments(argv[1:])
-    set_logger(args.log_path, args.stdout)
+    set_logger(args.log_path)
     if args.actions == 'validate':
         validate(args)
     elif args.actions == 'export':
