@@ -17,6 +17,7 @@ VALUES
     , ('d_items', 'The item codes used throughout the ICU in MIMIC')
     , ('d_labitems', 'The lab item codes used in MIMIC')
     , ('diagnosis_icd9', 'The diagnosis ICD9 codes for MIMIC')
+    , ('diagnosis_icd10', 'The diagnosis ICD10 codes used for MIMIC')
     , ('discharge_disposition', 'The discharge disposition for MIMIC')
     , ('identifier_type', 'The identifier type for MIMIC')
     , ('lab_flags', 'The lab alarm flags for abnormal lab events in MIMIC')
