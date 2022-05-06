@@ -98,8 +98,17 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \i fhir_observation_labevents.sql
 \echo Chartevents D Items
 
+--microbiology
 \echo fhir_observation_micro_test
 \i fhir_observation_micro_test.sql
+
+\echo fhir_observation_micro_org
+\i fhir_observation_micro_org.sql
+
+
+\echo fhir_observation_micro_susc
+\i fhir_observation_micro_susc.sql
+
 
 \echo fhir_observation_outputevents
 \i fhir_observation_outputevents.sql

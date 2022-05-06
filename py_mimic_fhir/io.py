@@ -69,7 +69,7 @@ def send_export_resource_request(resource, profile_url, fhir_server):
 # The exported resources are stored in a binary at the polling location specified in the initial export response
 # The resource may NOT be ready when this is called, should the logic stay here to keep polling? or in parent function?
 # The ObservationChartevents resources take longer so time_max needs to be about 3 minutes!
-def get_exported_resource(resp_export, time_max=180):
+def get_exported_resource(resp_export, time_max=600):
     timeout = time.time() + time_max  # 30 seconds from now
     if resp_export.status_code == 202:
         url_content_location = resp_export.headers['Content-Location']
@@ -88,6 +88,14 @@ def get_exported_resource(resp_export, time_max=180):
         )
         if resp.status_code == 200:
             break
+        elif resp.status_code == 202:
+            # Server tells the program how long to wait till requesting again
+            # retry_after_time = int(resp.headers['Retry-After'])
+            # time.sleep(
+            #     retry_after_time  # always 120 seconds, even when not necessary...
+            # )  # need to figure out queueing system to avoid this...
+            # just sleep for 20seconds and retry
+            time.sleep(20)
         elif time.time() > timeout:
             break  # exit if data not ready after time_max time
         else:
@@ -141,3 +149,14 @@ def write_exported_resource_to_ndjson(
 
     result = os.path.exists(output_file) and os.path.getsize(output_file) > 0
     return result
+
+
+# PUT resources to HAPI fhir server
+def put_resource(resource, fhir_data, fhir_server):
+    url = fhir_server + resource + '/' + fhir_data['id']
+
+    resp = requests.put(
+        url, json=fhir_data, headers={"Content-Type": "application/fhir+json"}
+    )
+    output = json.loads(resp.text)
+    return output

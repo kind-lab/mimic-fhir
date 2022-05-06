@@ -3,13 +3,15 @@ from fhir.resources.valueset import ValueSet
 from datetime import datetime
 import logging
 import pandas as pd
+from pathlib import Path
 import json
 
-from py_mimic_fhir import db
+from py_mimic_fhir.db import connect_db, get_table
 from py_mimic_fhir.lookup import (
     MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED,
     VALUESETS_DOUBLE_SYSTEM, VALUESETS_CANONICAL
 )
+from py_mimic_fhir.io import put_resource
 
 logger = logging.getLogger(__name__)
 
@@ -30,19 +32,15 @@ class TerminologyMetaData():
         self.set_vs_descriptions(db_conn)
 
     def set_cs_descriptions(self, db_conn):
-        self.cs_descriptions = db.get_table(
-            db_conn, 'fhir_trm', 'cs_descriptions'
-        )
+        self.cs_descriptions = get_table(db_conn, 'fhir_trm', 'cs_descriptions')
 
     def set_vs_descriptions(self, db_conn):
-        self.vs_descriptions = db.get_table(
-            db_conn, 'fhir_trm', 'vs_descriptions'
-        )
+        self.vs_descriptions = get_table(db_conn, 'fhir_trm', 'vs_descriptions')
 
 
 # Master terminology function. Creates all CodeSystems and ValueSets
 def generate_all_terminology(args):
-    db_conn = db.db_conn(
+    db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
     meta = TerminologyMetaData(db_conn, args.version, args.status)
@@ -79,7 +77,7 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
     ]['description'].iloc[0]
 
     # Generate code/display combos from the fhir_trm table
-    df_codesystem = db.get_table(db_conn, 'fhir_trm', f'cs_{mimic_codesystem}')
+    df_codesystem = get_table(db_conn, 'fhir_trm', f'cs_{mimic_codesystem}')
     concept = generate_concept(df_codesystem)
     codesystem.concept = concept
 
@@ -107,10 +105,10 @@ def generate_valueset(mimic_valueset, db_conn, meta):
     if mimic_valueset in VALUESETS_CODED:
         logger.info('coded valueset')
         # Generate code/display combos from the fhir_trm tables
-        df_valueset = db.get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
+        df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
         include_dict = {}
         # Only coded values right now are d-items valuesets, would need to change system otherwise
-        include_dict['system'] = f'{meta.base_url}CodeSystem/d-items'
+        include_dict['system'] = f'{meta.base_url}/CodeSystem/d-items'
 
         # Create valueset codes
         concept = generate_concept(df_valueset)
@@ -122,7 +120,7 @@ def generate_valueset(mimic_valueset, db_conn, meta):
         logger.info('double system valueset')
 
         # Grab systems from fhir_trm table
-        df_valueset = db.get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
+        df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
 
         include_list = []
         for sys in df_valueset.system:
@@ -156,3 +154,34 @@ def write_terminology(terminology, terminology_path):
     with open(output_filename, 'w') as outfile:
         # fhir.resources uses orjson package so not compatible for json.dump alone
         json.dump(json.loads(terminology.json()), outfile, indent=4)
+
+
+#---------------- POST Terminology -------------------------------
+
+
+def post_terminology(args):
+    # Base path to resources
+    base_path = Path(args.terminology_path)
+    version = args.version
+
+    for codesystem in MIMIC_CODESYSTEMS:
+        logger.info(f'Posting CodeSystem: {codesystem}')
+        codesystem = codesystem.replace('_', '-')
+        codesystem_file = f'CodeSystem-{codesystem}.json'
+        codesystem_path = base_path / codesystem_file
+        with open(codesystem_path, mode='r') as cs_content:
+            cs = json.load(cs_content)
+
+        cs['version'] = version
+        put_resource('CodeSystem', cs, args.fhir_server)
+
+    for valueset in MIMIC_VALUESETS:
+        logger.info(f'Posting ValueSet: {valueset}')
+        valueset = valueset.replace('_', '-')
+        valueset_file = f'ValueSet-{valueset}.json'
+        valueset_path = base_path / valueset_file
+        with open(valueset_path, mode='r') as vs_content:
+            vs = json.load(vs_content)
+
+        vs['version'] = version
+        put_resource('ValueSet', vs, args.fhir_server)

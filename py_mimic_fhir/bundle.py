@@ -26,6 +26,8 @@ class ErrBundle():
     def __init__(self, issue, bundle):
         self.issue = issue
         self.bundle_list = []
+        self.patient_id = bundle.get_patient_id()
+        self.bundle_name = bundle.get_bundle_name()
         self.set_id_list(bundle)
 
     def json(self):
@@ -47,8 +49,8 @@ class ErrBundle():
         if not os.path.isdir(err_path):
             os.mkdir(err_path)
 
-        day_of_week = datetime.now().strftime('%A').lower(
-        )  # will overwrite each week
+        #overwrite each week
+        day_of_week = datetime.now().strftime('%A').lower()
         with open(f'{err_path}err-bundles-{day_of_week}.json', 'a+') as errfile:
             json.dump(self.json(), errfile)
             errfile.write('\n')
@@ -56,12 +58,19 @@ class ErrBundle():
 
 # FHIR bundle class with options to add entries and send requests to the server
 class Bundle():
-    def __init__(self, name, table_list=[]):
-        self.name = name
+    def __init__(self, name, table_list=[], patient_id=None):
+        self.bundle_name = name
         self.table_list = table_list
         self.resourceType = 'Bundle'
         self.type = 'transaction'
         self.entry = []
+        self.patient_id = patient_id
+
+    def get_patient_id(self):
+        return self.patient_id
+
+    def get_bundle_name(self):
+        return self.bundle_name
 
     # Create bundle entry with given resources
     def add_entry(self, resources):
@@ -81,14 +90,16 @@ class Bundle():
             self.entry.append(new_entry)
 
     def generate(self, patient_id, db_conn):
+        self.patient_id = patient_id
         for table_name in self.table_list:
             resources = get_resources_by_pat(db_conn, table_name, patient_id)
             self.add_entry(resources)
 
     def json(self):
-        bundle_json = self.__dict__
-        bundle_json.pop('name')
+        bundle_json = self.__dict__.copy()
+        bundle_json.pop('bundle_name')
         bundle_json.pop('table_list')
+        bundle_json.pop('patient_id')
         return bundle_json
 
     # Send request out to HAPI server, validates on the server
@@ -100,7 +111,7 @@ class Bundle():
         bundle_size=60,  # optimal based on testing, seems small but if no links is quick!
     ):
         output = True  # True until proven false
-        if self.name in ['microbiology', 'medication']:
+        if self.bundle_name in ['microbiology', 'medication_preparation']:
             split_flag = False
 
         # Split the entry into smaller bundles to speed up posting
@@ -115,7 +126,11 @@ class Bundle():
                 resources = [entry['resource'] for entry in entries]
 
                 # Recreate smaller bundles and post
-                bundle = Bundle(self.name, self.table_list)
+                bundle = Bundle(
+                    self.bundle_name,
+                    self.table_list,
+                    patient_id=self.patient_id
+                )
                 bundle.add_entry(resources)
                 output_temp = bundle.request(
                     fhir_server, err_path=err_path, split_flag=False
@@ -132,40 +147,10 @@ class Bundle():
             resp_text = json.loads(resp.text)
             if resp_text['resourceType'] == 'OperationOutcome':
                 #write out error bundles!
+                logger.error(f'------------ bundle_name: {self.bundle_name}')
                 errbundle = ErrBundle(resp_text['issue'], self)
                 errbundle.write(err_path)
 
                 logger.error(resp_text)
                 output = False
         return output
-
-
-#----------------------------------------------------------------------------
-# ---------------------- Bundle Support Functions ---------------------------
-#----------------------------------------------------------------------------
-
-
-# After changes have been made to correct bundle errors, the bundle can be rerurn from file
-def rerun_bundle_from_file(err_filename, db_conn, fhir_server):
-    bundle_result = []
-
-    with open(err_filename, 'r') as err_file:
-        for err in err_file:
-            bundle_list = json.loads(err)['bundle_list']
-            for entry in bundle_list:
-                resources = []
-
-                #drop mimic prefix from profile to get mimic table name
-                profile = entry['fhir_profile'].replace('-', '_')[6:]
-                fhir_id = entry['id']
-                resource = get_resource_by_id(db_conn, profile, fhir_id)
-                resources.append(resource)
-            bundle = Bundle()
-            bundle.add_entry(resources)
-            resp = bundle.request(fhir_server)
-            bundle_result.append(resp)
-
-    output = True
-    if False in bundle_result:
-        output = False
-    return output

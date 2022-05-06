@@ -89,6 +89,9 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Microbiology Test
 \i codesystem/cs-microbiology-test.sql
 
+\echo Specimen Type Desc
+\i codeystem/cs-spec-type-desc.sql
+
 
 -- ICD CodeSystems procedure/diagnosis
 \echo Diagnosis ICD9
@@ -108,6 +111,10 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo D Items
 \i codesystem/cs-d-items.sql
 
+-- create separate chartevents since it won't load properly from valueset in hapi
+\echo Chartevents D Items
+\i codesystem/cs-chartevents-d-items.sql
+
 
 -- General CodeSystems
 \echo Observation Category
@@ -118,9 +125,7 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 
 
 -- ValueSets
-\echo =========================== fhir_trm ValueSets ====================================
-\echo Chartevents D Items
-\i codesystem/vs-chartevents-d-items.sql
+\echo =========================== fhir_trm ValueSets ===================================
 
 \echo Datetimeevents D Items
 \i codesystem/vs-datetimeevents-d-items.sql
@@ -134,6 +139,10 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 -- Medication
 \echo Medication ValueSet
 \i codesystem/vs-medication.sql
+
+--Specimen
+\echo Specimen Type 
+\i codesystem/vs-specimen-type.sql
 
 -- ICD Valuesets
 \echo Diagnosis ICD

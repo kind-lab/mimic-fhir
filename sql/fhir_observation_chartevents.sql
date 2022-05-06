@@ -65,7 +65,7 @@ SELECT
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/chartevents-d-items'
                 , 'code', ce_ITEMID
                 , 'display', di_LABEL
             ))

@@ -12,15 +12,12 @@ WITH fhir_condition AS (
     SELECT
         diag.hadm_id || '-' || diag.seq_num || '-' || diag.icd_code as diag_IDENTIFIER
         --, TRIM(diag.icd_code) AS diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
-        , CASE WHEN diag.icd_version = 10 AND length(diag.icd_code) > 3
-            THEN CONCAT(LEFT(diag.icd_code,3),'.',RIGHT(diag.icd_code, length(diag.icd_code)-3))
-            ELSE TRIM(diag.icd_code)
-        END AS diag_ICD_CODE
+        , TRIM(diag.icd_code) AS diag_ICD_CODE
         , icd.long_title AS icd_LONG_TITLE
         , diag.icd_version AS diag_ICD_VERSION
         , CASE WHEN diag.icd_version = 9 
             THEN 'http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9' 
-            ELSE 'http://hl7.org/fhir/sid/icd-10-cm'
+            ELSE 'http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10'
         END AS diag_ICD_SYSTEM
             
   

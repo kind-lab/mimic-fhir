@@ -22,7 +22,7 @@ import pandas as pd
 from datetime import datetime
 
 #from fhir.resources.bundle import Bundle
-from py_mimic_fhir.bundle import Bundle, rerun_bundle_from_file
+from py_mimic_fhir.bundle import Bundle
 from py_mimic_fhir.db import get_n_patient_id, get_pat_id_with_links
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 from py_mimic_fhir.validate import validate_bundle
@@ -37,7 +37,7 @@ def test_bad_bundle(db_conn, margs):
     resource = pd_resources.fhir[0]
     resource['gender'] = 'FAKE CODE'  # Will cause bundle to fail
 
-    bundle = Bundle('bad_bundle')
+    bundle = Bundle(name='bad_bundle')
     bundle.add_entry([resource])
     response = bundle.request(margs.fhir_server, margs.err_path)
     assert response == False
@@ -116,9 +116,21 @@ def test_lab_bundle(db_conn, margs):
     assert response
 
 
-def test_med_bundle(db_conn, margs):
+def test_med_prep_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
-    bundle_name = 'medication'
+    bundle_name = 'medication_preparation'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs)
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    assert response
+
+
+def test_med_admin_bundle(db_conn, margs):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'medication_administration'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
@@ -189,6 +201,17 @@ def test_med_mix_data_bundle(med_mix_data_bundle_resources, margs):
     assert response
 
 
+def test_med_data_bundle(med_data_bundle_resources, margs):
+    # Can pass all meds if slicing is dropped
+    resources = med_data_bundle_resources[0:100]
+    split_flag = True  # Divide up bundles into smaller chunks
+    bundle = Bundle('init_medication_data')
+    bundle.add_entry(resources)
+    response = bundle.request(margs.fhir_server, margs.err_path)
+    logging.error(response)
+    assert response
+
+
 def test_med_bundle_n_patients(db_conn, margs):
     patient_ids = get_n_patient_id(db_conn, 1)
 
@@ -197,9 +220,16 @@ def test_med_bundle_n_patients(db_conn, margs):
     for patient_id in patient_ids:
         # Generate and post patient bundle, must do first to avoid referencing issues
         validate_bundle('patient', patient_id, db_conn, margs)
-        response = validate_bundle('medication', patient_id, db_conn, margs)
+        response1 = validate_bundle(
+            'medication_preparation', patient_id, db_conn, margs
+        )
+        response2 = validate_bundle(
+            'medication_administration', patient_id, db_conn, margs
+        )
 
-        if response == False:
+        if response1 & response2:
+            result = True
+        else:
             result = False
     assert result
 

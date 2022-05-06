@@ -122,7 +122,8 @@ SELECT
                 ) 
             ELSE NULL END
         , 'valueString', 
-            CASE WHEN lab_VALUENUM IS NULL THEN lab_VALUE    
+            CASE WHEN lab_VALUENUM IS NULL AND lab_VALUE IS NOT NULL THEN lab_VALUE 
+                 WHEN lab_VALUENUM IS NULL AND lab_VALUE IS NULL THEN lab_COMMENTS                 
             ELSE NULL END      
         , 'interpretation', 
             CASE WHEN lab_FLAG IS NOT NULL THEN

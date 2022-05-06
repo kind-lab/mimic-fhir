@@ -6,9 +6,10 @@ import logging
 import pandas as pd
 from pathlib import Path
 
-from py_mimic_fhir.validate import validate_n_patients
+from py_mimic_fhir.validate import validate_n_patients, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
-from py_mimic_fhir.terminology import generate_all_terminology
+from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
+from py_mimic_fhir.config import MimicArgs
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +27,6 @@ class EnvDefault(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, values)
-
-
-class MimicArgs():
-    def __init__(self, fhir_server, err_path):
-        self.fhir_server = fhir_server
-        self.err_path = err_path
 
 
 def dir_path(string):
@@ -101,15 +96,8 @@ def parse_arguments(arguments=None):
         help='Error log file path for bundles',
         required=True
     )
-    # More for debugging, output to console
-    parser.add_argument(
-        '--stdout',
-        action='store_true',
-        help='Log to standard console',
-        required=False
-    )
 
-    # Create subparsers for validation and export
+    # Create subparsers for validation, export, and terminology
     subparsers = parser.add_subparsers(dest="actions", title="actions")
     subparsers.required = True
 
@@ -152,6 +140,12 @@ def parse_arguments(arguments=None):
         action='store_true',
         help='Initialize hapi fhir with data bundles'
     )
+    arg_validate.add_argument(
+        '--rerun',
+        required=False,
+        action='store_true',
+        help='Rerun any failed bundles'
+    )
 
     # Export - can be run separate from validation
     arg_export = subparsers.add_parser(
@@ -183,7 +177,7 @@ def parse_arguments(arguments=None):
         '--version',
         required=False,
         type=str,
-        default='0.4',
+        default='2.0',
         help='Version for MIMIC terminology'
     )
 
@@ -195,13 +189,33 @@ def parse_arguments(arguments=None):
         help='Content maturity level'
     )
 
+    arg_terminology.add_argument(
+        '--generate_and_post',
+        required=False,
+        action='store_true',
+        help=
+        'Post terminology to server, needed to fully expand valuesets with HAPI'
+    )
+
+    arg_terminology.add_argument(
+        '--post',
+        required=False,
+        action='store_true',
+        help=
+        'Post terminology to server, needed to fully expand valuesets with HAPI'
+    )
+
     return parser.parse_args(arguments)
 
 
 # Validate all resources for user specified number of patients
 def validate(args):
     margs = MimicArgs(args.fhir_server, args.err_path)
-    validation_result = validate_n_patients(args, margs)
+    if args.rerun:
+        validation_result = revalidate_bad_bundles(args, margs)
+    else:
+        validation_result = validate_n_patients(args, margs)
+
     if validation_result == True:
         logger.info('Validation successful')
     else:
@@ -221,38 +235,38 @@ def export(args):
 
 # Generate mimic-fhir terminology systems and write out to file
 def terminology(args):
-    generate_all_terminology(args)
-
-
-# Logger can be written out to file or stdout, user chooses
-def set_logger(log_path, stdout=False):
-    if stdout:
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-            datefmt='%m/%d/%Y %H:%M:%S',
-            force=True
-        )
+    if args.post:
+        post_terminology(args)
+    elif args.generate_and_post:
+        generate_all_terminology(args)
+        post_terminology(args)
     else:
-        # create log folder if it does not exist
-        if not os.path.isdir(log_path):
-            os.mkdir(log_path)
+        generate_all_terminology(args)
 
-        day_of_week = datetime.now().strftime('%A').lower()
-        logging.basicConfig(
-            filename=f'{log_path}log_mimic_fhir_{day_of_week}.log',
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-            datefmt='%m/%d/%Y %H:%M:%S',
-            force=True
-        )
+
+# Logger will be written out to file and stdout
+def set_logger(log_path):
+    if not os.path.isdir(log_path):
+        os.mkdir(log_path)
+
+    day_of_week = datetime.now().strftime('%A').lower()
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+        datefmt='%m/%d/%Y %H:%M:%S',
+        force=True,
+        handlers=[
+            logging.FileHandler(f'{log_path}log_mimic_fhir_{day_of_week}.log'),
+            logging.StreamHandler()
+        ]
+    )
 
 
 def main(argv=sys.argv):
     """Entry point for package."""
 
     args = parse_arguments(argv[1:])
-    set_logger(args.log_path, args.stdout)
+    set_logger(args.log_path)
     if args.actions == 'validate':
         validate(args)
     elif args.actions == 'export':

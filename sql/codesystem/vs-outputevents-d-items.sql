@@ -13,4 +13,4 @@ SELECT DISTINCT
     itemid AS code
     , label AS display
 FROM mimic_icu.d_items 
-WHERE linksto = 'datetimeevents'
+WHERE linksto = 'outputevents'

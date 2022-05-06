@@ -11,8 +11,14 @@ INSERT INTO mimic_fhir.organization
 SELECT 
     uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center') AS id
     , jsonb_build_object(
-        'resourceType', 'Organization',
-        'identifier', jsonb_build_array(json_build_object(
+        'resourceType', 'Organization'
+        , 'id', uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720')
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-organization'
+            )
+        ) 
+        , 'identifier', jsonb_build_array(json_build_object(
             'system', 'http://hl7.org/fhir/sid/us-npi'
             , 'value', '1194052720'
         ))
@@ -24,7 +30,7 @@ SELECT
             ))
         )) 
         , 'name', 'Beth Israel Deaconess Medical Center'
-        , 'id', uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720')
+        , 'active', True
     ) AS fhir
 FROM fhir_etl.uuid_namespace ns_organization 
 WHERE name = 'Organization'

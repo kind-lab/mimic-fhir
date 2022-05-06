@@ -118,14 +118,14 @@ SELECT
                   , 'code', ph_ROUTE
               ))
             )
-            , 'timing', jsonb_build_object(
-                'code', jsonb_build_object(
+            , 'timing', jsonb_build_object(                
+                'code', CASE WHEN ph_FREQUENCY IS NOT NULL THEN  jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
                         'code', ph_FREQUENCY
                         , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-frequency'
                     ))
-                )
-                , 'repeat', CASE WHEN ph_DURATION IS NOT NULL THEN jsonb_build_object(
+                ) ELSE NULL END
+                , 'repeat', CASE WHEN ph_DURATION IS NOT NULL AND medu_FHIR_UNIT IS NOT NULL THEN jsonb_build_object(
                     'duration', ph_DURATION
                     , 'durationUnit', medu_FHIR_UNIT                  
                 ) ELSE NULL END
