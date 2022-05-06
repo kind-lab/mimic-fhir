@@ -10,4 +10,3 @@ INSERT INTO fhir_trm.vs_diagnosis_icd (system)
 VALUES
     ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9')
     , ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10');
-    
