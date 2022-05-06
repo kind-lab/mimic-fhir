@@ -90,10 +90,10 @@ def get_exported_resource(resp_export, time_max=600):
             break
         elif resp.status_code == 202:
             # Server tells the program how long to wait till requesting again
-            retry_after_time = int(resp.headers['Retry-After'])
-            time.sleep(
-                retry_after_time  # always 120 seconds, even when not necessary...
-            )  # need to figure out queueing system to avoid this...
+            # retry_after_time = int(resp.headers['Retry-After'])
+            # time.sleep(
+            #     retry_after_time  # always 120 seconds, even when not necessary...
+            # )  # need to figure out queueing system to avoid this...
             # just sleep for 20seconds and retry
             time.sleep(20)
         elif time.time() > timeout:
