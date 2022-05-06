@@ -20,6 +20,12 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Discharge Disposition
 \i codesystem/cs-discharge-disposition.sql
 
+\echo Transfer Type
+\i codesystem/cs-transfer-type.sql
+
+\echo Careunit
+\i codesystem/cs-careunit.sql
+
 
 -- Lab CodeSystems
 \echo Lab Flags

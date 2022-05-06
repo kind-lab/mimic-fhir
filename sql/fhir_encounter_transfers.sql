@@ -15,7 +15,8 @@ WITH fhir_encounter_transfers AS (
     SELECT 
         transfer_id AS transfers_TRANSFER_ID
         , CAST(intime AS TIMESTAMPTZ) AS transfers_INTIME
-        , CAST(outtime AS TIMESTAMPTZ) AS transfers_OUTTIME        
+        , CAST(outtime AS TIMESTAMPTZ) AS transfers_OUTTIME   
+        , careunit AS transfers_CAREUNIT
     
         -- UUID identifiers
         , uuid_generate_v5(ns_patient.uuid, CAST(tfr.subject_id AS TEXT)) AS subject_id_UUID
@@ -43,20 +44,41 @@ SELECT
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'Encounter'
         , 'id', transfers_UUID
+        , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-transfers'
+            )
+        ) 
+         , 'identifier', jsonb_build_array(jsonb_build_object(
+                'value', transfers_TRANSFER_ID
+                , 'system', 'http://fhir.mimic.mit.edu/identifier/encounter-transfers'
+        ))  
         , 'status', 'finished' -- ALL transfers encounters assumed finished
         , 'class', jsonb_build_object(
             'code', 'IMP'
             , 'display', 'inpatient patient'
             , 'system', 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
         )
-        --, 'type', 'TO BE IMPLEMENTED'
-        --, 'serviceType', 'TO BE IMPLEMENTED' -- may need mapping
+        , 'type', jsonb_build_array(jsonb_build_object(
+            'coding', jsonb_build_array(jsonb_build_object(
+                'code', 'transfer encounter'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/transfer-type'
+            ))
+        ))
+        , 'serviceType', CASE WHEN transfers_CAREUNIT IS NOT NULL THEN
+            jsonb_build_object(
+                'coding', jsonb_build_array(jsonb_build_object(
+                    'code', transfers_CAREUNIT
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/careunit'
+                ))
+            )
+        ELSE NULL END
         , 'period', jsonb_build_object(
             'start', transfers_INTIME
             , 'end', transfers_OUTTIME        
         )
-        , 'subject', 
-        , 'serviceProvider', jsonb_build_object('reference', 'Patient/' || subject_id_UUID)
+        , 'subject',  jsonb_build_object('reference', 'Patient/' || subject_id_UUID)
+        , 'serviceProvider', 
             CASE WHEN careunit_UUID IS NOT NULL 
                 THEN jsonb_build_object('reference', 'Organization/' || careunit_UUID)
             ELSE NULL END
