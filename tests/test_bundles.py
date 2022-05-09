@@ -43,6 +43,15 @@ def test_bad_bundle(db_conn, margs):
     assert response == False
 
 
+def test_organization_bundle(organization_bundle_resources, margs):
+    resources = organization_bundle_resources
+    bundle = Bundle('init_organization_data')
+    bundle.add_entry(resources)
+    response = bundle.request(margs.fhir_server, margs.err_path)
+    logging.error(response)
+    assert response
+
+
 def test_patient_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
     resource_list = ['encounter']  # omit patient table for this search
@@ -116,6 +125,28 @@ def test_lab_bundle(db_conn, margs):
     assert response
 
 
+def test_med_data_bundle(med_data_bundle_resources, margs):
+    # Can pass all meds if slicing is dropped
+    resources = med_data_bundle_resources[0:100]
+    split_flag = True  # Divide up bundles into smaller chunks
+    bundle = Bundle('init_medication_data')
+    bundle.add_entry(resources)
+    response = bundle.request(margs.fhir_server, margs.err_path)
+    logging.error(response)
+    assert response
+
+
+def test_med_mix_data_bundle(med_mix_data_bundle_resources, margs):
+    # Can pass all meds if slicing is dropped
+    resources = med_mix_data_bundle_resources[0:100]
+    split_flag = True  # Divide up bundles into smaller chunks
+    bundle = Bundle('init_medication_mix')
+    bundle.add_entry(resources)
+    response = bundle.request(margs.fhir_server, margs.err_path)
+    logging.error(response)
+    assert response
+
+
 def test_med_prep_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'medication_preparation'
@@ -184,28 +215,6 @@ def test_med_data_bundle(med_data_bundle_resources, margs):
     resources = med_data_bundle_resources[0:100]
     split_flag = True  # Divide up bundles into smaller chunks
     bundle = Bundle('init_medication')
-    bundle.add_entry(resources)
-    response = bundle.request(margs.fhir_server, margs.err_path)
-    logging.error(response)
-    assert response
-
-
-def test_med_mix_data_bundle(med_mix_data_bundle_resources, margs):
-    # Can pass all meds if slicing is dropped
-    resources = med_mix_data_bundle_resources[0:100]
-    split_flag = True  # Divide up bundles into smaller chunks
-    bundle = Bundle('init_medication_mix')
-    bundle.add_entry(resources)
-    response = bundle.request(margs.fhir_server, margs.err_path)
-    logging.error(response)
-    assert response
-
-
-def test_med_data_bundle(med_data_bundle_resources, margs):
-    # Can pass all meds if slicing is dropped
-    resources = med_data_bundle_resources[0:100]
-    split_flag = True  # Divide up bundles into smaller chunks
-    bundle = Bundle('init_medication_data')
     bundle.add_entry(resources)
     response = bundle.request(margs.fhir_server, margs.err_path)
     logging.error(response)

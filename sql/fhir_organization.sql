@@ -54,6 +54,11 @@ SELECT
     careunit_UUID AS id
     , jsonb_build_object(
         'resourceType', 'Organization'
+         , 'meta', jsonb_build_object(
+            'profile', jsonb_build_array(
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-organization'
+            )
+        ) 
         , 'id', careunit_UUID
         , 'type', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
@@ -66,6 +71,7 @@ SELECT
         , 'partOf', jsonb_build_object(
             'reference', 'Organization/' || bidmc_UUID
         )
+        , 'active', True
     ) AS fhir
 FROM fhir_organization;
  

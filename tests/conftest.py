@@ -137,6 +137,12 @@ def encounter_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'encounter')
 
 
+# Return a single encounter transfers resource
+@pytest.fixture(scope="session")
+def encounter_transfers_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'encounter_transfers')
+
+
 # Return a single condition resource
 @pytest.fixture(scope="session")
 def condition_resource(validator, db_conn):
@@ -284,6 +290,12 @@ def med_data_bundle_resources(db_conn):
 @pytest.fixture(scope="session")
 def med_mix_data_bundle_resources(db_conn):
     resources = get_n_resources(db_conn, 'medication_mix')
+    return resources
+
+
+@pytest.fixture(scope="session")
+def organization_bundle_resources(db_conn):
+    resources = get_n_resources(db_conn, 'organization')
     return resources
 
 

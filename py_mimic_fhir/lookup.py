@@ -5,6 +5,8 @@ MIMIC_FHIR_PROFILE_URL = {
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-condition',
     'Encounter':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter',
+    'EncounterTransfers':
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-transfers',
     'EncounterICU':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-icu',
     'Medication':
@@ -48,6 +50,7 @@ MIMIC_FHIR_PROFILE_URL = {
 MIMIC_FHIR_RESOURCES = {
     'Condition': 'Condition',
     'Encounter': 'Encounter',
+    'EncounterTransfers': 'Encounter',
     'EncounterICU': 'Encounter',
     'Medication': 'Medication',
     'MedicationAdministration': 'MedicationAdministration',
@@ -70,7 +73,7 @@ MIMIC_FHIR_RESOURCES = {
 }
 
 MIMIC_FHIR_PROFILE_NAMES = [
-    'Condition', 'Encounter', 'EncounterICU', 'Medication',
+    'Condition', 'Encounter', 'EncounterTranfers', 'EncounterICU', 'Medication',
     'MedicationAdministration', 'MedicationAdministrationICU',
     'MedicationDispense', 'MedicationRequest', 'ObservationChartevents',
     'ObservationDatetimeevents', 'ObservationLabevents', 'ObservationMicroTest',
@@ -116,18 +119,18 @@ VALUESETS_DOUBLE_SYSTEM = [
 # ValueSets that are full encapulsation of the CodeSystem
 VALUESETS_CANONICAL = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
-    'bodysite', 'd_labitems', 'discharge_disposition', 'identifier_type',
-    'lab_flags', 'lab_priority', 'medadmin_category_icu', 'medication_method',
-    'medication_method_icu', 'medication_route', 'medication_site',
-    'microbiology_antibiotic', 'microbiology_interpretation',
+    'bodysite', 'careunit', 'd_labitems', 'discharge_disposition',
+    'identifier_type', 'lab_flags', 'lab_priority', 'medadmin_category_icu',
+    'medication_method', 'medication_method_icu', 'medication_route',
+    'medication_site', 'microbiology_antibiotic', 'microbiology_interpretation',
     'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'units'
+    'procedure_category', 'transfer_type', 'units'
 ]
 
 # ORDER MATTERS!!
 # The patient bundle must be first and the icu_encounter bundle must be before all other icu bundles
 MIMIC_BUNDLE_TABLE_LIST = {
-    'patient': ['patient', 'encounter'],
+    'patient': ['patient', 'encounter', 'encounter_transfers'],
     'procedure': ['procedure'],
     'condition': ['condition'],
     'specimen': ['specimen', 'specimen_lab'],
