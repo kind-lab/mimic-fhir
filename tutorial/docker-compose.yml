@@ -4,6 +4,8 @@ services:
     image: aehrc/pathling:5
     ports:
       - 8080:8080
+    environment:
+      pathling.cors.allowedOrigins: http://localhost:3000
     volumes:
       - pathling:/usr/share/warehouse
       - /home/me/data:/usr/share/staging
