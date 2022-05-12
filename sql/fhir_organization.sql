@@ -35,4 +35,3 @@ SELECT
     ) AS fhir
 FROM fhir_etl.uuid_namespace ns_organization 
 WHERE name = 'Organization';
- 

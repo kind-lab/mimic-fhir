@@ -9,11 +9,11 @@ CREATE TABLE mimic_fhir.location(
 
 WITH fhir_location AS (
     SELECT DISTINCT 
-        careunit AS tfrs_CAREUNIT
+        careunit AS tfr_CAREUNIT
         , uuid_generate_v5(ns_location.uuid, careunit) AS uuid_CAREUNIT 
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS bidmc_UUID
     FROM
-        mimic_core.transfers tfrs
+        mimic_core.transfers tfr
         LEFT JOIN fhir_etl.uuid_namespace ns_location
             ON ns_location.name = 'Location'
         LEFT JOIN fhir_etl.uuid_namespace ns_organization
@@ -31,7 +31,7 @@ SELECT
                 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-location'
             )
         ) 
-        , 'name', tfrs_CAREUNIT
+        , 'name', tfr_CAREUNIT
         , 'physicalType', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/location-physical-type'
@@ -43,4 +43,4 @@ SELECT
         , 'managingOrganization', jsonb_build_object('reference', 'Organization/' || bidmc_UUID)
     )) as fhir
 FROM 
-    fhi_location
+    fhir_location

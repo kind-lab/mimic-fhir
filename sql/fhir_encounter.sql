@@ -39,7 +39,7 @@ WITH transfer_locations AS (
         , CAST(adm.dischtime AS TIMESTAMPTZ) AS adm_DISCHTIME
         , adm.admission_location AS adm_ADMISSION_LOCATION  		
         , adm.discharge_location AS adm_DISCHARGE_LOCATION  
-        , loc.location_array AS loc_LOCATION_ARRAY
+        , tfr.location_array AS tfr_LOCATION_ARRAY
   	
         -- reference uuids
         , uuid_generate_v5(ns_encounter.uuid, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -49,8 +49,8 @@ WITH transfer_locations AS (
         mimic_core.admissions adm
         INNER JOIN fhir_etl.subjects sub
             ON adm.subject_id = sub.subject_id 
-        LEFT JOIN transfer_locations loc
-            ON adm.hadm_id = loc.hadm_id
+        LEFT JOIN transfer_locations tfr
+            ON adm.hadm_id = tfr.hadm_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient	
@@ -111,7 +111,7 @@ SELECT
                     ))                
                 ) ELSE NULL END
         )   
-        , 'location', loc_LOCATION_ARRAY
+        , 'location', tfr_LOCATION_ARRAY
         , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
     )) AS fhir
 FROM 

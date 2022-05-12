@@ -153,4 +153,6 @@ MIMIC_BUNDLE_TABLE_LIST = {
         ]
 }
 
-DATA_BUNDLE_LIST = ['medication', 'medication_mix', 'organization', 'location']
+MIMIC_DATA_BUNDLE_LIST = [
+    'medication', 'medication_mix', 'organization', 'location'
+]
