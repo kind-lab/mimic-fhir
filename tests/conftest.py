@@ -149,6 +149,12 @@ def encounter_icu_resource(validator, db_conn):
     return initialize_single_resource(validator, db_conn, 'encounter_icu')
 
 
+# Return a single location resource
+@pytest.fixture(scope="session")
+def location_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'location')
+
+
 # Return a single medication administration resource
 @pytest.fixture(scope="session")
 def medadmin_resource(validator, db_conn):
@@ -270,7 +276,7 @@ def specimen_lab_resource(validator, db_conn):
 
 
 #----------------------------------------------------------------
-#----------------- BUNDLE RESOURCES -----------------------------
+#----------------- DATA BUNDLE RESOURCES -----------------------------
 #----------------------------------------------------------------
 
 
@@ -284,6 +290,18 @@ def med_data_bundle_resources(db_conn):
 @pytest.fixture(scope="session")
 def med_mix_data_bundle_resources(db_conn):
     resources = get_n_resources(db_conn, 'medication_mix')
+    return resources
+
+
+@pytest.fixture(scope="session")
+def organization_bundle_resources(db_conn):
+    resources = get_n_resources(db_conn, 'organization')
+    return resources
+
+
+@pytest.fixture(scope="session")
+def location_bundle_resources(db_conn):
+    resources = get_n_resources(db_conn, 'location')
     return resources
 
 

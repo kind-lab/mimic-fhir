@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id
 from py_mimic_fhir.bundle import Bundle, get_n_resources
-from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
+from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST, MIMIC_DATA_BUNDLE_LIST
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ def validate_bundle(name, patient_id, db_conn, margs):
 
 # Post data bundles before patient bundles. This includes Organization and Medication
 def init_data_bundles(db_conn, fhir_server, err_path):
-    data_tables = ['medication', 'medication_mix', 'organization']
+    data_tables = MIMIC_DATA_BUNDLE_LIST
     logger.info('----------- Initializing Data Tables ------------')
     for table in data_tables:
         logger.info(f'{table} data being uploaded to HAPI')

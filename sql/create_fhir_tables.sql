@@ -45,6 +45,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fhir_organization
 \i fhir_organization.sql
 
+\echo fhir_location
+\i fhir_location.sql
+
 -- patient tracking resources
 \echo fhir_patient
 \i fhir_patient.sql

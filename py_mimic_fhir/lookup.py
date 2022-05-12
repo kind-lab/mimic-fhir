@@ -5,8 +5,12 @@ MIMIC_FHIR_PROFILE_URL = {
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-condition',
     'Encounter':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter',
+    'EncounterTransfers':
+        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-transfers',
     'EncounterICU':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-icu',
+    'Location':
+        '',
     'Medication':
         'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication',
     'MedicationAdministration':
@@ -49,6 +53,7 @@ MIMIC_FHIR_RESOURCES = {
     'Condition': 'Condition',
     'Encounter': 'Encounter',
     'EncounterICU': 'Encounter',
+    'Location': 'Location',
     'Medication': 'Medication',
     'MedicationAdministration': 'MedicationAdministration',
     'MedicationAdministrationICU': 'MedicationAdministration',
@@ -70,7 +75,7 @@ MIMIC_FHIR_RESOURCES = {
 }
 
 MIMIC_FHIR_PROFILE_NAMES = [
-    'Condition', 'Encounter', 'EncounterICU', 'Medication',
+    'Condition', 'Encounter', 'EncounterICU', 'Location', 'Medication',
     'MedicationAdministration', 'MedicationAdministrationICU',
     'MedicationDispense', 'MedicationRequest', 'ObservationChartevents',
     'ObservationDatetimeevents', 'ObservationLabevents', 'ObservationMicroTest',
@@ -81,7 +86,7 @@ MIMIC_FHIR_PROFILE_NAMES = [
 
 MIMIC_CODESYSTEMS = [
     'admission_class', 'admission_type', 'admission_type_icu', 'admit_source',
-    'bodysite', 'chartevents_d_items', 'd_items', 'd_labitems',
+    'bodysite', 'careunit', 'chartevents_d_items', 'd_items', 'd_labitems',
     'diagnosis_icd9', 'diagnosis_icd10', 'discharge_disposition',
     'identifier_type', 'lab_flags', 'lab_fluid', 'lab_priority',
     'medadmin_category_icu', 'medication_icu', 'medication_formulary_drug_cd',
@@ -147,3 +152,7 @@ MIMIC_BUNDLE_TABLE_LIST = {
             'observation_outputevents'
         ]
 }
+
+MIMIC_DATA_BUNDLE_LIST = [
+    'medication', 'medication_mix', 'organization', 'location'
+]

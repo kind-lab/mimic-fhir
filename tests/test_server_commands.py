@@ -85,6 +85,10 @@ def test_encounter_icu_validation(validator, encounter_icu_resource):
     result = validate_resource(validator, encounter_icu_resource)
     assert result
 
+def test_location_validation(validator, location_resource):
+    result = validate_resource(validator, location_resource)
+    assert result
+
 
 def test_medadmin_validation(validator, medadmin_resource):
     result = validate_resource(validator, medadmin_resource)

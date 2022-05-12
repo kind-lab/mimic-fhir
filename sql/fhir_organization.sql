@@ -1,4 +1,4 @@
--- Purpose: Generate a FHIR Organization resource for BIDMC
+-- Purpose: Generate a FHIR Organization resource for BIDMC organization
 -- Method:  Organization identifiers from NPI system
 
 DROP TABLE IF EXISTS mimic_fhir.organization;
@@ -7,6 +7,7 @@ CREATE TABLE mimic_fhir.organization(
     fhir    jsonb NOT NULL 
 );
 
+-- BIDMC top level organization
 INSERT INTO mimic_fhir.organization
 SELECT 
     uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center') AS id
@@ -33,5 +34,4 @@ SELECT
         , 'active', True
     ) AS fhir
 FROM fhir_etl.uuid_namespace ns_organization 
-WHERE name = 'Organization'
- 
+WHERE name = 'Organization';
