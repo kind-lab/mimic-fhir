@@ -8,47 +8,38 @@ CREATE TABLE mimic_fhir.encounter(
     fhir        jsonb NOT NULL 
 );
 
-/*WITH tb_diagnoses AS (
-    SELECT 
-  		adm.hadm_id 
-        ,  jsonb_agg(
-          		jsonb_build_object(
-                  	'condition', jsonb_build_object(
-                      		'reference', 'Condition/' || uuid_generate_v5(ns_condition.uuid, adm.hadm_id || '-' || diag.seq_num ||'-' || diag.icd_code)
-                      )
-                    , 'rank', seq_num -- order that diagnoses were assigned to a subject
-                    
-                    -- All diagnoses are set for billing purposes
-                    , 'use', jsonb_build_object(
-			         		'coding', jsonb_build_array(json_build_object(
-			                	'system', 'http://terminology.hl7.org/CodeSystem/diagnosis-role'
-			                	, 'code', 'billing'
-			                ))
-			           )
+-- Store the careunit transfer history
+WITH transfer_locations AS (
+     SELECT 
+        hadm_id
+        , jsonb_agg(
+            jsonb_build_object(
+                'location', jsonb_build_object(
+                    'reference', 'Location/' || uuid_generate_v5(ns_location.uuid, careunit)
                 ) 
-          ORDER BY seq_num ASC) AS fhir_DIAGNOSES
-  
-    FROM
-		mimic_core.admissions adm
-		INNER JOIN fhir_etl.subjects sub
-  			ON adm.subject_id = sub.subject_id 
-		INNER JOIN mimic_hosp.diagnoses_icd diag
-			ON adm.hadm_id = diag.hadm_id
-		LEFT JOIN fhir_etl.uuid_namespace ns_condition 	
-			ON ns_condition.name = 'Condition'
-    GROUP BY
-        adm.hadm_id
-  		, ns_condition.uuid
-), */
-WITH fhir_encounter AS (
+                , 'period', jsonb_build_object(
+                    'start', CAST(tfr.intime AS TIMESTAMPTZ)
+                    , 'end', CAST(tfr.outtime AS TIMESTAMPTZ)
+                )
+            )
+        ORDER BY intime) AS location_array
+    FROM 
+        mimic_core.transfers tfr 
+        INNER JOIN fhir_etl.subjects sub
+            ON tfr.subject_id = sub.subject_id
+        LEFT JOIN fhir_etl.uuid_namespace ns_location
+            ON ns_location.name = 'Location'
+    WHERE tfr.careunit IS NOT NULL 
+    GROUP BY hadm_id    
+), fhir_encounter AS (
     SELECT 
         CAST(adm.hadm_id AS TEXT) AS adm_HADM_ID	
         , adm.admission_type AS adm_ADMISSION_TYPE
         , CAST(adm.admittime AS TIMESTAMPTZ) AS adm_ADMITTIME
         , CAST(adm.dischtime AS TIMESTAMPTZ) AS adm_DISCHTIME
         , adm.admission_location AS adm_ADMISSION_LOCATION  		
-        , adm.discharge_location AS adm_DISCHARGE_LOCATION  		
-        --, diag.fhir_DIAGNOSES AS fhir_DIAGNOSES
+        , adm.discharge_location AS adm_DISCHARGE_LOCATION  
+        , loc.location_array AS loc_LOCATION_ARRAY
   	
         -- reference uuids
         , uuid_generate_v5(ns_encounter.uuid, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -58,8 +49,8 @@ WITH fhir_encounter AS (
         mimic_core.admissions adm
         INNER JOIN fhir_etl.subjects sub
             ON adm.subject_id = sub.subject_id 
-        --LEFT JOIN tb_diagnoses diag
-        --	ON adm.hadm_id = diag.hadm_id
+        LEFT JOIN transfer_locations loc
+            ON adm.hadm_id = loc.hadm_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient	
@@ -119,8 +110,8 @@ SELECT
                         , 'code', adm_DISCHARGE_LOCATION
                     ))                
                 ) ELSE NULL END
-        )        
-        --, 'diagnosis', fhir_DIAGNOSES 
+        )   
+        , 'location', loc_LOCATION_ARRAY
         , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
     )) AS fhir
 FROM 

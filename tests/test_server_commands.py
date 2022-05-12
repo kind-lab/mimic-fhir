@@ -81,15 +81,12 @@ def test_encounter_validation(validator, encounter_resource):
     assert result
 
 
-def test_encounter_transfers_validation(
-    validator, encounter_transfers_resource
-):
-    result = validate_resource(validator, encounter_transfers_resource)
-    assert result
-
-
 def test_encounter_icu_validation(validator, encounter_icu_resource):
     result = validate_resource(validator, encounter_icu_resource)
+    assert result
+
+def test_location_validation(validator, location_resource):
+    result = validate_resource(validator, location_resource)
     assert result
 
 

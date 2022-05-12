@@ -74,6 +74,15 @@ def test_condition_bundle(db_conn, margs):
     assert response
 
 
+def test_location_bundle(location_bundle_resources, margs):
+    resources = location_bundle_resources
+    bundle = Bundle('init_location_data')
+    bundle.add_entry(resources)
+    response = bundle.request(margs.fhir_server, margs.err_path)
+    logging.error(response)
+    assert response
+
+
 def test_procedure_bundle(db_conn, margs):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'procedure'

@@ -13,7 +13,6 @@ VALUES
     , ('admission_type_icu', 'The admission type for ICU encounters in MIMIC')
     , ('admit_source', 'The admission source for MIMIC')
     , ('bodysite', 'The bodysite codes for MIMIC')
-    , ('careunit', 'The careunits present at BIDMC used in MIMIC')
     , ('chartevents_d_items', 'The item codes for chartevents used in MIMIC')   
     , ('d_items', 'The item codes used throughout the ICU in MIMIC')
     , ('d_labitems', 'The lab item codes used in MIMIC')
@@ -40,5 +39,4 @@ VALUES
     , ('procedure_icd', 'The procedure ICD9 and ICD10 codes for MIMIC')
     , ('procedureevents_d_items', 'The procedure item codes used in the ICU for MIMIC')
     , ('specimen_type', 'The specimen type codes for both lab and micro specimen for MIMIC')
-    , ('transfer_type', 'Encounter transfer type')
     , ('units', 'The units used throughout MIMIC')
