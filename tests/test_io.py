@@ -114,6 +114,15 @@ def test_export_condition():
     assert result
 
 
+def test_export_location():
+    resource_type = 'Location'
+    limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
+    result = io.export_resource(
+        resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
+    )
+    assert result
+
+
 def test_export_observation_micro_test():
     profile = 'ObservationMicroTest'
     limit = 1  #Just export 1 binary ndjson for the resource (~1000 resources)
