@@ -11,14 +11,17 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Admission Type
 \i codesystem/cs-admission-type.sql
 
-\echo Admission Type ICU
-\i codesystem/cs-admission-type-icu.sql
-
 \echo Admit Source
 \i codesystem/cs-admit-source.sql
 
 \echo Discharge Disposition
 \i codesystem/cs-discharge-disposition.sql
+
+\echo HCPCS Codes
+\i codesystem/cs-hcpcs-cd.sql
+
+\echo Services
+\i codesystem/cs-services.sql
 
 -- Lab CodeSystems
 \echo Lab Flags
@@ -134,6 +137,10 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 
 \echo Procedureevents D Items
 \i codesystem/vs-procedureevents-d-items.sql
+
+-- Encounter
+\echo Encounter Type ValueSet
+\i codesystem/vs-encounter-type.sql
 
 -- Medication
 \echo Medication ValueSet

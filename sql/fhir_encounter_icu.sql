@@ -8,29 +8,68 @@ CREATE TABLE mimic_fhir.encounter_icu(
     fhir        jsonb NOT NULL 
 );
 
-WITH fhir_encounter_icu AS (
+WITH transfer_location AS (
+    SELECT 
+        stay_id 
+        , min(tfr_first.intime) AS first_intime
+        , max(tfr_first.outtime) AS first_outtime
+        , min(tfr_last.intime) AS last_intime
+        , max(tfr_last.outtime) AS last_outtime
+        , min(icu.first_careunit) AS first_careunit 
+        , min(icu.last_careunit) AS last_careunit
+    FROM 
+        mimic_icu.icustays icu
+        INNER JOIN fhir_etl.subjects sub
+            ON icu.subject_id = sub.subject_id 
+        LEFT JOIN mimic_core.transfers tfr_first
+            ON icu.hadm_id = tfr_first.hadm_id 
+            AND icu.first_careunit = tfr_first.careunit 
+            AND tfr_first.intime >= icu.intime
+            AND tfr_first.outtime <= icu.outtime 
+        LEFT JOIN mimic_core.transfers tfr_last
+            ON icu.hadm_id = tfr_last.hadm_id 
+            AND icu.last_careunit = tfr_last.careunit 
+            AND tfr_last.intime >=  icu.intime
+            AND tfr_last.outtime <= icu.outtime 
+    GROUP BY icu.stay_id
+), fhir_encounter_icu AS (
     SELECT 
         CAST(icu.stay_id AS TEXT) AS icu_STAY_ID
-        , icu.first_careunit AS icu_FIRST_CAREUNIT
-        , icu.last_careunit AS icu_LAST_CAREUNIT
         , CAST(icu.intime AS TIMESTAMPTZ) AS icu_INTIME
         , CAST(icu.outtime AS TIMESTAMPTZ) AS icu_OUTTIME
         , icu.los AS icu_LOS  		
+        
+        -- careunit location and timing
+        , uuid_generate_v5(ns_location.uuid, icu.first_careunit) AS uuid_FIRST_CAREUNIT
+        , uuid_generate_v5(ns_location.uuid, icu.last_careunit) AS uuid_LAST_CAREUNIT
+        , CAST(tfr.first_intime AS TIMESTAMPTZ) AS tfr_FIRST_INTIME
+        , CAST(tfr.first_outtime AS TIMESTAMPTZ) AS tfr_FIRST_OUTTIME
+        , CAST(tfr.last_intime AS TIMESTAMPTZ) AS tfr_LAST_INTIME
+        , CAST(tfr.last_outtime AS TIMESTAMPTZ) AS tfr_LAST_OUTTIME
   	
         -- reference uuids
         , uuid_generate_v5(ns_encounter_icu.uuid, CAST(icu.stay_id AS TEXT)) AS uuid_STAY_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(icu.hadm_id AS TEXT)) AS uuid_HADM_ID
         , uuid_generate_v5(ns_patient.uuid, CAST(icu.subject_id AS TEXT)) AS uuid_SUBJECT_ID
+        
     FROM 
         mimic_icu.icustays icu
         INNER JOIN fhir_etl.subjects sub
             ON icu.subject_id = sub.subject_id 
+        
+        -- join transfers to get timing in each careunit
+        LEFT JOIN transfer_location tfr
+            ON icu.stay_id = tfr.stay_id
+            
+        -- uuid namespaces    
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient	
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu
             ON ns_encounter_icu.name = 'EncounterICU'
+        LEFT JOIN fhir_etl.uuid_namespace ns_location
+            ON ns_location.name = 'Location'
 )
 
 INSERT INTO mimic_fhir.encounter_icu
@@ -56,11 +95,12 @@ SELECT
             , 'code', 'ACUTE'
         )
            
-        -- Type of admission set based on the careunit visisted during ICU stay   
+        -- Fixed type to in-person encounter, location holds careunit information  
         , 'type', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type-icu'
-                , 'code', icu_FIRST_CAREUNIT
+                'system', 'http://snomed.info/sct'
+                , 'code', '453701000124103'
+                , 'display', 'In-person encounter (procedure)'
             ))
         ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
@@ -68,6 +108,24 @@ SELECT
             'start', icu_INTIME
             , 'end', icu_OUTTIME
         )
+        , 'location', ARRAY_REMOVE(ARRAY[
+            jsonb_build_object(
+                'location', jsonb_build_object('reference', 'Location/' || uuid_FIRST_CAREUNIT)
+                , 'period', jsonb_build_object(
+                    'start', tfr_FIRST_INTIME
+                    , 'end', tfr_FIRST_OUTTIME
+                )
+            )
+            , CASE WHEN uuid_FIRST_CAREUNIT != uuid_LAST_CAREUNIT THEN
+                jsonb_build_object(
+                    'location', jsonb_build_object('reference', 'Location/' || uuid_LAST_CAREUNIT)
+                    , 'period', jsonb_build_object(
+                        'start', tfr_LAST_INTIME
+                        , 'end', tfr_LAST_OUTTIME
+                    )
+                )
+            ELSE NULL END            
+        ], NULL)
         , 'partOf', jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID)
     )) as fhir
 FROM 

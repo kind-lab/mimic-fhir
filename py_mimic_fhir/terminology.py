@@ -8,8 +8,7 @@ import json
 
 from py_mimic_fhir.db import connect_db, get_table
 from py_mimic_fhir.lookup import (
-    MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED,
-    VALUESETS_DOUBLE_SYSTEM, VALUESETS_CANONICAL
+    MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_COMPLEX
 )
 from py_mimic_fhir.io import put_resource
 
@@ -82,7 +81,7 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
     codesystem.concept = concept
 
     # Set canonical valueset if relevant
-    if mimic_codesystem in VALUESETS_CANONICAL:
+    if mimic_codesystem not in VALUESETS_COMPLEX:
         codesystem.valueSet = f'{meta.base_url}/ValueSet/{codesystem.id}'
 
     return codesystem
@@ -102,34 +101,27 @@ def generate_valueset(mimic_valueset, db_conn, meta):
                                                 == mimic_valueset
                                                ]['description'].iloc[0]
 
-    if mimic_valueset in VALUESETS_CODED:
-        logger.info('coded valueset')
-        # Generate code/display combos from the fhir_trm tables
+    if mimic_valueset in VALUESETS_COMPLEX:
+        logger.info('complex valueset')
         df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
-        include_dict = {}
-        # Only coded values right now are d-items valuesets, would need to change system otherwise
-        include_dict['system'] = f'{meta.base_url}/CodeSystem/d-items'
-
-        # Create valueset codes
-        concept = generate_concept(df_valueset)
-        include_dict['concept'] = concept
-        valueset.compose = {'include': [include_dict]}
-    elif mimic_valueset in VALUESETS_DOUBLE_SYSTEM:
-        # For valuesets who inherit from more than one CodeSystem
-        # Store both systems in the ValueSet include
-        logger.info('double system valueset')
-
-        # Grab systems from fhir_trm table
-        df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
-
         include_list = []
-        for sys in df_valueset.system:
-            include_list.append({'system': sys})
-            valueset.compose = {'include': include_list}
+        for system in df_valueset.system.unique():
+            df_sub_valueset = df_valueset[df_valueset['system'] == system]
+            #include full codesystem
+            if (
+                (len(df_sub_valueset) == 1) &
+                (df_sub_valueset['code'].iloc[0] == '*')
+            ):
+                include_list.append({'system': system})
+            else:  # include select codes from codesystem
+                include_dict = {}
+                include_dict['system'] = system
+                concept = generate_concept(df_sub_valueset)
+                include_dict['concept'] = concept
+                include_list.append(include_dict)
+        valueset.compose = {'include': include_list}
     else:
         sys = {'system': f'{meta.base_url}/CodeSystem/{valueset.id}'}
-        valueset.compose = {'include': [sys]}
-
     return valueset
 
 
