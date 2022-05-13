@@ -8,8 +8,7 @@ import json
 
 from py_mimic_fhir.db import connect_db, get_table
 from py_mimic_fhir.lookup import (
-    MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED,
-    VALUESETS_DOUBLE_SYSTEM, VALUESETS_CANONICAL, VALUESETS_COMPLEX
+    MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_COMPLEX
 )
 from py_mimic_fhir.io import put_resource
 
@@ -82,7 +81,7 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
     codesystem.concept = concept
 
     # Set canonical valueset if relevant
-    if mimic_codesystem in VALUESETS_CANONICAL:
+    if mimic_codesystem not in VALUESETS_COMPLEX:
         codesystem.valueSet = f'{meta.base_url}/ValueSet/{codesystem.id}'
 
     return codesystem

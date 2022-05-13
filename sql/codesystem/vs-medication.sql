@@ -15,5 +15,3 @@ VALUES
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-name', '*')
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-ndc', '*')
     , ('http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv', '*')
-    
-    

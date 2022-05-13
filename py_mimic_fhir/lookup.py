@@ -111,30 +111,11 @@ MIMIC_VALUESETS = [
     'procedure_icd', 'services', 'specimen_type', 'units'
 ]
 
-VALUESETS_CODED = [
-    'datetimeevents_d_items', 'outputevents_d_items', 'procedureevents_d_items'
-]
-VALUESETS_DOUBLE_SYSTEM = [
-    'procedure_icd', 'diagnosis_icd', 'medication', 'specimen_type'
-]
-
 VALUESETS_COMPLEX = [
     'datetimeevents_d_items', 'diagnosis_icd', 'encounter_type', 'medication',
     'outputevents_d_items', 'procedureevents_d_items', 'procedure_icd',
     'specimen_type'
 ]
-
-# ValueSets that are full encapulsation of the CodeSystem
-VALUESETS_CANONICAL = [
-    'admission_class', 'admission_type', 'admit_source', 'bodysite',
-    'd_labitems', 'discharge_disposition', 'hcpcs_cd', 'identifier_type',
-    'lab_flags', 'lab_priority', 'medadmin_category_icu', 'medication_method',
-    'medication_method_icu', 'medication_route', 'medication_site',
-    'microbiology_antibiotic', 'microbiology_interpretation',
-    'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'services', 'units'
-]
-
 # ORDER MATTERS!!
 # The patient bundle must be first and the icu_encounter bundle must be before all other icu bundles
 MIMIC_BUNDLE_TABLE_LIST = {

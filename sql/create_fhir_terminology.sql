@@ -138,6 +138,10 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Procedureevents D Items
 \i codesystem/vs-procedureevents-d-items.sql
 
+-- Encounter
+\echo Encounter Type ValueSet
+\i codesystem/vs-encounter-type.sql
+
 -- Medication
 \echo Medication ValueSet
 \i codesystem/vs-medication.sql

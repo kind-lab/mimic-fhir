@@ -11,4 +11,3 @@ INSERT INTO fhir_trm.vs_specimen_type (SYSTEM, code)
 VALUES
     ('http://fhir.mimic.mit.edu/CodeSystem/lab-fluid', '*')
     , ('http://fhir.mimic.mit.edu/CodeSystem/spec-type-desc', '*')
-    
