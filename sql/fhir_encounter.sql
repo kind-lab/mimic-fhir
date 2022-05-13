@@ -31,7 +31,40 @@ WITH transfer_locations AS (
             ON ns_location.name = 'Location'
     WHERE tfr.careunit IS NOT NULL 
     GROUP BY hadm_id    
-), fhir_encounter AS (
+), cpt_codes AS (
+    SELECT 
+        adm.hadm_id
+        , jsonb_agg(
+            jsonb_build_object(
+                'coding', jsonb_build_array(json_build_object(
+                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/hcpcs-cd'
+                    , 'code', cpt.hcpcs_cd
+                    , 'display', cpt.short_description
+                ))
+            )
+        ) AS cpt_ARRAY
+    FROM 
+        mimic_core.admissions adm
+        INNER JOIN fhir_etl.subjects sub
+            ON adm.subject_id = sub.subject_id 
+        LEFT JOIN mimic_hosp.hcpcsevents cpt
+            ON adm.hadm_id = cpt.hadm_id
+    WHERE cpt.hcpcs_cd IS NOT NULL 
+    GROUP BY adm.hadm_id     
+), first_service AS (
+    WITH services AS (
+        SELECT 
+            hadm_id
+            , curr_service
+            , ROW_NUMBER() OVER (PARTITION BY hadm_id ORDER BY transfertime ASC) row_num
+        FROM mimic_hosp.services s 
+    )
+    SELECT 
+        hadm_id
+        , curr_service
+    FROM services
+    WHERE row_num = 1
+),fhir_encounter AS (
     SELECT 
         CAST(adm.hadm_id AS TEXT) AS adm_HADM_ID	
         , adm.admission_type AS adm_ADMISSION_TYPE
@@ -40,6 +73,8 @@ WITH transfer_locations AS (
         , adm.admission_location AS adm_ADMISSION_LOCATION  		
         , adm.discharge_location AS adm_DISCHARGE_LOCATION  
         , tfr.location_array AS tfr_LOCATION_ARRAY
+        , cpt.cpt_ARRAY AS cpt_ARRAY
+        , serv.curr_service AS serv_CURR_SERVICE
   	
         -- reference uuids
         , uuid_generate_v5(ns_encounter.uuid, CAST(adm.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -51,6 +86,10 @@ WITH transfer_locations AS (
             ON adm.subject_id = sub.subject_id 
         LEFT JOIN transfer_locations tfr
             ON adm.hadm_id = tfr.hadm_id
+        LEFT JOIN cpt_codes cpt
+            ON adm.hadm_id = cpt.hadm_id
+        LEFT JOIN first_service serv
+            ON adm.hadm_id = serv.hadm_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient	
@@ -82,10 +121,28 @@ SELECT
             'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
             , 'code', adm_ADMISSION_TYPE
         )
-        , 'type', jsonb_build_array(jsonb_build_object(
+        , 'type', 
+            CASE WHEN cpt_ARRAY IS NOT NULL THEN 
+                cpt_ARRAY
+            ELSE
+                jsonb_build_array(jsonb_build_object(
+                    'coding', jsonb_build_array(json_build_object(
+                        'system', 'http://snomed.info/sct'
+                        , 'code', '453701000124103'
+                        , 'display', 'In-person encounter (procedure)'
+                    ))
+                ))
+            END
+        , 'priority', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type'
                 , 'code', adm_ADMISSION_TYPE
+            ))
+        ))
+        , 'serviceType', jsonb_build_array(jsonb_build_object(
+            'coding', jsonb_build_array(json_build_object(
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/services'
+                , 'code', serv_CURR_SERVICE
             ))
         ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
