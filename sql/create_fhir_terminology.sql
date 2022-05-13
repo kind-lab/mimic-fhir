@@ -11,9 +11,6 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Admission Type
 \i codesystem/cs-admission-type.sql
 
-\echo Admission Type ICU
-\i codesystem/cs-admission-type-icu.sql
-
 \echo Admit Source
 \i codesystem/cs-admit-source.sql
 
