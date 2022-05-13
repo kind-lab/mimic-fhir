@@ -4,13 +4,15 @@
 
 DROP TABLE IF EXISTS fhir_trm.vs_datetimeevents_d_items;
 CREATE TABLE fhir_trm.vs_datetimeevents_d_items(
+    system    VARCHAR NOT NULL,
     code      VARCHAR NOT NULL,
     display   VARCHAR
 );
 
 INSERT INTO fhir_trm.vs_datetimeevents_d_items
 SELECT DISTINCT 
-    itemid AS code
+    'http://fhir.mimic.mit.edu/CodeSystem/d-items'
+    , itemid AS code
     , LABEL AS display
 FROM mimic_icu.d_items di 
 WHERE linksto = 'datetimeevents'

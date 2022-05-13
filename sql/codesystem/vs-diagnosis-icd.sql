@@ -3,10 +3,11 @@
 
 DROP TABLE IF EXISTS fhir_trm.vs_diagnosis_icd;
 CREATE TABLE fhir_trm.vs_diagnosis_icd(
-    system      VARCHAR NOT NULL
+    system      VARCHAR NOT NULL,
+    code        VARCHAR NOT NULL
 );
 
-INSERT INTO fhir_trm.vs_diagnosis_icd (system)
+INSERT INTO fhir_trm.vs_diagnosis_icd (SYSTEM, code)
 VALUES
-    ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10');
+    ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9', '*')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10', '*');

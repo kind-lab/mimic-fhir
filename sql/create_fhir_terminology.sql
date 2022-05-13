@@ -17,6 +17,12 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Discharge Disposition
 \i codesystem/cs-discharge-disposition.sql
 
+\echo HCPCS Codes
+\i codesystem/cs-hcpcs-cd.sql
+
+\echo Services
+\i codesystem/cs-services.sql
+
 -- Lab CodeSystems
 \echo Lab Flags
 \i codesystem/cs-lab-flags.sql

@@ -4,15 +4,16 @@
 
 DROP TABLE IF EXISTS fhir_trm.vs_medication;
 CREATE TABLE fhir_trm.vs_medication(
-    system      VARCHAR NOT NULL
+    system      VARCHAR NOT NULL,
+    code        VARCHAR NOT NULL
 );
 
-INSERT INTO fhir_trm.vs_medication (system)
+INSERT INTO fhir_trm.vs_medication (SYSTEM, code)
 VALUES
-    ('http://fhir.mimic.mit.edu/CodeSystem/medication-formulary-drug-cd')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-icu')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-name')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-ndc')    
-    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv')
+    ('http://fhir.mimic.mit.edu/CodeSystem/medication-formulary-drug-cd', '*')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-icu', '*')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-name', '*')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-ndc', '*')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv', '*')
     
     
