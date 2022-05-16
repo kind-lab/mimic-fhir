@@ -67,6 +67,13 @@ WITH prescript_request AS (
         , pr.form_val_disp AS pr_FORM_VAL_DISP
         , pr.form_unit_disp AS pr_FORM_UNIT_DISP
         , pr.prod_strength AS pr_PROD_STRENGTH
+        , CASE WHEN pr.prod_strength IS NULL 
+                AND ph.duration IS NULL 
+                AND ph.frequency IS NULL 
+                AND pr.dose_val_rx IS NULL
+                AND ph.one_hr_max IS NULL 
+                AND COALESCE(ph.route, pr.route) IS NULL 
+        THEN FALSE ELSE TRUE END AS dosageInstructionFlag
 
             
   		-- reference uuids
@@ -129,14 +136,16 @@ SELECT
       		  ELSE NULL
       		END
       	, 'authoredOn', ph_ENTERTIME
-        , 'dosageInstruction', jsonb_build_array(jsonb_build_object(
+        , 'dosageInstruction', CASE WHEN dosageInstructionFlag THEN ARRAY[jsonb_build_object(
             'text', pr_PROD_STRENGTH
-        	, 'route', jsonb_build_object(
-              'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
-                  , 'code', ph_ROUTE
-              ))
-            )
+        	, 'route', CASE WHEN ph_ROUTE IS NOT NULL THEN 
+        	   jsonb_build_object(
+                    'coding', jsonb_build_array(jsonb_build_object(
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
+                        , 'code', ph_ROUTE
+                    ))
+                )
+                ELSE NULL END
             
             -- dose_val_rx has ranges and free text, need to clean up so passing numeric values to validator
             ,'doseAndRate', CASE WHEN pr_DOSE_VAL_RX IS NOT NULL THEN jsonb_build_array(jsonb_build_object(
@@ -147,19 +156,21 @@ SELECT
                     , 'code', pr_DOSE_UNIT_RX
                 )
             )) ELSE NULL END 
-            , 'timing', jsonb_build_object(
-                'code', jsonb_build_object(
-                    'coding', jsonb_build_array(jsonb_build_object(
-                        'code', ph_FREQUENCY
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-frequency'
-                    ))
-                )
+            , 'timing', CASE WHEN ph_FREQUENCY IS NOT NULL AND ph_DURATION IS NOT NULL THEN jsonb_build_object(
+                'code', CASE WHEN ph_FREQUENCY IS NOT NULL THEN 
+                    jsonb_build_object(
+                        'coding', jsonb_build_array(jsonb_build_object(
+                            'code', ph_FREQUENCY
+                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-frequency'
+                        ))
+                    )
+                    ELSE NULL END
                 , 'repeat', CASE WHEN ph_DURATION IS NOT NULL AND medu_FHIR_UNIT IS NOT NULL THEN jsonb_build_object(
                     'duration', ph_DURATION
                     , 'durationUnit', medu_FHIR_UNIT                                                
                 ) ELSE NULL END
                 
-            )
+            ) ELSE NULL END
             , 'maxDosePerPeriod', CASE WHEN ph_ONE_HR_MAX IS NOT NULL THEN jsonb_build_object(
                 'numerator', jsonb_build_object(
                     'value', ph_ONE_HR_MAX
@@ -171,7 +182,7 @@ SELECT
                 )         
             ) ELSE NULL END
             
-        ))
+        )] ELSE NULL END
         , 'dispenseRequest', CASE WHEN ph_STARTTIME IS NOT NULL AND (ph_STARTTIME <= ph_STOPTIME) THEN jsonb_build_object(
         	 'validityPeriod', jsonb_build_object(
                	'start', ph_STARTTIME
