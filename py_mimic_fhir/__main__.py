@@ -221,8 +221,8 @@ def validate(args):
     if args.rerun:
         validation_result = revalidate_bad_bundles(args, margs)
     else:
-        multiprocess_validate(args, margs)
-        #validation_result = validate_n_patients(args, margs)
+        #validation_result = multiprocess_validate(args, margs)
+        validation_result = validate_n_patients(args, margs)
 
     if validation_result == True:
         logger.info('Validation successful')
