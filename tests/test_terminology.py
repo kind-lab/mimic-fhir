@@ -13,9 +13,7 @@ from fhir.resources.codesystem import CodeSystem, CodeSystemConcept
 from fhir.resources.valueset import ValueSet
 
 from py_mimic_fhir import db
-from py_mimic_fhir.lookup import (
-    MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_CODED, VALUESETS_DOUBLE_SYSTEM
-)
+from py_mimic_fhir.lookup import (MIMIC_CODESYSTEMS, MIMIC_VALUESETS)
 
 
 def test_terminology_meta_data(db_conn):

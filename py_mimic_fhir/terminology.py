@@ -122,6 +122,7 @@ def generate_valueset(mimic_valueset, db_conn, meta):
         valueset.compose = {'include': include_list}
     else:
         sys = {'system': f'{meta.base_url}/CodeSystem/{valueset.id}'}
+        valueset.compose = {'include': [sys]}
     return valueset
 
 
