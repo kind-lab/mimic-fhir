@@ -94,6 +94,7 @@ def revalidate_bundle_from_file(err_filename, db_conn, margs):
 
     #make copy of file, since new errors will be written to the same file
     old_err_filename = f'{margs.err_path}{err_filename}'
+    logger.info(f'Error filename: {old_err_filename}')
     new_err_filename = f'{margs.err_path}rerun-{err_filename}'
     shutil.copy(old_err_filename, new_err_filename)
     os.remove(old_err_filename)
