@@ -194,7 +194,7 @@ def parse_arguments(arguments=None):
         required=False,
         action='store_true',
         help=
-        'Post terminology to server, needed to fully expand valuesets with HAPI'
+        'Generate terminology and then post to HAPI server to expand valuesets'
     )
 
     arg_terminology.add_argument(

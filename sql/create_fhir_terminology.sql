@@ -43,9 +43,6 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Medication Formulary Drug Cd
 \i codesystem/cs-medication-formulary-drug-cd.sql
 
-\echo Medication Mix
-\i codesystem/cs-medication-mix.sql
-
 \echo Medication Name
 \i codesystem/cs-medication-name.sql
 
@@ -54,6 +51,9 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 
 \echo Medication POE IV
 \i codesystem/cs-medication-poe-iv.sql
+
+\echo Medication Frequency
+\i codesystem/cs-medication-frequency.sql
 
 -- Medication Related CodeSystems
 \echo Medadmin Category ICU
@@ -92,12 +92,14 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \i codesystem/cs-microbiology-test.sql
 
 \echo Specimen Type Desc
-\i codeystem/cs-spec-type-desc.sql
-
+\i codesystem/cs-spec-type-desc.sql
 
 -- ICD CodeSystems procedure/diagnosis
 \echo Diagnosis ICD9
 \i codesystem/cs-diagnosis-icd9.sql
+
+\echo Diagnosis ICD10
+\i codesystem/cs-diagnosis-icd10.sql
 
 \echo Procedure ICD9
 \i codesystem/cs-procedure-icd9.sql
