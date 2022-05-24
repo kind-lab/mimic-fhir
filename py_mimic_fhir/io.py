@@ -8,6 +8,7 @@ import json
 import requests
 import base64
 import os
+import subprocess
 import time
 
 from py_mimic_fhir.lookup import (
@@ -29,6 +30,8 @@ def export_all_resources(fhir_server, output_path, limit=10000):
 
     if False in result_dict.values():
         logger.error(f'Result dictionary: {result_dict}')
+    else:
+        sort_resouces()
 
     return result_dict
 
@@ -109,7 +112,7 @@ def get_exported_resource(resp_export, time_max=600):
 def write_exported_resource_to_ndjson(
     resp_poll, profile, output_path, limit=10000
 ):
-    output_file = f'{output_path}output_from_hapi/{profile}.ndjson'
+    output_file = f'{output_path}/{profile}.ndjson'
     if resp_poll.text is None:
         logger.error(f'{profile} response poll is empty!!')
         return False
@@ -160,3 +163,15 @@ def put_resource(resource, fhir_data, fhir_server):
     )
     output = json.loads(resp.text)
     return output
+
+
+def sort_resources(output_path):
+    #profiles = ' '.join(MIMIC_FHIR_PROFILE_NAMES)
+    profiles = ' '.join(['Patient', 'Encounter'])
+    process = subprocess.run(
+        ['sh', 'py_mimic_fhir/scripts/sort_ndjson.sh', profiles, output_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    assert len(process.stderr) == 0
+    return process

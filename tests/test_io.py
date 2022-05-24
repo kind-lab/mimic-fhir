@@ -83,7 +83,7 @@ def test_write_exported_resource_to_ndjson():
     io.write_exported_resource_to_ndjson(resp_poll, profile, MIMIC_JSON_PATH)
 
     #check outputfile exists and has some data
-    output_file = f'{MIMIC_JSON_PATH}output_from_hapi/{profile}.ndjson'
+    output_file = f'{MIMIC_JSON_PATH}/{profile}.ndjson'
     assert os.path.exists(output_file) and os.path.getsize(output_file) > 0
 
 
@@ -261,3 +261,9 @@ def test_export_specimen_lab():
         resource_type, FHIR_SERVER, MIMIC_JSON_PATH, limit
     )
     assert result
+
+
+def test_export_sorted():
+    resp = io.sort_resources(MIMIC_JSON_PATH)
+    print(resp.stderr)
+    assert len(resp.stderr) == 0
