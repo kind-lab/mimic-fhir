@@ -8,5 +8,5 @@ CREATE TABLE fhir_trm.cs_admit_source(
 
 INSERT INTO fhir_trm.cs_admit_source
 SELECT DISTINCT admission_location  
-FROM mimic_core.admissions a 
+FROM mimic_hosp.admissions a 
 WHERE admission_location IS NOT NULL

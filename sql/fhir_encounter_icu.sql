@@ -21,12 +21,12 @@ WITH transfer_location AS (
         mimic_icu.icustays icu
         INNER JOIN fhir_etl.subjects sub
             ON icu.subject_id = sub.subject_id 
-        LEFT JOIN mimic_core.transfers tfr_first
+        LEFT JOIN mimic_hosp.transfers tfr_first
             ON icu.hadm_id = tfr_first.hadm_id 
             AND icu.first_careunit = tfr_first.careunit 
             AND tfr_first.intime >= icu.intime
             AND tfr_first.outtime <= icu.outtime 
-        LEFT JOIN mimic_core.transfers tfr_last
+        LEFT JOIN mimic_hosp.transfers tfr_last
             ON icu.hadm_id = tfr_last.hadm_id 
             AND icu.last_careunit = tfr_last.careunit 
             AND tfr_last.intime >=  icu.intime
