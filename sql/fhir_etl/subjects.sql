@@ -8,7 +8,7 @@ INSERT INTO fhir_etl.subjects(subject_id)
 SELECT   
     pat.subject_id
 FROM  
-    mimic_core.patients pat
+    mimic_hosp.patients pat
     INNER JOIN mimic_icu.icustays ie 
         ON pat.subject_id = ie.subject_id
 WHERE  

@@ -133,3 +133,7 @@ dmypy.json
 
 # Logs
 log/
+
+# Tutorial staging
+tutorial/staging
+tutorial/output

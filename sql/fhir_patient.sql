@@ -17,17 +17,17 @@ WITH tb_admissions AS (
         , MIN(adm.ethnicity) AS adm_ETHNICITY
         , MIN(adm.language) AS adm_LANGUAGE
     FROM  
-        mimic_core.patients pat
+        mimic_hosp.patients pat
         INNER JOIN fhir_etl.subjects sub
             ON pat.subject_id = sub.subject_id 
-        INNER JOIN mimic_core.transfers tfs
+        INNER JOIN mimic_hosp.transfers tfs
             ON pat.subject_id = tfs.subject_id
         -- Grab latest admittime to get the latest demographic info 
         LEFT JOIN (SELECT subject_id, MAX(admittime) AS admittime
-            FROM mimic_core.admissions
+            FROM mimic_hosp.admissions
                 GROUP BY subject_id) adm_max
             ON pat.subject_id = adm_max.subject_id
-        LEFT JOIN mimic_core.admissions adm
+        LEFT JOIN mimic_hosp.admissions adm
             ON adm_max.subject_id = adm.subject_id 
             AND adm_max.admittime = adm.admittime
     GROUP BY 
@@ -50,7 +50,7 @@ WITH tb_admissions AS (
           ELSE NULL END as adm_LANGUAGE
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS  UUID_organization
     FROM  
-        mimic_core.patients pat
+        mimic_hosp.patients pat
         INNER JOIN fhir_etl.subjects sub
             ON pat.subject_id = sub.subject_id  
         LEFT JOIN tb_admissions adm

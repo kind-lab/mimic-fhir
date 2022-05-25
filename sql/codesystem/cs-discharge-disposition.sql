@@ -8,5 +8,5 @@ CREATE TABLE fhir_trm.cs_discharge_disposition(
 
 INSERT INTO fhir_trm.cs_discharge_disposition
 SELECT DISTINCT discharge_location  
-FROM mimic_core.admissions
+FROM mimic_hosp.admissions
 WHERE discharge_location IS NOT NULL

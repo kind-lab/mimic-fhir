@@ -13,7 +13,7 @@ WITH fhir_location AS (
         , uuid_generate_v5(ns_location.uuid, careunit) AS uuid_CAREUNIT 
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS bidmc_UUID
     FROM
-        mimic_core.transfers tfr
+        mimic_hosp.transfers tfr
         LEFT JOIN fhir_etl.uuid_namespace ns_location
             ON ns_location.name = 'Location'
         LEFT JOIN fhir_etl.uuid_namespace ns_organization

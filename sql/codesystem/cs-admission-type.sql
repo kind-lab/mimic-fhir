@@ -1,5 +1,5 @@
 -- Admission type CodeSystem
--- Codes will need to be mapped to match US Core Encounter Type - http://hl7.org/fhir/us/core/ValueSet-us-core-encounter-type.html
+-- Codes will need to be mapped to match US Core Encounter Type -http://hl7.org/fhir/v3/ActPriority/vs.html
 
 DROP TABLE IF EXISTS fhir_trm.cs_admission_type;
 CREATE TABLE fhir_trm.cs_admission_type(
@@ -8,5 +8,5 @@ CREATE TABLE fhir_trm.cs_admission_type(
 
 INSERT INTO fhir_trm.cs_admission_type
 SELECT DISTINCT admission_type 
-FROM mimic_core.admissions 
+FROM mimic_hosp.admissions 
 WHERE admission_type != ''
