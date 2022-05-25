@@ -1,0 +1,14 @@
+version: "3"
+services:
+  pathling:
+    image: aehrc/pathling:5
+    ports:
+      - 8000:8080
+    environment:
+      pathling.cors.allowedOrigins: "*"
+    volumes:
+      - pathling:/usr/share/warehouse
+      - ./staging:/usr/share/staging
+volumes:
+  pathling:
+    driver: local
