@@ -31,7 +31,7 @@ def export_all_resources(fhir_server, output_path, limit=10000):
     if False in result_dict.values():
         logger.error(f'Result dictionary: {result_dict}')
     else:
-        sort_resouces()
+        sort_resources(output_path)
 
     return result_dict
 
@@ -166,8 +166,9 @@ def put_resource(resource, fhir_data, fhir_server):
 
 
 def sort_resources(output_path):
-    #profiles = ' '.join(MIMIC_FHIR_PROFILE_NAMES)
-    profiles = ' '.join(['Patient', 'Encounter'])
+    profiles = ' '.join(MIMIC_FHIR_PROFILE_NAMES)
+
+    # Sorting done with a shell script since pandas sorting crashes with large file sizes
     process = subprocess.run(
         ['sh', 'py_mimic_fhir/scripts/sort_ndjson.sh', profiles, output_path],
         stdout=subprocess.PIPE,
