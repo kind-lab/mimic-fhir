@@ -1,5 +1,5 @@
 -- Specimen type labs CodeSystem
--- Codes will need to be mapped to something like the Specimen type example-v2 - http://hl7.org/fhir/v2/0487/index.html
+-- Codes will need to be mapped to something like the Specimen type example-v2 - http://terminology.hl7.org/ValueSet/v2-0487
 
 DROP TABLE IF EXISTS fhir_trm.cs_spec_type_desc;
 CREATE TABLE fhir_trm.cs_spec_type_desc(

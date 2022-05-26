@@ -1,5 +1,5 @@
 -- Generate unique item codes for only the chartevents
--- This is pulled from the d-items CodeSystem
+-- This is pulled from the d-items CodeSystem, map to LOINC codes http://hl7.org/fhir/valueset-observation-codes.html
 
 
 DROP TABLE IF EXISTS fhir_trm.cs_chartevents_d_items;
