@@ -43,8 +43,9 @@ def multiprocess_validate(args, margs):
     pool.close()
     pool.join()
 
+    logger.info(f'Result List: {result_list}')
     result = True
-    if False in result_list:
+    if (False in result_list) or (None in result_list):
         result = False
 
     return result
@@ -52,6 +53,7 @@ def multiprocess_validate(args, margs):
 
 def func_before_validate(patient_id, args, margs):
     try:
+        response_list = [False]
         db_conn = connect_db(
             args.sqluser, args.sqlpass, args.dbname_mimic, args.host
         )
@@ -62,6 +64,7 @@ def func_before_validate(patient_id, args, margs):
         return result
     except Exception as e:
         logger.error(e)
+        return False
 
 
 # Validate n patients and all their associated resources

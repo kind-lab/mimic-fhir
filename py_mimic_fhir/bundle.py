@@ -144,13 +144,11 @@ class Bundle():
                 json=self.json(),
                 headers={"Content-Type": "application/fhir+json"}
             )
-            resp_text = json.loads(resp.text)
-            if resp_text['resourceType'] == 'OperationOutcome':
+            if resp.json()['resourceType'] == 'OperationOutcome':
                 #write out error bundles!
-                logger.error(f'------------ bundle_name: {self.bundle_name}')
-                errbundle = ErrBundle(resp_text['issue'], self)
+                errbundle = ErrBundle(resp.json()['issue'], self)
                 errbundle.write(err_path)
-
-                logger.error(resp_text)
+                logger.error(f'------------ bundle_name: {self.bundle_name}')
+                logger.error(resp.json()['issue'])
                 output = False
         return output
