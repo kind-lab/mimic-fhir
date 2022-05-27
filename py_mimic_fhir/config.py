@@ -1,7 +1,8 @@
 class MimicArgs():
-    def __init__(self, fhir_server, err_path):
+    def __init__(self, fhir_server, err_path, json_path):
         self.fhir_server = fhir_server
         self.err_path = err_path
+        self.json_path = json_path
 
 
 class ResultList():

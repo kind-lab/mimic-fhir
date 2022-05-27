@@ -217,7 +217,7 @@ def parse_arguments(arguments=None):
 
 # Validate all resources for user specified number of patients
 def validate(args):
-    margs = MimicArgs(args.fhir_server, args.err_path)
+    margs = MimicArgs(args.fhir_server, args.err_path, args.output_path)
     if args.rerun:
         validation_result = revalidate_bad_bundles(args, margs)
     elif args.cores > 1:

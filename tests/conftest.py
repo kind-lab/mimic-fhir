@@ -22,6 +22,7 @@ HOST = os.getenv('DBHOST')
 TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 FHIR_BUNDLE_ERROR_PATH = os.getenv('FHIR_BUNDLE_ERROR_PATH')
+MIMIC_JSON_PATH = os.getenv('MIMIC_JSON_PATH')
 
 
 # Example patient that has links to all other resources
@@ -98,7 +99,7 @@ def db_conn_hapi():
 # Initialize mimic args
 @pytest.fixture(scope="session")
 def margs():
-    mimic_args = MimicArgs(FHIR_SERVER, FHIR_BUNDLE_ERROR_PATH)
+    mimic_args = MimicArgs(FHIR_SERVER, FHIR_BUNDLE_ERROR_PATH, MIMIC_JSON_PATH)
     return mimic_args
 
 

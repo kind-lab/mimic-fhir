@@ -126,11 +126,7 @@ class Bundle():
                 resources = [entry['resource'] for entry in entries]
 
                 # Recreate smaller bundles and post
-                bundle = Bundle(
-                    self.bundle_name,
-                    self.table_list,
-                    patient_id=self.patient_id
-                )
+                bundle = Bundle(self.bundle_name, patient_id=self.patient_id)
                 bundle.add_entry(resources)
                 output_temp = bundle.request(
                     fhir_server, err_path=err_path, split_flag=False
