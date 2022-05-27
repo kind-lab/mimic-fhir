@@ -11,6 +11,7 @@ from py_mimic_fhir.bundle import Bundle, get_n_resources
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST, MIMIC_DATA_BUNDLE_LIST
 
 logger = logging.getLogger(__name__)
+output_list = []
 
 
 def multiprocess_validate(args, margs):
@@ -32,12 +33,21 @@ def multiprocess_validate(args, margs):
 
     patient_ids = get_n_patient_id(db_conn, args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
+    result_list = []
     for patient_id in patient_ids:
-        pool.apply_async(func_before_validate, args=(patient_id, args, margs))
+        result = pool.apply_async(
+            func_before_validate, args=(patient_id, args, margs)
+        ).get()
+        result_list.append(result)
 
-    logger.info('after processes')
     pool.close()
     pool.join()
+
+    result = True
+    if False in result_list:
+        result = False
+
+    return result
 
 
 def func_before_validate(patient_id, args, margs):
@@ -45,8 +55,11 @@ def func_before_validate(patient_id, args, margs):
         db_conn = connect_db(
             args.sqluser, args.sqlpass, args.dbname_mimic, args.host
         )
-        logger.info(f'---- Patient id: {patient_id} ----')
-        validate_all_bundles(patient_id, db_conn, margs)
+        response_list = validate_all_bundles(patient_id, db_conn, margs)
+        result = True
+        if False in response_list:
+            result = False
+        return result
     except Exception as e:
         logger.error(e)
 

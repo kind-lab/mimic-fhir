@@ -220,8 +220,9 @@ def validate(args):
     margs = MimicArgs(args.fhir_server, args.err_path)
     if args.rerun:
         validation_result = revalidate_bad_bundles(args, margs)
+    elif args.cores > 1:
+        validation_result = multiprocess_validate(args, margs)
     else:
-        #validation_result = multiprocess_validate(args, margs)
         validation_result = validate_n_patients(args, margs)
 
     if validation_result == True:
