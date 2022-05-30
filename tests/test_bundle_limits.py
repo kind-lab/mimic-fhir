@@ -3,7 +3,7 @@ import pytest
 import pandas as pd
 
 from py_mimic_fhir.bundle import Bundle
-from py_mimic_fhir.db import get_n_patient_id
+from py_mimic_fhir.db import get_n_patient_id, get_n_resources
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file
 
@@ -70,6 +70,22 @@ def test_post_100_resources(db_conn, margs):
     assert resp
 
 
+def test_bundle_size(db_conn, margs):
+    bundle_size = 50
+    resources = get_n_resources(
+        db_conn, 'observation_chartevents', n_limit=1000
+    )
+    bundle = Bundle('test_1000')
+    bundle.add_entry(resources)
+    resp = bundle.request(
+        margs.fhir_server,
+        margs.err_path,
+        split_flag=True,
+        bundle_size=bundle_size
+    )
+    assert resp
+
+
 def test_bundle_multiple_lab_resources(db_conn, margs):
     # Get n patient ids to then bundle and post
     patient_ids = get_n_patient_id(db_conn, 1)
@@ -84,13 +100,22 @@ def test_bundle_multiple_lab_resources(db_conn, margs):
     assert result
 
 
-def test_largest_bundle():
+def test_largest_bundle(db_conn, margs):
     # Bundle is 44,277 resources!
     # Ran for ~20 minutes without finishing...
     # I was posting 1000 resources in 6 seconds, so ~44,000 should be about 5 minutes...
     # Keep playing with this
     patient_id = '77e10fd0-6a1c-5547-a130-fae1341acf36'
     bundle_name = 'icu_observation'
+
+    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    assert response
+
+
+def test_large_med_bundle(db_conn, margs):
+    # Bundle originally failed with over 6,000 resources sent
+    patient_id = 'cb70e6ae-90b1-562b-8ab0-467c65d18d5e'
+    bundle_name = 'medication_administration'
 
     response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
