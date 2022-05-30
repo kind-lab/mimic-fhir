@@ -9,6 +9,7 @@ from datetime import datetime
 from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id
 from py_mimic_fhir.bundle import Bundle, get_n_resources
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST, MIMIC_DATA_BUNDLE_LIST
+from py_mimic_fhir.config import ResultList
 
 logger = logging.getLogger(__name__)
 output_list = []
@@ -33,25 +34,26 @@ def multiprocess_validate(args, margs):
 
     patient_ids = get_n_patient_id(db_conn, args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
-    result_list = []
+    result_list = ResultList()
     for patient_id in patient_ids:
-        result = pool.apply_async(
-            func_before_validate, args=(patient_id, args, margs)
-        ).get()
-        result_list.append(result)
+        pool.apply_async(
+            validation_worker,
+            args=(patient_id, args, margs),
+            callback=result_list.update
+        )
 
     pool.close()
     pool.join()
 
-    logger.info(f'Result List: {result_list}')
+    logger.info(f'Result List: {result_list.get()}')
     result = True
-    if (False in result_list) or (None in result_list):
+    if (False in result_list.get()) or (None in result_list.get()):
         result = False
 
     return result
 
 
-def func_before_validate(patient_id, args, margs):
+def validation_worker(patient_id, args, margs):
     try:
         response_list = [False]
         db_conn = connect_db(
