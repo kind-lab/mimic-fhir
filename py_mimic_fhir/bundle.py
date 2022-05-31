@@ -72,6 +72,9 @@ class Bundle():
     def get_bundle_name(self):
         return self.bundle_name
 
+    def get_bundle_size(self):
+        return len(self.entry)
+
     # Create bundle entry with given resources
     def add_entry(self, resources):
         for resource in resources:

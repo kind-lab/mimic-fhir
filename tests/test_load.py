@@ -1,7 +1,7 @@
 import pytest
 import sys
 
-from py_mimic_fhir.load import load_ndjson_from_file, load_resources_to_server, multiprocess_load, load_worker
+from py_mimic_fhir.load import load_ndjson_from_file, load_resources_to_server, multiprocess_load, load_worker, load_ndjson_from_file_chunks
 from py_mimic_fhir.bundle import Bundle
 from py_mimic_fhir.db import get_n_resources
 
@@ -53,4 +53,11 @@ def test_multiprocess_load(margs):
 def test_load_worker(margs):
     profile = 'Patient'
     response = load_worker(profile, margs)
+    assert response
+
+
+def test_load_ndjson_chunks(margs):
+    profile = 'Encounter'
+    bundle_size = 50
+    response = load_ndjson_from_file_chunks(margs, profile, bundle_size)
     assert response

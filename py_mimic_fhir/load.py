@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 def multiprocess_load(cores, margs):
     num_workers = cores
-    max_workers = mp.cpu_count()
+    #leave one core for hapi or we get freezing
+    max_workers = mp.cpu_count() - 1
     if num_workers > max_workers:
         num_workers = max_workers
 
@@ -44,8 +45,9 @@ def multiprocess_load(cores, margs):
 def load_worker(profile, margs):
     try:
         logger.info(f'-------- Loading profile: {profile}')
-        resources = load_ndjson_from_file(margs.json_path, profile)
-        response = load_resources_to_server(resources, profile, margs)
+        response = load_ndjson_from_file_chunks(margs, profile)
+        # resources = load_ndjson_from_file(margs.json_path, profile)
+        # response = load_resources_to_server(resources, profile, margs)
         return response
     except Exception as e:
         logger.error(e)
@@ -67,3 +69,28 @@ def load_ndjson_from_file(json_path, profile):
         resources = ndjson.load(infile)
 
     return resources
+
+
+def load_ndjson_from_file_chunks(margs, profile, bundle_size=10):
+    infilename = f'{margs.json_path}/{profile}.ndjson'
+    response_list = []
+    with open(infilename, 'r') as infile:
+        reader = ndjson.reader(infile)
+        resources = []
+        for row in reader:
+            resources.append(row)
+            if len(resources) > bundle_size:
+                response = load_resources_to_server(
+                    resources, profile, margs, bundle_size
+                )
+                response_list.append(response)
+                resources = []
+
+        if len(resources) > 0:
+            response = load_resources_to_server(
+                resources, profile, margs, bundle_size
+            )
+            response_list.append(response)
+
+        final_response = False if False in response_list else True
+    return final_response
