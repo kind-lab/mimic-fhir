@@ -71,7 +71,7 @@ def test_post_100_resources(db_conn, margs):
 
 
 def test_bundle_size(db_conn, margs):
-    bundle_size = 50
+    bundle_size = 1000
     resources = get_n_resources(
         db_conn, 'observation_chartevents', n_limit=1000
     )

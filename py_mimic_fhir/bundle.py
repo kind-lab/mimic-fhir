@@ -115,10 +115,9 @@ class Bundle():
             split_flag = False
 
         # Split the entry into smaller bundles to speed up posting
-        if split_flag:
+        split_count = len(self.entry) // bundle_size
+        if split_flag and (split_count != 0):
             # Generate smaller bundles
-            split_count = len(self.entry) // bundle_size
-            split_count = 1 if split_count == 0 else split_count  # for bundles smaller than bundle_size
 
             entry_groups = np.array_split(self.entry, split_count)
             for entries in entry_groups:

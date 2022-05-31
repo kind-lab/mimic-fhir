@@ -9,6 +9,7 @@ from pathlib import Path
 from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
+from py_mimic_fhir.load import multiprocess_load
 from py_mimic_fhir.config import MimicArgs
 
 logger = logging.getLogger(__name__)
@@ -166,6 +167,17 @@ def parse_arguments(arguments=None):
         help='Export Limit, 1 is ~ 1000 resources'
     )
 
+    # Load - load resources from ndjson to fhir server
+    arg_load = subparsers.add_parser(
+        "load", help=("Load options for mimic-fhir data")
+    )
+    arg_load.add_argument(
+        '--cores',
+        type=int,
+        default=1,
+        help='Number of cores to use when validating'
+    )
+
     # Terminology
     arg_terminology = subparsers.add_parser(
         "terminology",
@@ -253,6 +265,15 @@ def terminology(args):
         generate_all_terminology(args)
 
 
+def load(args):
+    margs = MimicArgs(args.fhir_server, args.err_path, args.output_path)
+    load_result = multiprocess_load(args.cores, margs)
+    if load_result == True:
+        logger.info('Load successful')
+    else:
+        logger.error('Load failed')
+
+
 # Logger will be written out to file and stdout
 def set_logger(log_path):
     if not os.path.isdir(log_path):
@@ -282,6 +303,8 @@ def main(argv=sys.argv):
         export(args)
     elif args.actions == 'terminology':
         terminology(args)
+    elif args.actions == 'load':
+        load(args)
     else:
         logger.warn('Unrecongnized command')
 

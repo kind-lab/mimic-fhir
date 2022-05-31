@@ -12,7 +12,6 @@ from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST, MIMIC_DATA_BUNDLE_LIST
 from py_mimic_fhir.config import ResultList
 
 logger = logging.getLogger(__name__)
-output_list = []
 
 
 def multiprocess_validate(args, margs):
