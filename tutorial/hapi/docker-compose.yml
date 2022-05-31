@@ -1,0 +1,14 @@
+version: "3.7"
+services:
+  web:
+    image: "hapiproject/hapi:latest"
+    ports:
+      - 8090:8080
+    volumes:
+      - ./config:/config
+    environment:
+      spring.config.location: "file:///config/application.yml"
+volumes:
+  web:
+    driver: local
+
