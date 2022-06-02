@@ -6,6 +6,7 @@ services:
       - 8090:8080
     volumes:
       - ./config:/config
+      - ./target:/usr/local/tomcat/target/database
     environment:
       spring.config.location: "file:///config/application.yml"
 volumes:
