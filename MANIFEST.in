@@ -1,0 +1,9 @@
+recursive-exclude tests *
+recursive-exclude sql *
+recursive-exclude tutorial *
+recursive-exclude log *
+recursive-exclude notebooks *
+
+exclude .env.example
+exclude .gitignore
+exclude .vscode/settings.json
