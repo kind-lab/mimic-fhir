@@ -24,11 +24,8 @@ WITH micro_info AS (
         , CASE WHEN MIN(mi.ab_itemid) IS NULL THEN NULL
             ELSE 
                 jsonb_agg(
-                    jsonb_build_object('reference', 'Observation/' || uuid_generate_v5(ns_observation_micro_susc.uuid, 
-                                            mi.micro_specimen_id || '-' ||
-                                            mi.org_itemid || '-' ||
-                                            mi.isolate_num || '-' ||
-                                            mi.ab_itemid)
+                    jsonb_build_object(
+                        'reference', 'Observation/' || uuid_generate_v5(ns_observation_micro_susc.uuid, CAST(mi.microevent_id AS TEXT))
                     ) 
                 )
             END as fhir_SUSCEPTIBILITY

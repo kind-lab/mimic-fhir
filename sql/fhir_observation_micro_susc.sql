@@ -8,8 +8,7 @@ CREATE TABLE mimic_fhir.observation_micro_susc(
 WITH fhir_observation_micro_susc AS (
     SELECT
         mi.micro_specimen_id  AS mi_MICRO_SPECIMEN_ID
-        , mi.micro_specimen_id || '-' ||  mi.org_itemid || '-' ||  
-            mi.isolate_num || '-' ||  mi.ab_itemid AS id_MICRO_SUSC
+        , CAST(mi.microevent_id AS TEXT) AS id_MICRO_SUSC
         , CAST(mi.ab_itemid AS TEXT) AS mi_AB_ITEMID
         , mi.ab_name AS mi_AB_NAME
         , mi.subject_id AS mi_SUBJECT_ID
@@ -27,11 +26,7 @@ WITH fhir_observation_micro_susc AS (
         AS mi_DILUTION_COMPARISON
 
         -- UUID references
-        , uuid_generate_v5(
-            ns_observation_micro_susc.uuid 
-            , mi.micro_specimen_id || '-' ||  mi.org_itemid || '-' ||
-                mi.isolate_num || '-' ||  mi.ab_itemid
-        ) AS uuid_MICRO_SUSC
+        , uuid_generate_v5(ns_observation_micro_susc.uuid, CAST(mi.microevent_id AS TEXT)) AS uuid_MICRO_SUSC
         , uuid_generate_v5(ns_observation_micro_org.uuid, mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid) AS uuid_MICRO_ORG
         , uuid_generate_v5(ns_patient.uuid, CAST(mi.subject_id AS TEXT)) as uuid_SUBJECT_ID 
     FROM 
