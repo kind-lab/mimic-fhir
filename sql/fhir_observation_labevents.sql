@@ -28,6 +28,7 @@ WITH fhir_observation_labevents AS (
         -- Parse values with a comparator and pulling out numeric value
         , CASE 
             WHEN lab.valuenum IS NOT NULL THEN lab.valuenum
+            WHEN value IN  ('<1/HPF', '<1>50', '<A', '>1.035 REFRACTOMETER', '>1.035 REFRA', '150>', '>1.035€') THEN NULL --only entry that does not fit in here 
             WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
             WHEN value LIKE '%<%' THEN CAST(split_part(lab.value,'<',2) AS NUMERIC)
             WHEN value LIKE '%>=%' THEN CAST(split_part(lab.value,'>=',2) AS NUMERIC)
