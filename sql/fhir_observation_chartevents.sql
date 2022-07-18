@@ -60,13 +60,13 @@ SELECT
         , 'status', 'final' -- All observations considered final
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'
                 , 'code', di_CATEGORY
             ))
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/chartevents-d-items'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-chartevents-d-items'
                 , 'code', ce_ITEMID
                 , 'display', di_LABEL
             ))
@@ -80,7 +80,7 @@ SELECT
                 jsonb_build_object(
                     'value', ce_VALUENUM
                     , 'unit', ce_VALUEUOM
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                     , 'code', ce_VALUEUOM 
             ) ELSE NULL END
         , 'valueString',
@@ -95,7 +95,7 @@ SELECT
                             jsonb_build_object(
                                 'value', di_LOWNORMALVALUE
                                 , 'unit', ce_VALUEUOM
-                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                                 , 'code', ce_VALUEUOM
                             )
                         ELSE NULL END
@@ -104,7 +104,7 @@ SELECT
                             jsonb_build_object(
                                 'value', di_HIGHNORMALVALUE
                                 , 'unit', ce_VALUEUOM
-                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                                 , 'code', ce_VALUEUOM
                             )
                         ELSE NULL END

@@ -9,17 +9,17 @@ begin
     SELECT CASE                                                                   
         WHEN ndc IS NOT NULL AND ndc != '0' AND ndc != '' THEN
             jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-ndc'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-ndc'  
                 , 'code', ndc
             )::TEXT
         WHEN formulary_drug_cd IS NOT NULL AND formulary_drug_cd != '' THEN
             jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-formulary-drug-cd'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-formulary-drug-cd'  
                 , 'code', TRIM(REGEXP_REPLACE(formulary_drug_cd , '\s+', ' ', 'g'))
             )::TEXT
         ELSE
             jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-name'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-name'  
                 , 'code', TRIM(REGEXP_REPLACE(drug, '\s+', ' ', 'g'))
             )::TEXT
         END AS output_value      

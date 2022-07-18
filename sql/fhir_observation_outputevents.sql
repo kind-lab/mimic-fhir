@@ -53,14 +53,14 @@ SELECT
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'  
                 , 'code', di_CATEGORY
             ))
         ))
         -- Item code for outputevent
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-items'
                 , 'code', oe_ITEMID
                 , 'display', di_LABEL
             ))
@@ -73,7 +73,7 @@ SELECT
             jsonb_build_object(
                 'value', oe_VALUE
                 , 'unit', oe_VALUEUOM
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                 , 'code', oe_VALUEUOM
             )
     )) AS fhir

@@ -16,8 +16,8 @@ WITH fhir_condition AS (
         , icd.long_title AS icd_LONG_TITLE
         , diag.icd_version AS diag_ICD_VERSION
         , CASE WHEN diag.icd_version = 9 
-            THEN 'http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9' 
-            ELSE 'http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10'
+            THEN 'http://fhir.mimic.mit.edu/CodeSystem/mimic-diagnosis-icd9' 
+            ELSE 'http://fhir.mimic.mit.edu/CodeSystem/mimic-diagnosis-icd10'
         END AS diag_ICD_SYSTEM
             
   
@@ -51,7 +51,7 @@ SELECT
             )
         ) 
         , 'identifier', 
-            jsonb_build_array(
+            jsonb_build_array( 
                 jsonb_build_object(
                     'value', diag_IDENTIFIER
                     , 'system', 'http://fhir.mimic.mit.edu/identifier/condition'

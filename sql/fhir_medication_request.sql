@@ -120,7 +120,7 @@ SELECT
                 'coding', jsonb_build_array(jsonb_build_object(
                     'code', 'PHID'
                     , 'display', 'Pharmacy identifier'
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-identifier-type'
                 ))
             )
         ))	
@@ -139,7 +139,7 @@ SELECT
         	, 'route', CASE WHEN ph_ROUTE IS NOT NULL THEN 
         	   jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-route'  
                         , 'code', ph_ROUTE
                     ))
                 )
@@ -150,7 +150,7 @@ SELECT
                 'doseQuantity', jsonb_build_object(
                     'value', pr_DOSE_VAL_RX
                     , 'unit', pr_DOSE_UNIT_RX
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                     , 'code', pr_DOSE_UNIT_RX
                 )
             )) ELSE NULL END 
@@ -159,7 +159,7 @@ SELECT
                     jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(
                             'code', ph_FREQUENCY
-                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-frequency'
+                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-frequency'
                         ))
                     )
                     ELSE NULL END
@@ -232,9 +232,9 @@ WITH prescriptions AS (
         
         , CASE 
             WHEN pm.medication IS NOT NULL THEN
-                'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
+                'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-name'
             WHEN pm.order_type IN ('TPN', 'IV therapy') THEN
-                'http://fhir.mimic.mit.edu/CodeSystem/medication-poe-iv'
+                'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-poe-iv'
         END AS pm_MEDICATION_SYSTEM
         
         , uuid_generate_v5(ns_patient.uuid, CAST(poe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
@@ -282,7 +282,7 @@ SELECT
                 'coding', jsonb_build_array(jsonb_build_object(
                     'code', 'POE'
                     , 'display', 'Provider Order Entry'
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-identifier-type'
                 ))
             )
         )) 

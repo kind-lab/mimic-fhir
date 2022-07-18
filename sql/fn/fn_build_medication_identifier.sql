@@ -10,7 +10,7 @@ begin
        '['                                                                          
         || CASE WHEN ndc IS NOT NULL AND ndc != '0' AND ndc != ''
             THEN jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-ndc'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-ndc'
                 , 'value', ndc
             )::text
             ELSE '' 
@@ -20,7 +20,7 @@ begin
                 THEN ',' ELSE '' END
         || CASE WHEN formulary_drug_cd IS NOT NULL AND formulary_drug_cd != ''
             THEN jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-formulary-drug-cd'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-formulary-drug-cd'
                 , 'value', formulary_drug_cd
             )::text
             ELSE '' 
@@ -32,7 +32,7 @@ begin
         -- drug name is never NULL, so just set the name here
         || CASE WHEN drug != ''  
             THEN jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-name'
                 , 'value', drug
             )::TEXT
            ELSE ''

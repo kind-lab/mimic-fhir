@@ -56,14 +56,14 @@ SELECT
         , 'status', fhir_STATUS
         , 'category', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-category'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-category'  
                 , 'code', pe_ORDERCATEGORYNAME
             ))
         )
         -- Procedure item codes
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-items'  
                 , 'code', pe_ITEMID
                 , 'display', di_LABEL
             ))
@@ -73,7 +73,7 @@ SELECT
             CASE WHEN pe_LOCATION IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/bodysite'
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-bodysite'
                         , 'code', pe_LOCATION
                     ))
                 ))

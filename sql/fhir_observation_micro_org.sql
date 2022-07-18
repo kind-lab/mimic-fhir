@@ -91,7 +91,7 @@ SELECT
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
+                'system', 'http://terminology.hl7.org/CodeSystem/mimic-observation-category'  
                 , 'code', 'laboratory' 
             ))
         ))
@@ -99,7 +99,7 @@ SELECT
         -- Organism item code  
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-organism'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-organism'  
                 , 'code', mi_ORG_ITEMID
                 , 'display', mi_ORG_NAME
             ))

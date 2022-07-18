@@ -55,7 +55,7 @@ SELECT
         , 'type', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'code', dlab_FLUID
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-fluid'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-lab-fluid'
             ))
         )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)

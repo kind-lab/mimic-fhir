@@ -9,5 +9,5 @@ CREATE TABLE fhir_trm.vs_diagnosis_icd(
 
 INSERT INTO fhir_trm.vs_diagnosis_icd (SYSTEM, code)
 VALUES
-    ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd9', '*')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/diagnosis-icd10', '*');
+    ('http://fhir.mimic.mit.edu/CodeSystem/mimic-diagnosis-icd9', '*')
+    , ('http://fhir.mimic.mit.edu/CodeSystem/mimic-diagnosis-icd10', '*');

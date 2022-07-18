@@ -124,13 +124,13 @@ SELECT
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
+                'system', 'http://terminology.hl7.org/CodeSystem/mimic-observation-category'  
                 , 'code', 'laboratory'
             ))
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-test'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-test'  
                 , 'code', mi_TEST_ITEMID
                 , 'display', mi_TEST_NAME
             ))

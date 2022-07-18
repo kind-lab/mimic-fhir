@@ -35,7 +35,7 @@ WITH transfer_locations AS (
         , jsonb_agg(
             jsonb_build_object(
                 'coding', jsonb_build_array(json_build_object(
-                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/hcpcs-cd'
+                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-hcpcs-cd'
                     , 'code', cpt.hcpcs_cd
                     , 'display', cpt.short_description
                 ))
@@ -112,7 +112,7 @@ SELECT
         ))	
         , 'status', 'finished' -- ALL encounters assumed finished
         , 'class', jsonb_build_object(
-            'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-class'
+            'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-admission-class'
             , 'code', adm_ADMISSION_TYPE
         )
         , 'type', 
@@ -129,13 +129,13 @@ SELECT
             END
         , 'priority', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/admission-type'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-admission-type'
                 , 'code', adm_ADMISSION_TYPE
             ))
         ))
         , 'serviceType', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/services'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-services'
                 , 'code', serv_CURR_SERVICE
             ))
         ))
@@ -149,7 +149,7 @@ SELECT
                 CASE WHEN adm_ADMISSION_LOCATION IS NOT NULL
                 THEN jsonb_build_object(
                     'coding',  jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/admit-source'
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-admit-source'
                         , 'code', adm_ADMISSION_LOCATION
                     ))                
                 ) ELSE NULL END
@@ -157,7 +157,7 @@ SELECT
             CASE WHEN adm_DISCHARGE_LOCATION IS NOT NULL
                 THEN jsonb_build_object(
                     'coding',  jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/discharge-disposition'
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-discharge-disposition'
                         , 'code', adm_DISCHARGE_LOCATION
                     ))                
                 ) ELSE NULL END

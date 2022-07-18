@@ -50,38 +50,39 @@ MIMIC_FHIR_PROFILE_URL = {
 }
 
 MIMIC_FHIR_RESOURCES = {
-    'Condition': 'Condition',
-    'Encounter': 'Encounter',
-    'EncounterICU': 'Encounter',
+    'MimicCondition': 'Condition',
+    'MimicEncounter': 'Encounter',
+    'MimicEncounterICU': 'Encounter',
     'Location': 'Location',
-    'Medication': 'Medication',
-    'MedicationAdministration': 'MedicationAdministration',
-    'MedicationAdministrationICU': 'MedicationAdministration',
-    'MedicationDispense': 'MedicationDispense',
-    'MedicationRequest': 'MedicationRequest',
-    'ObservationChartevents': 'Observation',
-    'ObservationDatetimeevents': 'Observation',
-    'ObservationLabevents': 'Observation',
-    'ObservationMicroTest': 'Observation',
-    'ObservationMicroOrg': 'Observation',
-    'ObservationMicroSusc': 'Observation',
-    'ObservationOutputevents': 'Observation',
-    'Organization': 'Organization',
-    'Patient': 'Patient',
-    'Procedure': 'Procedure',
-    'ProcedureICU': 'Procedure',
-    'Specimen': 'Specimen',
-    'SpecimenLab': 'Specimen'
+    'MimicMedication': 'Medication',
+    'MimicMedicationAdministration': 'MedicationAdministration',
+    'MimicMedicationAdministrationICU': 'MedicationAdministration',
+    'MimicMedicationDispense': 'MedicationDispense',
+    'MimicMedicationRequest': 'MedicationRequest',
+    'MimicObservationChartevents': 'Observation',
+    'MimicObservationDatetimeevents': 'Observation',
+    'MimicObservationLabevents': 'Observation',
+    'MimicObservationMicroTest': 'Observation',
+    'MimicObservationMicroOrg': 'Observation',
+    'MimicObservationMicroSusc': 'Observation',
+    'MimicObservationOutputevents': 'Observation',
+    'MimicOrganization': 'Organization',
+    'MimicPatient': 'Patient',
+    'MimicProcedure': 'Procedure',
+    'MimicProcedureICU': 'Procedure',
+    'MimicSpecimen': 'Specimen'
 }
 
 MIMIC_FHIR_PROFILE_NAMES = [
-    'Condition', 'Encounter', 'EncounterICU', 'Location', 'Medication',
-    'MedicationAdministration', 'MedicationAdministrationICU',
-    'MedicationDispense', 'MedicationRequest', 'ObservationChartevents',
-    'ObservationDatetimeevents', 'ObservationLabevents', 'ObservationMicroTest',
-    'ObservationMicroOrg', 'ObservationMicroSusc', 'ObservationOutputevents',
-    'Organization', 'Patient', 'Procedure', 'ProcedureICU', 'Specimen',
-    'SpecimenLab'
+    'MimicCondition', 'MimicEncounter', 'MimicEncounterICU', 'MimicLocation',
+    'MimicMedication', 'MimicMedicationAdministration',
+    'MimicMedicationAdministrationICU', 'MimicMedicationDispense',
+    'MimicMedicationRequest', 'MimicObservationChartevents',
+    'MimicObservationDatetimeevents', 'MimicObservationLabevents',
+    'MimicObservationMicroTest', 'MimicObservationMicroOrg',
+    'MimicObservationMicroSusc', 'MimicObservationOutputevents',
+    'MimicOrganization', 'MimicPatient', 'MimicProcedure', 'MimicProcedureICU',
+    'MimicSpecimen'
 ]
 
 MIMIC_CODESYSTEMS = [

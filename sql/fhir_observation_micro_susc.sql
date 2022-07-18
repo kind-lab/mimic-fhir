@@ -60,13 +60,13 @@ SELECT
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
+                'system', 'http://terminology.hl7.org/CodeSystem/mimic-observation-category'  
                 , 'code', 'laboratory'
             ))
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-antibiotic'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-antibiotic'  
                 , 'code', mi_AB_ITEMID
                 , 'display', mi_AB_NAME
             ))
@@ -75,7 +75,7 @@ SELECT
         , 'effectiveDateTime', mi_STORETIME
         , 'valueCodeableConcept', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-interpretation'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-interpretation'  
                 , 'code', mi_INTERPRETATION
             ))
         )

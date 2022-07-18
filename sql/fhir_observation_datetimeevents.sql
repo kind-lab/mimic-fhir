@@ -52,13 +52,13 @@ SELECT
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'
                 , 'code', di_CATEGORY
             ))
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-items'
                 , 'code', de_ITEMID
                 , 'display', di_LABEL
             ))
