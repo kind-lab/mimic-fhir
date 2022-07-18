@@ -25,8 +25,6 @@ WITH fhir_observation_oe AS (
         , uuid_generate_v5(ns_encounter_icu.uuid, CAST(oe.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM
         mimic_icu.outputevents oe
-        INNER JOIN fhir_etl.subjects sub
-            ON oe.subject_id = sub.subject_id
         LEFT JOIN mimic_icu.d_items di
             ON oe.itemid = di.itemid
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu

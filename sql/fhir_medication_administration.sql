@@ -18,6 +18,28 @@ CREATE TABLE mimic_fhir.medication_administration(
 WITH prescriptions AS (
     SELECT DISTINCT pharmacy_id 
     FROM mimic_hosp.prescriptions 
+), emar_detail_unique AS (
+    SELECT DISTINCT 
+        emar_id
+        , parent_field_ordinal
+        , MAX(site) AS site
+        , MAX(route) AS route
+        , MAX(dose_given) AS dose_given
+        , MAX(dose_given_unit) AS dose_given_unit
+        , MAX(product_amount_given) AS product_amount_given
+        , MAX(product_unit) AS product_unit
+        , MAX(infusion_rate) AS infusion_rate
+        , MAX(infusion_rate_unit) AS infusion_rate_unit
+        , MAX(product_code) AS product_code
+        , MAX(pharmacy_id) AS pharmacy_id
+    FROM
+        mimic_hosp.emar_detail
+    GROUP BY
+        emar_id
+        , parent_field_ordinal
+    HAVING 
+        -- Select each individual dose given in the emar_detail row, skipping the summary row
+        parent_field_ordinal IS NOT NULL
 ), fhir_medication_administration AS (
     SELECT
         emd.emar_id || '-' || emd.parent_field_ordinal AS em_MEDADMIN_ID
@@ -99,9 +121,7 @@ WITH prescriptions AS (
             
         
     FROM
-        mimic_hosp.emar_detail emd
-        INNER JOIN fhir_etl.subjects sub
-            ON emd.subject_id = sub.subject_id 
+        emar_detail_unique emd
         LEFT JOIN mimic_hosp.emar em
             ON emd.emar_id = em.emar_id
         LEFT JOIN mimic_hosp.poe poe
@@ -123,9 +143,7 @@ WITH prescriptions AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_administration
             ON ns_medication_administration.name = 'MedicationAdministration'
     WHERE
-        -- Select each individual dose given in the emar_detail row, skipping the summary row
-        emd.parent_field_ordinal IS NOT NULL 
-        AND (pr.pharmacy_id IS NOT NULL
+        (pr.pharmacy_id IS NOT NULL
             OR em.medication IS NOT NULL 
             OR poe.order_type IN ('TPN', 'IV therapy'))
         

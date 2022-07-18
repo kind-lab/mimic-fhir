@@ -27,8 +27,6 @@ WITH fhir_condition AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(diag.hadm_id AS TEXT)) as uuid_HADM_ID
     FROM
         mimic_hosp.diagnoses_icd diag
-        INNER JOIN fhir_etl.subjects sub
-            ON diag.subject_id =sub.subject_id 
         LEFT JOIN mimic_hosp.d_icd_diagnoses icd
             ON diag.icd_code = icd.icd_code
             AND diag.icd_version = icd.icd_version

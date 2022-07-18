@@ -6,28 +6,34 @@ CREATE TABLE mimic_fhir.specimen_lab(
 );
 
 -- Lab specimen
-WITH fhir_specimen_lab AS (
+WITH lab AS (
+    SELECT 
+        lab.specimen_id
+        , MAX(lab.itemid) AS itemid
+        , MAX(lab.subject_id) AS subject_id
+        , MAX(lab.charttime) AS charttime
+    FROM 
+        mimic_hosp.labevents lab  
+    GROUP BY
+        specimen_id        
+)
+, fhir_specimen_lab AS (
     SELECT
         CAST(lab.specimen_id AS TEXT) AS lab_SPECIMEN_ID
-        , CAST(MAX(lab.charttime) AS TIMESTAMPTZ) AS lab_CHARTTIME
-        , MAX(dlab.fluid) AS dlab_FLUID
+        , CAST(lab.charttime AS TIMESTAMPTZ) AS lab_CHARTTIME
+        , dlab.fluid AS dlab_FLUID
 
         , uuid_generate_v5(ns_specimen.uuid, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN
-        , uuid_generate_v5(ns_patient.uuid, CAST(MAX(lab.subject_id) AS TEXT)) as uuid_SUBJECT_ID
+        , uuid_generate_v5(ns_patient.uuid, CAST(lab.subject_id AS TEXT)) as uuid_SUBJECT_ID
     FROM 
-        mimic_hosp.labevents lab
-        INNER JOIN fhir_etl.subjects sub
-            ON lab.subject_id = sub.subject_id
+        lab
         LEFT JOIN mimic_hosp.d_labitems dlab
             ON lab.itemid = dlab.itemid
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
             ON ns_specimen.name = 'SpecimenLab'
-    GROUP BY
-        specimen_id
-        , ns_specimen.uuid
-        , ns_patient.uuid
+    
 )  
   
 INSERT INTO mimic_fhir.specimen_lab

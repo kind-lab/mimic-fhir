@@ -25,8 +25,6 @@ WITH transfer_locations AS (
         ORDER BY intime) AS location_array
     FROM 
         mimic_hosp.transfers tfr 
-        INNER JOIN fhir_etl.subjects sub
-            ON tfr.subject_id = sub.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_location
             ON ns_location.name = 'Location'
     WHERE tfr.careunit IS NOT NULL 
@@ -45,8 +43,6 @@ WITH transfer_locations AS (
         ) AS cpt_ARRAY
     FROM 
         mimic_hosp.admissions adm
-        INNER JOIN fhir_etl.subjects sub
-            ON adm.subject_id = sub.subject_id 
         LEFT JOIN mimic_hosp.hcpcsevents cpt
             ON adm.hadm_id = cpt.hadm_id
     WHERE cpt.hcpcs_cd IS NOT NULL 
@@ -82,8 +78,6 @@ WITH transfer_locations AS (
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS uuid_ORG
     FROM 
         mimic_hosp.admissions adm
-        INNER JOIN fhir_etl.subjects sub
-            ON adm.subject_id = sub.subject_id 
         LEFT JOIN transfer_locations tfr
             ON adm.hadm_id = tfr.hadm_id
         LEFT JOIN cpt_codes cpt

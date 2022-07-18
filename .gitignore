@@ -135,5 +135,6 @@ dmypy.json
 log/
 
 # Tutorial staging
-tutorial/staging
-tutorial/output
+tutorial/pathling/staging
+tutorial/hapi/database
+tutorial/pathling/output

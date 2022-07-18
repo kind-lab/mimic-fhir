@@ -44,8 +44,6 @@ WITH distinct_org AS (
         
     FROM 
         mimic_hosp.microbiologyevents mi
-        INNER JOIN fhir_etl.subjects sub    
-            ON mi.subject_id = sub.subject_id 
     GROUP BY 
         test_itemid
         , micro_specimen_id

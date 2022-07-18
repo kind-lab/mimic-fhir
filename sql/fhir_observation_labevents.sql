@@ -28,6 +28,9 @@ WITH fhir_observation_labevents AS (
         -- Parse values with a comparator and pulling out numeric value
         , CASE 
             WHEN lab.valuenum IS NOT NULL THEN lab.valuenum
+            WHEN value IN  ('<1>50', '150>') THEN NULL --UNIQUE entries that are invalid
+            WHEN value ~ '[a-zA-Z]' THEN NULL -- If any letters are found in the value COLUMN (about )
+            WHEN value ~ '[^\x00-\x7F]' THEN NULL -- FOR unicode char that ARE IN the value COLUMN (about 4 values)
             WHEN value LIKE '%<=%' THEN CAST(split_part(lab.value,'<=',2) AS NUMERIC)
             WHEN value LIKE '%<%' THEN CAST(split_part(lab.value,'<',2) AS NUMERIC)
             WHEN value LIKE '%>=%' THEN CAST(split_part(lab.value,'>=',2) AS NUMERIC)
@@ -59,8 +62,6 @@ WITH fhir_observation_labevents AS (
         , uuid_generate_v5(ns_specimen.uuid, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN_ID
     FROM
         mimic_hosp.labevents lab
-        INNER JOIN fhir_etl.subjects sub
-            ON lab.subject_id =sub.subject_id 
         LEFT JOIN mimic_hosp.d_labitems dlab
             ON lab.itemid = dlab.itemid                             
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter

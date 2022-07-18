@@ -85,8 +85,6 @@ WITH prescript_request AS (
   	    prescript_request pr
   	    LEFT JOIN mimic_hosp.pharmacy ph
             ON pr.pharmacy_id = ph.pharmacy_id  
-  		INNER JOIN fhir_etl.subjects sub
-  			ON pr.subject_id = sub.subject_id 
   		LEFT JOIN fhir_etl.uuid_namespace ns_encounter
   			ON ns_encounter.name = 'Encounter'
   		LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -245,8 +243,6 @@ WITH prescriptions AS (
         poe_medreq pm
         INNER JOIN mimic_hosp.poe poe
             ON pm.poe_id = poe.poe_id
-        INNER JOIN fhir_etl.subjects sub
-            ON poe.subject_id = sub.subject_id 
         
         -- uuid namespaces
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
