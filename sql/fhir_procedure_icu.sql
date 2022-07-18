@@ -25,8 +25,6 @@ WITH fhir_procedure_icu AS (
         , uuid_generate_v5(ns_encounter_icu.uuid, CAST(pe.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM
         mimic_icu.procedureevents pe
-        INNER JOIN fhir_etl.subjects sub
-            ON pe.subject_id = sub.subject_id
         LEFT JOIN mimic_icu.d_items di
             ON pe.itemid = di.itemid
         LEFT JOIN fhir_etl.map_status_procedure_icu map_status

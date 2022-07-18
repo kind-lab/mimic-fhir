@@ -31,8 +31,6 @@ WITH micro_info AS (
             END as fhir_SUSCEPTIBILITY
     FROM 
         mimic_hosp.microbiologyevents mi
-        INNER JOIN fhir_etl.subjects sub
-            ON mi.subject_id = sub.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_susc
             ON ns_observation_micro_susc.name = 'ObservationMicroSusc'
     WHERE

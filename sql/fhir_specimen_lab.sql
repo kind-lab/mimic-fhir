@@ -13,9 +13,7 @@ WITH lab AS (
         , MAX(lab.subject_id) AS subject_id
         , MAX(lab.charttime) AS charttime
     FROM 
-        mimic_hosp.labevents lab
-        INNER JOIN fhir_etl.subjects sub
-            ON lab.subject_id = sub.subject_id    
+        mimic_hosp.labevents lab  
     GROUP BY
         specimen_id        
 )

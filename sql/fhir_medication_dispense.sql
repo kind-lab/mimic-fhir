@@ -51,8 +51,6 @@ WITH distinct_prescriptions AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM 
         mimic_hosp.pharmacy ph 
-        INNER JOIN fhir_etl.subjects sub 
-            ON ph.subject_id = sub.subject_id 
         LEFT JOIN distinct_prescriptions pr
             ON ph.pharmacy_id = pr.pharmacy_id
             
@@ -155,4 +153,3 @@ SELECT
     )) AS fhir  
 FROM 
     fhir_medication_dispense
-

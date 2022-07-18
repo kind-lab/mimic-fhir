@@ -18,8 +18,6 @@ WITH tb_admissions AS (
         , MIN(adm.language) AS adm_LANGUAGE
     FROM  
         mimic_hosp.patients pat
-        INNER JOIN fhir_etl.subjects sub
-            ON pat.subject_id = sub.subject_id 
         INNER JOIN mimic_hosp.transfers tfs
             ON pat.subject_id = tfs.subject_id
         -- Grab latest admittime to get the latest demographic info 
@@ -51,8 +49,6 @@ WITH tb_admissions AS (
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS  UUID_organization
     FROM  
         mimic_hosp.patients pat
-        INNER JOIN fhir_etl.subjects sub
-            ON pat.subject_id = sub.subject_id  
         LEFT JOIN tb_admissions adm
             ON pat.subject_id = adm.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
