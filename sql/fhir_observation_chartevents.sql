@@ -40,6 +40,7 @@ WITH fhir_observation_ce as (
     WHERE   
         -- filter out the one duplicate value (one patient at one charttime)
         ((stay_id = 34934165) AND (charttime = '2151-10-03 05:14:00.000')) = FALSE
+        AND value IS NOT NULL -- one value in the whole table
 )
 INSERT INTO mimic_fhir.observation_chartevents
 SELECT 
