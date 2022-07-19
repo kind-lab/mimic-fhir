@@ -76,7 +76,7 @@ SELECT
         , 'id', uuid_STAY_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-icu'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(

@@ -16,8 +16,8 @@ WITH fhir_procedure AS (
         , CAST(proc.chartdate AS TIMESTAMPTZ) AS proc_CHARTDATE
         , proc.icd_version AS proc_ICD_VERSION
         , CASE WHEN proc.icd_version = 9 
-            THEN 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9' 
-            ELSE 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd10' 
+            THEN 'http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-icd9' 
+            ELSE 'http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-icd10' 
         END AS proc_ICD_SYSTEM
   
         -- reference uuids

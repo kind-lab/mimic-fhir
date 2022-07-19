@@ -101,7 +101,7 @@ SELECT
         , 'id', uuid_HADM_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-hosp'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
@@ -122,8 +122,8 @@ SELECT
                 jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(json_build_object(
                         'system', 'http://snomed.info/sct'
-                        , 'code', '453701000124103'
-                        , 'display', 'In-person encounter (procedure)'
+                        , 'code', '308335008'
+                        , 'display', 'Patient encounter procedure (procedure)'
                     ))
                 ))
             END
