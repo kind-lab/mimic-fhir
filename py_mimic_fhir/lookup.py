@@ -113,9 +113,9 @@ MIMIC_VALUESETS = [
 ]
 
 VALUESETS_COMPLEX = [
-    'datetimeevents_d_items', 'diagnosis_icd', 'encounter_type', 'medication',
-    'outputevents_d_items', 'procedureevents_d_items', 'procedure_icd',
-    'specimen_type'
+    'admission_class', 'admission_type', 'datetimeevents_d_items',
+    'diagnosis_icd', 'encounter_type', 'medication', 'outputevents_d_items',
+    'procedureevents_d_items', 'procedure_icd', 'specimen_type'
 ]
 # ORDER MATTERS!!
 # The patient bundle must be first and the icu_encounter bundle must be before all other icu bundles

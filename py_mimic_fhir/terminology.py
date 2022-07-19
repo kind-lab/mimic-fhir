@@ -63,12 +63,12 @@ def generate_valuesets(db_conn, meta, terminology_path):
 
 def generate_codesystem(mimic_codesystem, db_conn, meta):
     codesystem = CodeSystem(status=meta.status, content=meta.content)
-    codesystem.id = mimic_codesystem.replace('_', '-')
-    codesystem.url = f'{meta.base_url}/CodeSystem/mimic-{codesystem.id}'
+    codesystem.id = f"mimic-{mimic_codesystem.replace('_', '-')}"
+    codesystem.url = f'{meta.base_url}/CodeSystem/{codesystem.id}'
     codesystem.version = meta.version
     codesystem.language = meta.language
-    codesystem.name = mimic_codesystem.title().replace('_', '')
-    codesystem.title = f'Mimic{codesystem.name}'
+    codesystem.name = f"Mimic{mimic_codesystem.title().replace('_', '')}"
+    codesystem.title = codesystem.name
     codesystem.date = meta.current_date
     codesystem.publisher = meta.publisher
     codesystem.description = meta.cs_descriptions[
@@ -82,19 +82,19 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
 
     # Set canonical valueset if relevant
     if mimic_codesystem not in VALUESETS_COMPLEX:
-        codesystem.valueSet = f'{meta.base_url}/ValueSet/mimic-{codesystem.id}'
+        codesystem.valueSet = f'{meta.base_url}/ValueSet/{codesystem.id}'
 
     return codesystem
 
 
 def generate_valueset(mimic_valueset, db_conn, meta):
     valueset = ValueSet(status=meta.status)
-    valueset.id = mimic_valueset.replace('_', '-')
-    valueset.url = f'{meta.base_url}/ValueSet/mimic-{valueset.id}'
+    valueset.id = f"mimic-{mimic_valueset.replace('_', '-')}"
+    valueset.url = f'{meta.base_url}/ValueSet/{valueset.id}'
     valueset.version = meta.version
     valueset.language = meta.language
-    valueset.name = mimic_valueset.title().replace('_', '')
-    valueset.title = f'Mimic{valueset.name}'
+    valueset.name = f"Mimic{mimic_valueset.title().replace('_', '')}"
+    valueset.title = valueset.name
     valueset.date = meta.current_date
     valueset.publisher = meta.publisher
     valueset.description = meta.vs_descriptions[meta.vs_descriptions['valueset']
@@ -121,7 +121,7 @@ def generate_valueset(mimic_valueset, db_conn, meta):
                 include_list.append(include_dict)
         valueset.compose = {'include': include_list}
     else:
-        sys = {'system': f'{meta.base_url}/CodeSystem/mimic-{valueset.id}'}
+        sys = {'system': f'{meta.base_url}/CodeSystem/{valueset.id}'}
         valueset.compose = {'include': [sys]}
     return valueset
 
