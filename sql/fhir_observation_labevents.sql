@@ -69,7 +69,7 @@ WITH fhir_observation_labevents AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_labs
-            ON ns_observation_labs.name = 'ObservationLabs'
+            ON ns_observation_labs.name = 'ObservationLabevents'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
             ON ns_specimen.name = 'SpecimenLab'
 )
