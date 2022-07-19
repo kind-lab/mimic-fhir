@@ -79,7 +79,7 @@ SELECT
     , uuid_SUBJECT_ID AS patient_id
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'MedicationDispense'
-        , 'id', uuid_MEDICATION_REQUEST
+        , 'id', uuid_MEDICATION_DISPENSE
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-dispense'
