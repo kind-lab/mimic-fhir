@@ -25,6 +25,7 @@ VALUES
     , ('lab_priority', 'The priority of the lab item in MIMIC')   
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
     , ('medication', 'All medication codesystems combined for MIMIC. Contains medication-formulary-drug-cd, medication-ndc, medication-name, medication-poe-iv, medication-icu')
+    , ('medication_etc', 'The medication ETC (enhanced therapeutic class) codes for MIMIC')
     , ('medication_frequency', 'The medication frequency reported for medication delivery in MIMIC')
     , ('medication_gsn', 'The medication GSN codes for MIMIC')
     , ('medication_method', 'The medication delivery method for MIMIC')

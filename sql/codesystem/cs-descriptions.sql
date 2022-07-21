@@ -25,6 +25,7 @@ VALUES
     , ('lab_fluid', 'The lab fluid that is captured for the specimen')
     , ('lab_priority', 'The priority of the lab item in MIMIC')    
     , ('medadmin_category_icu', 'The medication administration category for the ICU for MIMIC')
+    , ('medication_etc', 'The medication ETC (enhanced therapeutic class) codes for MIMIC')
     , ('medication_formulary_drug_cd', 'Medication formulary drug codes for use in prescriptions and emar')
     , ('medication_frequency', 'The medication frequency reported for medication delivery in MIMIC')
     , ('medication_gsn', 'The medication GSN codes for MIMIC')
