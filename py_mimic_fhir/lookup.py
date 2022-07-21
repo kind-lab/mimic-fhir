@@ -91,12 +91,12 @@ MIMIC_CODESYSTEMS = [
     'diagnosis_icd10', 'discharge_disposition', 'hcpcs_cd', 'identifier_type',
     'lab_flags', 'lab_fluid', 'lab_priority', 'medadmin_category_icu',
     'medication_icu', 'medication_formulary_drug_cd', 'medication_frequency',
-    'medication_method', 'medication_method_icu', 'medication_name',
-    'medication_ndc', 'medication_poe_iv', 'medication_route',
-    'medication_site', 'microbiology_antibiotic', 'microbiology_interpretation',
-    'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'procedure_icd9', 'procedure_icd10', 'services',
-    'spec_type_desc', 'units'
+    'medication_gsn', 'medication_method', 'medication_method_icu',
+    'medication_name', 'medication_ndc', 'medication_poe_iv',
+    'medication_route', 'medication_site', 'microbiology_antibiotic',
+    'microbiology_interpretation', 'microbiology_organism', 'microbiology_test',
+    'observation_category', 'procedure_category', 'procedure_icd9',
+    'procedure_icd10', 'services', 'spec_type_desc', 'units'
 ]
 
 MIMIC_VALUESETS = [
@@ -104,7 +104,7 @@ MIMIC_VALUESETS = [
     'chartevents_d_items', 'd_labitems', 'datetimeevents_d_items',
     'diagnosis_icd', 'discharge_disposition', 'encounter_type',
     'identifier_type', 'lab_flags', 'lab_priority', 'medadmin_category_icu',
-    'medication', 'medication_frequency', 'medication_method',
+    'medication', 'medication_frequency', 'medication_gsn', 'medication_method',
     'medication_method_icu', 'medication_route', 'medication_site',
     'microbiology_antibiotic', 'microbiology_interpretation',
     'microbiology_organism', 'microbiology_test', 'observation_category',
