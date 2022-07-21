@@ -115,14 +115,7 @@ SELECT
          ) 
       	, 'identifier', jsonb_build_array(jsonb_build_object(
             'value', pr_PHARMACY_ID
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
-            , 'type', jsonb_build_object(
-                'coding', jsonb_build_array(jsonb_build_object(
-                    'code', 'PHID'
-                    , 'display', 'Pharmacy identifier'
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-identifier-type'
-                ))
-            )
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request-phid'
         ))	
         , 'status', stat_FHIR_STATUS
       	, 'intent', 'order'
@@ -277,14 +270,7 @@ SELECT
          ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', poe_POE_ID
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request'
-            , 'type', jsonb_build_object(
-                'coding', jsonb_build_array(jsonb_build_object(
-                    'code', 'POE'
-                    , 'display', 'Provider Order Entry'
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-identifier-type'
-                ))
-            )
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-request-poe'
         )) 
         , 'status', stat_FHIR_STATUS
         , 'intent', 'order'
