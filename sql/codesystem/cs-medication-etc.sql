@@ -5,10 +5,11 @@
 DROP TABLE IF EXISTS fhir_trm.cs_medication_etc;
 CREATE TABLE fhir_trm.cs_medication_etc(
     code      VARCHAR NOT NULL
+    , display VARCHAR NOT NULL
 );
 
 INSERT INTO fhir_trm.cs_medication_etc
-SELECT 
+SELECT DISTINCT
     etccode AS code
     , etcdescription AS display
 FROM mimic_ed.medrecon 
