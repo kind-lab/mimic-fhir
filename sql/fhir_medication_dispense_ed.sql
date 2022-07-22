@@ -30,14 +30,6 @@ WITH fhir_medication_dispense_ed AS (
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_dispense
             ON ns_medication_dispense.name = 'MedicationDispenseED'
-            
-        -- ValueSet MAPPING 
-        LEFT JOIN fhir_etl.map_med_duration_unit medu 
-            ON ph.duration_interval = medu.mimic_unit 
-    
-    -- only create medication dispense if medication is specified
-    WHERE 
-        ph.medication IS NOT NULL
 ) 
 
 INSERT INTO mimic_fhir.medication_dispense_ed
@@ -65,11 +57,7 @@ SELECT
             ))
         ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-        , 'context', 
-            CASE WHEN uuid_STAY_ID IS NOT NULL
-              THEN jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
-              ELSE NULL
-            END
+        , 'context', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)
     )) AS fhir  
 FROM 
     fhir_medication_dispense_ed 
