@@ -9,9 +9,10 @@ CREATE TABLE fhir_trm.cs_medication_etc(
 );
 
 INSERT INTO fhir_trm.cs_medication_etc
-SELECT DISTINCT
+SELECT
     etccode AS code
-    , etcdescription AS display
+    , MAX(etcdescription) AS display -- grab one description
 FROM mimic_ed.medrecon 
 WHERE 
     etccode IS NOT NULL 
+GROUP BY etccode
