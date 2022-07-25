@@ -12,9 +12,10 @@ WITH fhir_observation_micro_susc AS (
         , CAST(mi.ab_itemid AS TEXT) AS mi_AB_ITEMID
         , mi.ab_name AS mi_AB_NAME
         , mi.subject_id AS mi_SUBJECT_ID
-        , mi.interpretation AS mi_INTERPRETATION
         , CAST(mi.storetime AS TIMESTAMPTZ) AS mi_STORETIME
         , mi.comments AS mi_COMMENTS
+        , interp.fhir_interpretation_code AS interp_FHIR_INTERPRETATION_CODE
+        , interp.fhir_interpretation_display AS interp_FHIR_INTERPRETATION_DISPLAY
         
         -- dilution details
         , mi.dilution_value AS mi_DILUTION_VALUE
@@ -37,6 +38,9 @@ WITH fhir_observation_micro_susc AS (
             ON ns_observation_micro_org.name = 'ObservationMicroOrg'
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_susc
             ON ns_observation_micro_susc.name = 'ObservationMicroSusc'
+        -- mappings
+        LEFT JOIN fhir_etl.map_micro_interpretation interp
+            ON mi.interpretation = interp.mimic_interpretation
     WHERE 
         mi.ab_itemid IS NOT NULL
 )
@@ -75,8 +79,9 @@ SELECT
         , 'effectiveDateTime', mi_STORETIME
         , 'valueCodeableConcept', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-interpretation'  
-                , 'code', mi_INTERPRETATION
+                'system', 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation'  
+                , 'code', interp_FHIR_INTERPRETATION_CODE
+                , 'display', interp_FHIR_INTERPRETATION_DISPLAY
             ))
         )
         , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_ORG)) 

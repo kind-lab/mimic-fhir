@@ -15,7 +15,6 @@ WITH fhir_observation_labevents AS (
         , dlab.label AS dlab_LABEL
         , CAST(lab.charttime AS TIMESTAMPTZ) AS lab_CHARTTIME
         , CAST(lab.storetime AS TIMESTAMPTZ) AS lab_STORETIME
-        , lab.flag AS lab_FLAG
         , lab.comments AS lab_COMMENTS
         , lab.ref_range_lower AS lab_REF_RANGE_LOWER
         , lab.ref_range_upper AS lab_REF_RANGE_UPPER
@@ -54,6 +53,10 @@ WITH fhir_observation_labevents AS (
             WHEN comments ILIKE '%cancel%' THEN 'cancelled'
             ELSE 'final'
         END AS lab_STATUS
+        
+        -- interpretation
+        , interp.fhir_interpretation_code AS interp_FHIR_INTERPRETATION_CODE
+        , interp.fhir_interpretation_display AS interp_FHIR_INTERPRETATION_DISPLAY
   
         -- reference uuids
         , uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
@@ -72,6 +75,10 @@ WITH fhir_observation_labevents AS (
             ON ns_observation_labs.name = 'ObservationLabevents'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
             ON ns_specimen.name = 'SpecimenLab'
+            
+        -- mappings
+        LEFT JOIN fhir_etl.map_lab_interpretation interp
+            ON lab.flag = interp.mimic_interpretation
 )
 INSERT INTO mimic_fhir.observation_labevents
 SELECT 
@@ -135,11 +142,12 @@ SELECT
             ))
             ELSE NULL END
         , 'interpretation', 
-            CASE WHEN lab_FLAG IS NOT NULL THEN
+            CASE WHEN interp_FHIR_INTERPRETATION_CODE IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-lab-flags'  
-                        , 'code', lab_FLAG
+                        'system', 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation'  
+                        , 'code', interp_FHIR_INTERPRETATION_CODE
+                        , 'display' interp_FHIR_INTERPRETATION_DISPLAY
                     ))
                 ))
             ELSE NULL END
