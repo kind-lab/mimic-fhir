@@ -14,8 +14,7 @@ WITH fhir_medication_statement AS (
     SELECT 
         -- unique id for medication statement needs name, gsn, and ndc since gsn/ndc = 0 if missing. 
         -- And the same med name can have different gsn/ndc entries 
-        stay_id || '-' || charttime || '-' || med.name || '-' || gsn || '-' || ndc AS med_STATEMENT_ID
-        , gsn AS med_GSN
+        gsn AS med_GSN
         , ndc AS med_NDC
         , med.name AS med_NAME
         , jsonb_agg(
@@ -66,10 +65,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-statement-ed'
             )
          ) 
-        , 'identifier', jsonb_build_array(jsonb_build_object(
-              'value', med_STATEMENT_ID
-              , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-statement'
-        ))    
         , 'status', 'completed' -- assumed all complete dispense in mimic
         , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(

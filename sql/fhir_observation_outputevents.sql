@@ -10,8 +10,7 @@ CREATE TABLE mimic_fhir.observation_outputevents(
 
 WITH fhir_observation_oe AS (
     SELECT
-        oe.stay_id || '-' || oe.charttime || '-' || oe.itemid AS oe_IDENTIFIER
-        , CAST(oe.itemid AS TEXT) AS oe_ITEMID
+        CAST(oe.itemid AS TEXT) AS oe_ITEMID
         , CAST(oe.charttime AS TIMESTAMPTZ) AS oe_CHARTTIME
         , CAST(oe.storetime AS TIMESTAMPTZ) AS oe_STORETIME
         , oe.valueuom AS oe_VALUEUOM
@@ -46,10 +45,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevents'
             )
         ) 
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', oe_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-outputevents'
-        ))
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(

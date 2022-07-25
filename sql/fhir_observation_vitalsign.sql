@@ -20,8 +20,7 @@ WITH vitalsigns AS (
     WHERE KEY IN ('dbp', 'o2sat', 'rhythm', 'resprate', 'heartrate', 'temperature' ) -- pain excluded FOR now
 ), fhir_observation_vs AS (
     SELECT
-        vs.stay_id || '-' || vs.charttime || '-' || vs.KEY AS vs_IDENTIFIER
-        , CAST(vs.charttime AS TIMESTAMPTZ) AS vs_CHARTTIME
+        CAST(vs.charttime AS TIMESTAMPTZ) AS vs_CHARTTIME
         , vs.KEY AS vs_KEY
         , vs.value AS vs_VALUE
         , vs.sbp AS vs_SBP
@@ -54,10 +53,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-vitalsign'
             )
         ) 
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', vs_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-vitalsign'
-        ))
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(

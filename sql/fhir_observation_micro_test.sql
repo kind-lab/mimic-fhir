@@ -78,7 +78,6 @@ WITH distinct_org AS (
 ), fhir_observation_micro_test AS (
     SELECT 
         mi_MICRO_SPECIMEN_ID
-        , mi_MICRO_SPECIMEN_ID|| '-' || mi_TEST_ITEMID AS id_MICRO_TEST
         , mi_TEST_ITEMID
         , mi_TEST_NAME
         , mi_SUBJECT_ID
@@ -117,10 +116,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-test'
             )
         ) 
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', id_MICRO_TEST
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-micro-test'
-        ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(

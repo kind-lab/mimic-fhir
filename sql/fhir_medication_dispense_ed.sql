@@ -13,8 +13,7 @@ CREATE TABLE mimic_fhir.medication_dispense_ed(
 
 WITH fhir_medication_dispense_ed AS (
     SELECT 
-        py.stay_id || '-' || py.med_rn || '-' || py.gsn_rn AS py_DISPENSE_ID
-        , py.gsn AS py_GSN
+        py.gsn AS py_GSN
         , py.name AS py_NAME
         
         -- reference uuids
@@ -44,10 +43,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-dispense-ed'
             )
          ) 
-        , 'identifier', jsonb_build_array(jsonb_build_object(
-              'value', py_DISPENSE_ID
-              , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-dispense-ed'
-        ))    
         , 'status', 'completed' -- assumed all complete dispense in mimic
         , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(

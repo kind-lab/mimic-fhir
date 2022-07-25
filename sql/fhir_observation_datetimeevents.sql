@@ -10,8 +10,7 @@ CREATE TABLE mimic_fhir.observation_datetimeevents(
 
 WITH fhir_observation_de AS (
     SELECT
-        de.stay_id || '-' || de.charttime || '-' || de.itemid AS de_IDENTIFIER
-        , CAST(de.itemid AS TEXT) AS de_ITEMID
+        CAST(de.itemid AS TEXT) AS de_ITEMID
         , CAST(de.charttime AS TIMESTAMPTZ) AS de_CHARTTIME
         , CAST(de.storetime AS TIMESTAMPTZ) AS de_STORETIME
         , CAST(de.value AS TIMESTAMPTZ) AS de_VALUE
@@ -45,10 +44,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-datetimeevents'
             )
         )
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', de_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-datetimeevents'
-        ))
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(

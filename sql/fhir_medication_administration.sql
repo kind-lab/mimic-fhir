@@ -42,8 +42,7 @@ WITH prescriptions AS (
         parent_field_ordinal IS NOT NULL
 ), fhir_medication_administration AS (
     SELECT
-        emd.emar_id || '-' || emd.parent_field_ordinal AS em_MEDADMIN_ID
-        , CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
+        CAST(em.charttime AS TIMESTAMPTZ) AS em_CHARTTIME
   		
         -- FHIR VALIDATOR does NOT accept leading/trailing white spaces, so trim values
         , TRIM(REGEXP_REPLACE(emd.site, '\s+', ' ', 'g')) AS emd_SITE
@@ -162,10 +161,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration'
             )
         ) 
-        , 'identifier', jsonb_build_array(jsonb_build_object(
-            'value', em_MEDADMIN_ID
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration'	
-        ))	
         , 'status', 'completed' -- All medication adminstrations considered complete
         , 'medicationCodeableConcept',
             jsonb_build_object(

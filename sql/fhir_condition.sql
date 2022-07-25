@@ -10,9 +10,7 @@ CREATE TABLE mimic_fhir.condition(
 
 WITH fhir_condition AS (
     SELECT
-        diag.hadm_id || '-' || diag.seq_num || '-' || diag.icd_code as diag_IDENTIFIER
-        --, TRIM(diag.icd_code) AS diag_ICD_CODE -- remove whitespaces or FHIR validator will complain
-        , TRIM(diag.icd_code) AS diag_ICD_CODE
+        TRIM(diag.icd_code) AS diag_ICD_CODE
         , icd.long_title AS icd_LONG_TITLE
         , diag.icd_version AS diag_ICD_VERSION
         , CASE WHEN diag.icd_version = 9 
@@ -49,15 +47,7 @@ SELECT
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-condition'
             )
-        ) 
-        , 'identifier', 
-            jsonb_build_array( 
-                jsonb_build_object(
-                    'value', diag_IDENTIFIER
-                    , 'system', 'http://fhir.mimic.mit.edu/identifier/condition'
-                )
-            )	
-          
+        )      
         -- All diagnoses in MIMIC are considered encounter derived
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(

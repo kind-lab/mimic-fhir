@@ -42,7 +42,6 @@ WITH micro_info AS (
 ), fhir_observation_micro_org AS (
     SELECT 
         mi.org_itemid AS mi_ORG_ITEMID
-        , mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid AS id_MICRO_ORG
         , mi.org_name AS mi_ORG_NAME
         , mi.charttime AS mi_CHARTTIME
         
@@ -84,10 +83,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-org'
             )
         ) 
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', id_MICRO_ORG
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-micro-org'
-        ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
