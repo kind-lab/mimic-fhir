@@ -63,7 +63,10 @@ WITH transfer_locations AS (
 ),fhir_encounter AS (
     SELECT 
         CAST(adm.hadm_id AS TEXT) AS adm_HADM_ID	
-        , adm.admission_type AS adm_ADMISSION_TYPE
+        , cls.fhir_class_code AS cls_FHIR_CLASS_CODE
+        , cls.fhir_class_display AS cls_FHIR_CLASS_DISPLAY
+        , pry.fhir_priority_code AS pry_FHIR_PRIORITY_CODE
+        , pry.fhir_priority_display AS pry_FHIR_PRIORITY_DISPLAY
         , CAST(adm.admittime AS TIMESTAMPTZ) AS adm_ADMITTIME
         , CAST(adm.dischtime AS TIMESTAMPTZ) AS adm_DISCHTIME
         , adm.admission_location AS adm_ADMISSION_LOCATION  		
@@ -90,6 +93,12 @@ WITH transfer_locations AS (
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_organization	
             ON ns_organization.name = 'Organization'
+            
+        -- mappings
+        LEFT JOIN fhir_etl.map_encounter_class cls
+            ON adm.admission_type = cls.mimic_class
+        LEFT JOIN fhir_etl.map_encounter_priority pry
+            ON adm.admission_type = pry.mimic_priority
 )
 
 INSERT INTO mimic_fhir.encounter
@@ -112,8 +121,9 @@ SELECT
         ))	
         , 'status', 'finished' -- ALL encounters assumed finished
         , 'class', jsonb_build_object(
-            'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-admission-class'
-            , 'code', adm_ADMISSION_TYPE
+            'system', 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+            , 'code', cls_FHIR_CLASS_CODE
+            , 'display', cls_FHIR_CLASS_DISPLAY
         )
         , 'type', 
             CASE WHEN cpt_ARRAY IS NOT NULL THEN 
@@ -123,14 +133,15 @@ SELECT
                     'coding', jsonb_build_array(json_build_object(
                         'system', 'http://snomed.info/sct'
                         , 'code', '308335008'
-                        , 'display', 'Patient encounter procedure (procedure)'
+                        , 'display', 'Patient encounter procedure'
                     ))
                 ))
             END
         , 'priority', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-admission-type'
-                , 'code', adm_ADMISSION_TYPE
+                'system', 'http://terminology.hl7.org/CodeSystem/v3-ActPriority'
+                , 'code', pry_FHIR_PRIORITY_CODE
+                , 'display', pry_FHIR_PRIORITY_DISPLAY
             ))
         ))
         , 'serviceType', jsonb_build_array(jsonb_build_object(
@@ -166,4 +177,4 @@ SELECT
         , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
     )) AS fhir
 FROM 
-    fhir_encounter 
+    fhir_encounter LIMIT 100
