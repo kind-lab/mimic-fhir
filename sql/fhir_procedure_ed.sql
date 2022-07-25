@@ -55,8 +55,7 @@ LIMIT 1000;
 -- vitalsign information
 WITH fhir_procedure_vitalsign AS (
     SELECT
-        proc.stay_id || '-' || proc.charttime || '-vitalsign'  AS proc_IDENTIFIER 
-        , CAST(proc.charttime  AS TIMESTAMPTZ) AS proc_CHARTTIME
+        CAST(proc.charttime  AS TIMESTAMPTZ) AS proc_CHARTTIME
   
         -- reference uuids
         , uuid_generate_v5(ns_procedure.uuid, proc.stay_id || '-' || proc.charttime) AS uuid_PROCEDURE_ID
@@ -84,10 +83,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-ed'
             )
         ) 
-        , 'identifier', jsonb_build_array(jsonb_build_object(
-            'value', proc_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/procedure-ed'
-        ))       
         , 'status', 'completed' -- All procedures are considered complete        
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(

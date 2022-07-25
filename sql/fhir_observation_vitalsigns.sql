@@ -50,7 +50,7 @@ SELECT
         , 'id', uuid_VITALSIGN
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-vitalsign'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-vital-signs'
             )
         ) 
         , 'status', 'final'
