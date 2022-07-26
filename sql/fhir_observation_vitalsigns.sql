@@ -17,7 +17,7 @@ WITH vitalsigns AS (
         , x.*
         , vs.sbp
     FROM mimic_ed.vitalsign vs, jsonb_each_text(to_jsonb(vs)) AS x("key", value)
-    WHERE KEY IN ('dbp', 'o2sat', 'rhythm', 'resprate', 'heartrate', 'temperature' ) -- pain excluded FOR now
+    WHERE KEY IN ('dbp', 'o2sat', 'resprate', 'heartrate', 'temperature' ) -- pain/rhythm excluded FOR now (stored in MimicObservationED)
 ), fhir_observation_vs AS (
     SELECT
         CAST(vs.charttime AS TIMESTAMPTZ) AS vs_CHARTTIME
@@ -61,7 +61,17 @@ SELECT
                 , 'display', 'Vital Signs'
             ))
         ))
-        -- Item code for outputevent
+        , 'dataAbsentReason', 
+            CASE WHEN vs_VALUE IS NULL THEN
+                jsonb_build_array(jsonb_build_object(
+                    'coding', jsonb_build_array(jsonb_build_object(
+                        'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'  
+                        , 'code', 'unknown'
+                        , 'display', 'Unknown'
+                    ))
+                ))
+            ELSE NULL END
+        -- Item code for vitalsigns
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(
                 CASE 
@@ -104,6 +114,8 @@ SELECT
         , 'effectiveDateTime', vs_CHARTTIME
         , 'valueQuantity',
             CASE 
+                WHEN vs_VALUE IS NULL THEN
+                    NULL
                 WHEN vs_KEY = 'temperature' THEN
                     jsonb_build_object(
                         'value', vs_VALUE
@@ -134,37 +146,40 @@ SELECT
                     )
                 ELSE NULL -- blood pressure stored in components
             END
-        , 'component', CASE WHEN vs_KEY = 'dbp' THEN
-            jsonb_build_array(
-                jsonb_build_object(
-                    'code', jsonb_build_object(
-                        'system', 'http://loinc.org'
-                        , 'code', '8480-6'
-                        , 'display', 'Systolic blood pressure'
-                    ) 
-                    , 'valueQuantity', jsonb_build_object(
-                        'value', vs_SBP
-                        , 'unit', 'mm[Hg]'
-                        , 'system', 'http://unitsofmeasure.org'
-                        , 'code', 'mm[Hg]'
-                    )
-                ),
-                jsonb_build_object(
-                    'code', jsonb_build_object(
-                        'system', 'http://loinc.org'
-                        , 'code', ' 8462-4'
-                        , 'display', 'Diastolic blood pressure'
-                    ) 
-                    , 'valueQuantity', jsonb_build_object(
-                        'value', vs_VALUE
-                        , 'unit', 'mm[Hg]'
-                        , 'system', 'http://unitsofmeasure.org'
-                        , 'code', 'mm[Hg]'
-                    )
-                )            
-            )
+        , 'component', CASE
+            WHEN vs_VALUE IS NULL THEN NULL 
+            WHEN vs_KEY = 'dbp' THEN
+                jsonb_build_array(
+                    jsonb_build_object(
+                        'code', jsonb_build_object(
+                            'system', 'http://loinc.org'
+                            , 'code', '8480-6'
+                            , 'display', 'Systolic blood pressure'
+                        ) 
+                        , 'valueQuantity', jsonb_build_object(
+                            'value', vs_SBP
+                            , 'unit', 'mm[Hg]'
+                            , 'system', 'http://unitsofmeasure.org'
+                            , 'code', 'mm[Hg]'
+                        )
+                    ),
+                    jsonb_build_object(
+                        'code', jsonb_build_object(
+                            'system', 'http://loinc.org'
+                            , 'code', ' 8462-4'
+                            , 'display', 'Diastolic blood pressure'
+                        ) 
+                        , 'valueQuantity', jsonb_build_object(
+                            'value', vs_VALUE
+                            , 'unit', 'mm[Hg]'
+                            , 'system', 'http://unitsofmeasure.org'
+                            , 'code', 'mm[Hg]'
+                        )
+                    )            
+                )
         ELSE NULL END
     )) AS fhir
 FROM
     fhir_observation_vs
+WHERE vs_VALUE IS NULL 
 LIMIT 1000;

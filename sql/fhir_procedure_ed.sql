@@ -11,12 +11,16 @@ CREATE TABLE mimic_fhir.procedure_ed(
 -- triage information
 WITH fhir_procedure_triage AS (
     SELECT
+        CAST(stay.intime AS TIMESTAMPTZ) AS stay_INTIME
+    
         -- reference uuids
-        uuid_generate_v5(ns_procedure.uuid, CAST(proc.stay_id AS TEXT)) AS uuid_PROCEDURE_ID
+        , uuid_generate_v5(ns_procedure.uuid, CAST(proc.stay_id AS TEXT)) AS uuid_PROCEDURE_ID
         , uuid_generate_v5(ns_patient.uuid, CAST(proc.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(proc.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM
         mimic_ed.triage proc
+        LEFT JOIN mimic_ed.edstays stay
+            ON proc.stay_id = stay.stay_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
             ON ns_encounter.name = 'EncounterED'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
@@ -47,6 +51,7 @@ SELECT
         )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
+        , 'performedDateTime', stay_INTIME
     )) AS fhir 
 FROM
     fhir_procedure_triage
