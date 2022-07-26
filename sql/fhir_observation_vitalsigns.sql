@@ -32,6 +32,8 @@ WITH vitalsigns AS (
         , uuid_generate_v5(ns_procedure.uuid, vs.stay_id || '-' || vs.charttime) AS uuid_PROCEDURE
     FROM
         vitalsigns vs
+        INNER JOIN mimic_hosp.patients pat
+            ON vs.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_ed
             ON ns_encounter_ed.name = 'EncounterED'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient

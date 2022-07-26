@@ -25,6 +25,8 @@ WITH fhir_condition_ed AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(diag.stay_id AS TEXT)) as uuid_STAY_ID
     FROM
         mimic_ed.diagnosis diag
+        INNER JOIN mimic_hosp.patients pat
+            ON diag.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter 
             ON ns_encounter.name = 'EncounterED'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient 
@@ -63,5 +65,4 @@ SELECT
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
     )) as fhir 
 FROM
-    fhir_condition_ed
-LIMIT 1000
+    fhir_condition_ed;

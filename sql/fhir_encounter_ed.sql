@@ -23,6 +23,8 @@ WITH fhir_encounter_ed AS (
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS uuid_ORG
     FROM 
         mimic_ed.edstays ed
+        INNER JOIN mimic_hosp.patients pat
+            ON ed.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter	
             ON ns_encounter.name = 'Encounter'
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_ed 
@@ -70,8 +72,11 @@ SELECT
             'start', ed_INTIME
             , 'end', ed_OUTTIME
         )
-        , 'partOf', jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID)    
+        , 'partOf', 
+            CASE WHEN uuid_HADM_ID IS NOT NULL THEN
+                jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID)  
+            ELSE NULL END
         , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
     )) AS fhir
 FROM 
-    fhir_encounter_ed LIMIT 1000;
+    fhir_encounter_ed;
