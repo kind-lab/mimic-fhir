@@ -15,6 +15,7 @@ WITH fhir_medication_dispense_ed AS (
     SELECT 
         py.gsn AS py_GSN
         , py.name AS py_NAME
+        , CAST(py.charttime AS TIMESTAMPTZ) AS py_CHARTTIME
         
         -- reference uuids
         , uuid_generate_v5(ns_medication_dispense.uuid, py.stay_id || '-' || py.med_rn || '-' || py.gsn_rn) AS uuid_MEDICATION_DISPENSE
@@ -44,15 +45,23 @@ SELECT
             )
          ) 
         , 'status', 'completed' -- assumed all complete dispense in mimic
-        , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
-            'coding', jsonb_build_array(jsonb_build_object(
-                'code', py_GSN
-                , 'display', py_NAME
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-gsn'
-            ))
-        ))
+        , 'medicationCodeableConcept', 
+            CASE WHEN py_GSN IS NULL THEN
+                jsonb_build_array(jsonb_build_object('text', py_NAME))
+            ELSE              
+                jsonb_build_array(jsonb_build_object(
+                    'text', py_NAME
+                    , 'coding', jsonb_build_array(jsonb_build_object(
+                        'code', py_GSN
+                        , 'display', py_NAME
+                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-gsn'
+                    ))
+                ))
+            END
+        
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)
+        , 'whenHandedOver', py_CHARTTIME
     )) AS fhir  
 FROM 
     fhir_medication_dispense_ed 
