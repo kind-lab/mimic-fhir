@@ -62,7 +62,7 @@ SELECT
                 'coding', jsonb_build_array(json_build_object(
                     'system', 'http://snomed.info/sct'
                     , 'code', '308335008'
-                    , 'display', 'Patient encounter procedure (procedure)'
+                    , 'display', 'Patient encounter procedure'
                 ))
             ))  
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
