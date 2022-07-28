@@ -17,7 +17,7 @@ WITH observation_ed AS (
         , vs.charttime
         , x.*
     FROM mimic_ed.vitalsign vs, jsonb_each_text(to_jsonb(vs)) AS x("key", value)
-    WHERE KEY IN ('rhythm', 'pain' ) 
+    WHERE KEY IN ('rhythm') 
 ), fhir_observation_ed AS (
     SELECT
         ed.KEY AS ed_KEY

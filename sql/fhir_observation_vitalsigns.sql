@@ -17,7 +17,7 @@ WITH vitalsigns AS (
         , x.*
         , vs.sbp
     FROM mimic_ed.vitalsign vs, jsonb_each_text(to_jsonb(vs)) AS x("key", value)
-    WHERE KEY IN ('dbp', 'o2sat', 'resprate', 'heartrate', 'temperature' ) -- pain/rhythm excluded FOR now (stored in MimicObservationED)
+    WHERE KEY IN ('dbp', 'o2sat', 'resprate', 'heartrate', 'temperature', 'pain') -- pain/rhythm excluded FOR now (stored in MimicObservationED)
 ), fhir_observation_vs AS (
     SELECT
         CAST(vs.charttime AS TIMESTAMPTZ) AS vs_CHARTTIME
@@ -107,6 +107,12 @@ SELECT
                             , 'code', '85354-9'
                             , 'display', 'Blood pressure panel with all children optional'
                         ) 
+                    WHEN vs_KEY = 'pain' THEN
+                        jsonb_build_object(
+                            'system', 'http://loinc.org'
+                            , 'code', '98137-3'
+                            , 'display', 'Pain severity - Reported'
+                        ) 
                 END
             )
         )
@@ -114,9 +120,13 @@ SELECT
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)
         , 'partOf', jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE)
         , 'effectiveDateTime', vs_CHARTTIME
+        , 'valueString', 
+            CASE WHEN vs_KEY = 'pain' THEN 
+                vs_VALUE
+            ELSE NULL END
         , 'valueQuantity',
             CASE 
-                WHEN vs_VALUE IS NULL THEN
+                WHEN vs_VALUE IS NULL OR vs_KEY = 'pain' THEN
                     NULL
                 WHEN vs_KEY = 'temperature' THEN
                     jsonb_build_object(
@@ -182,6 +192,4 @@ SELECT
         ELSE NULL END
     )) AS fhir
 FROM
-    fhir_observation_vs
-WHERE vs_VALUE IS NULL 
-LIMIT 1000;
+    fhir_observation_vs;
