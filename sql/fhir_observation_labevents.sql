@@ -147,7 +147,7 @@ SELECT
                     'coding', jsonb_build_array(jsonb_build_object(
                         'system', 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation'  
                         , 'code', interp_FHIR_INTERPRETATION_CODE
-                        , 'display' interp_FHIR_INTERPRETATION_DISPLAY
+                        , 'display', interp_FHIR_INTERPRETATION_DISPLAY
                     ))
                 ))
             ELSE NULL END
