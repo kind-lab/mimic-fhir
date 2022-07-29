@@ -35,7 +35,7 @@ WITH transfer_locations AS (
         , jsonb_agg(
             jsonb_build_object(
                 'coding', jsonb_build_array(json_build_object(
-                    'system', 'http://terminology.hl7.org/CodeSystem/HCPCS'
+                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-hcpcs-cd'
                     , 'code', cpt.hcpcs_cd
                     , 'display', cpt.short_description
                 ))
@@ -115,7 +115,7 @@ SELECT
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
                 'value', adm_HADM_ID
-                , 'system', 'http://fhir.mimic.mit.edu/identifier/encounter'
+                , 'system', 'http://fhir.mimic.mit.edu/identifier/encounter-hosp'
                 , 'use', 'usual'
                 , 'assigner', jsonb_build_object('reference', 'Organization/' || uuid_ORG)
         ))	
@@ -137,19 +137,19 @@ SELECT
                     ))
                 ))
             END
-        , 'priority', jsonb_build_array(jsonb_build_object(
+        , 'priority', jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/v3-ActPriority'
                 , 'code', pry_FHIR_PRIORITY_CODE
                 , 'display', pry_FHIR_PRIORITY_DISPLAY
             ))
-        ))
-        , 'serviceType', jsonb_build_array(jsonb_build_object(
+        )
+        , 'serviceType', jsonb_build_object(
             'coding', jsonb_build_array(json_build_object(
                 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-services'
                 , 'code', serv_CURR_SERVICE
             ))
-        ))
+        )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'period', jsonb_build_object(
             'start', adm_ADMITTIME
