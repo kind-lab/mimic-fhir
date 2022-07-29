@@ -46,7 +46,7 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-dispense-ed'
             )
          ) 
-        , 'status', 'completed' -- assumed all complete dispense in mimic
+        , 'status', 'unknown' -- assumed all complete dispense in mimic
         , 'medicationCodeableConcept', 
             CASE WHEN py_GSN IS NULL THEN
                 jsonb_build_array(jsonb_build_object('text', py_NAME))

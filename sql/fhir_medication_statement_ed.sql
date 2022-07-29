@@ -40,7 +40,7 @@ WITH fhir_medication_statement_ed AS (
         
         -- UUID namespaces
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
-            ON ns_encounter.name = 'Encounter'
+            ON ns_encounter.name = 'EncounterED'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_statement
@@ -62,14 +62,14 @@ SELECT
     uuid_MEDICATION_STATEMENT AS id
     , uuid_SUBJECT_ID AS patient_id
     , jsonb_strip_nulls(jsonb_build_object(
-        'resourceType', 'MedicationStatment'
+        'resourceType', 'MedicationStatement'
         , 'id', uuid_MEDICATION_STATEMENT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-statement-ed'
             )
          ) 
-        , 'status', 'completed' -- assumed all complete dispense in mimic
+        , 'status', 'unknown' -- UNKNOWN, NOT stated IN MIMIC
         , 'medicationCodeableConcept', 
             CASE WHEN med_GSN = '0' AND med_NDC = '0' AND med_ETC_CODES ='[null]' THEN
                 jsonb_build_array(jsonb_build_object(
