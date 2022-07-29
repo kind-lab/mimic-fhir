@@ -85,6 +85,7 @@ def test_encounter_icu_validation(validator, encounter_icu_resource):
     result = validate_resource(validator, encounter_icu_resource)
     assert result
 
+
 def test_location_validation(validator, location_resource):
     result = validate_resource(validator, location_resource)
     assert result
@@ -196,4 +197,47 @@ def test_specimen_validation(validator, specimen_resource):
 
 def test_specimen_lab_validation(validator, specimen_lab_resource):
     result = validate_resource(validator, specimen_lab_resource)
+    assert result
+
+# ----------------- MIMIC ED Resource Validation ----------------------
+
+
+def test_encounter_ed_validation(validator, encounter_ed_resource):
+    result = validate_resource(validator, encounter_ed_resource)
+    assert result
+
+
+def test_condition_ed_validation(validator, condition_ed_resource):
+    result = validate_resource(validator, condition_ed_resource)
+    assert result
+
+
+def test_medication_dispense_ed_validation(
+    validator, medication_dispense_ed_resource
+):
+    result = validate_resource(validator, medication_dispense_ed_resource)
+    assert result
+
+
+def test_medication_statement_ed_validation(
+    validator, medication_statement_ed_resource
+):
+    result = validate_resource(validator, medication_statement_ed_resource)
+    assert result
+
+
+def test_observation_ed_validation(validator, observation_ed_resource):
+    result = validate_resource(validator, observation_ed_resource)
+    assert result
+
+
+def test_observation_vitalsigns_validation(
+    validator, observation_vitalsigns_resource
+):
+    result = validate_resource(validator, observation_vitalsigns_resource)
+    assert result
+
+
+def test_procedure_ed_validation(validator, procedure_ed_resource):
+    result = validate_resource(validator, encounter_ed_resource)
     assert result
