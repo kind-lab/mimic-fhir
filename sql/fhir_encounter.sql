@@ -35,7 +35,7 @@ WITH transfer_locations AS (
         , jsonb_agg(
             jsonb_build_object(
                 'coding', jsonb_build_array(json_build_object(
-                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-hcpcs-cd'
+                    'system', 'http://terminology.hl7.org/CodeSystem/HCPCS'
                     , 'code', cpt.hcpcs_cd
                     , 'display', cpt.short_description
                 ))
@@ -110,7 +110,7 @@ SELECT
         , 'id', uuid_HADM_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-hosp'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
@@ -177,4 +177,4 @@ SELECT
         , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
     )) AS fhir
 FROM 
-    fhir_encounter LIMIT 100
+    fhir_encounter;

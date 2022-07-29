@@ -11,6 +11,6 @@ CREATE TABLE fhir_trm.vs_encounter_type(
 
 INSERT INTO fhir_trm.vs_encounter_type (system, code, display)
 VALUES
-    ('http://hl7.org/fhir/us/core/ValueSet/us-core-encounter-type', '*', '*') -- the base valueset to be extended 
-    , ('http://terminology.hl7.org/CodeSystem/HCPCS', '*', '*')
+    ('http://terminology.hl7.org/CodeSystem/HCPCS', '*', '*')
+    , ('http://snomed.info/sct', '308335008', 'Patient encounter procedure') 
     , ('http://snomed.info/sct', '453701000124103', 'In-person encounter (procedure)')

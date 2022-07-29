@@ -35,6 +35,7 @@ WITH icd9_codes AS (
 INSERT INTO fhir_trm.cs_diagnosis_icd9
 SELECT 
     code
-    , display
+    , MAX(display) -- sometimes display IS slightly different (caps or lowercase)
 FROM icd9_codes
+GROUP BY code
 

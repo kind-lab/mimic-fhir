@@ -53,6 +53,7 @@ SELECT
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/condition-category'  
                 , 'code', 'encounter-diagnosis'
+                , 'display', 'Encounter Diagnosis'
             ))
         ))
         , 'code', jsonb_build_object(

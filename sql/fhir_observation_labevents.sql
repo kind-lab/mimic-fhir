@@ -94,7 +94,7 @@ SELECT
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', lab_LABEVENT_ID
-            , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labevents'
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-labevents'
         ))       
         , 'status', lab_STATUS
         , 'category', jsonb_build_array(jsonb_build_object(
