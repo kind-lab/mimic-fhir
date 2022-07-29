@@ -318,7 +318,7 @@ def observation_ed_resource(validator, db_conn):
 @pytest.fixture(scope="session")
 def observation_vitalsigns_resource(validator, db_conn):
     return initialize_single_resource(
-        validator, db_conn, 'obsersation_vitalsigns'
+        validator, db_conn, 'observation_vitalsigns'
     )
 
 

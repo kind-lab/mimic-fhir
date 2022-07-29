@@ -136,10 +136,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \i fhir_encounter_ed.sql
 
 \echo fhir_medication_dispense_ed
-\i fhir_observation_ed.sql
+\i fhir_medication_dispense_ed.sql
 
 \echo fhir_medication_statement_ed
-\i fhir_observation_vitalsigns.sql
+\i fhir_medication_statement_ed.sql
 
 \echo fhir_observation_ed
 \i fhir_observation_ed.sql
