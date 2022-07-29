@@ -119,8 +119,9 @@ SELECT
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://terminology.hl7.org/CodeSystem/mimic-observation-category'  
+                'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
+                , 'display', 'Laboratory'
             ))
         ))
         , 'code', jsonb_build_object(

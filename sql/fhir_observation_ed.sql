@@ -74,8 +74,8 @@ SELECT
                     WHEN ed_KEY = 'pain' THEN
                         jsonb_build_object(
                             'system', 'http://loinc.org'
-                            , 'code', '72514-3'
-                            , 'display', 'Pain severity - 0-10 verbal numeric rating [Score] - Reported'
+                            , 'code', '98137-3'
+                            , 'display', 'Pain severity - Reported'
                         ) 
                 END
             )
@@ -85,20 +85,20 @@ SELECT
         , 'effectiveDateTime', ed_CHARTTIME
         , 'dataAbsentReason', 
             CASE WHEN ed_VALUE IS NULL THEN
-                jsonb_build_array(jsonb_build_object(
+                jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'  
                         , 'code', 'unknown'
                         , 'display', 'Unknown'
                     ))
-                ))
+                )
             ELSE NULL END
         , 'valueString',
             CASE 
                 WHEN ed_VALUE IS NULL THEN NULL
                 ELSE ed_VALUE 
             END
-        , 'partOf', jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE)
+        , 'partOf', jsonb_build_array(jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE))
     )) AS fhir
 FROM 
     fhir_observation_ed;
@@ -176,8 +176,8 @@ SELECT
                     WHEN ed_KEY = 'pain' THEN
                         jsonb_build_object(
                             'system', 'http://loinc.org'
-                            , 'code', '72514-3'
-                            , 'display', 'Pain severity - 0-10 verbal numeric rating [Score] - Reported'
+                            , 'code', '98137-3'
+                            , 'display', 'Pain severity - Reported'
                         ) 
                 END
             )
@@ -200,7 +200,7 @@ SELECT
                 WHEN ed_VALUE IS NULL THEN NULL
                 ELSE ed_VALUE 
             END
-        , 'partOf', jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE)
+        , 'partOf', jsonb_build_array(jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE))
     )) AS fhir
 FROM 
     fhir_observation_ed;

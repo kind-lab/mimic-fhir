@@ -22,7 +22,7 @@ WITH vitalsigns AS (
     SELECT
         CAST(vs.charttime AS TIMESTAMPTZ) AS vs_CHARTTIME
         , vs.KEY AS vs_KEY
-        , vs.value AS vs_VALUE
+        , CAST(vs.value AS NUMERIC) AS vs_VALUE
         , vs.sbp AS vs_SBP
   
         -- reference uuids
@@ -65,13 +65,13 @@ SELECT
         ))
         , 'dataAbsentReason', 
             CASE WHEN vs_VALUE IS NULL THEN
-                jsonb_build_array(jsonb_build_object(
+                jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'  
                         , 'code', 'unknown'
                         , 'display', 'Unknown'
                     ))
-                ))
+                )
             ELSE NULL END
         -- Item code for vitalsigns
         , 'code', jsonb_build_object(
@@ -80,6 +80,7 @@ SELECT
                     WHEN vs_KEY = 'temperature' THEN
                         jsonb_build_object(
                             'system', 'http://loinc.org'
+                            , 'version', '2.72'
                             , 'code', '8310-5'
                             , 'display', 'Body temperature'
                         )   
@@ -112,7 +113,7 @@ SELECT
         )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)
-        , 'partOf', jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE)
+        , 'partOf', jsonb_build_array(jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE))
         , 'effectiveDateTime', vs_CHARTTIME
         , 'valueQuantity',
             CASE 
@@ -154,23 +155,27 @@ SELECT
                 jsonb_build_array(
                     jsonb_build_object(
                         'code', jsonb_build_object(
-                            'system', 'http://loinc.org'
-                            , 'code', '8480-6'
-                            , 'display', 'Systolic blood pressure'
-                        ) 
+                            'coding', jsonb_build_array(jsonb_build_object(                                
+                                'system', 'http://loinc.org'
+                                , 'code', '8480-6'
+                                , 'display', 'Systolic blood pressure'
+                            )) 
+                        )                   
                         , 'valueQuantity', jsonb_build_object(
                             'value', vs_SBP
                             , 'unit', 'mm[Hg]'
                             , 'system', 'http://unitsofmeasure.org'
                             , 'code', 'mm[Hg]'
                         )
-                    ),
-                    jsonb_build_object(
+                    )
+                    , jsonb_build_object(
                         'code', jsonb_build_object(
-                            'system', 'http://loinc.org'
-                            , 'code', ' 8462-4'
-                            , 'display', 'Diastolic blood pressure'
-                        ) 
+                            'coding', jsonb_build_array(jsonb_build_object(                                
+                                'system', 'http://loinc.org'
+                                , 'code', '8462-4'
+                                , 'display', 'Diastolic blood pressure'
+                            )) 
+                        )         
                         , 'valueQuantity', jsonb_build_object(
                             'value', vs_VALUE
                             , 'unit', 'mm[Hg]'
@@ -182,7 +187,7 @@ SELECT
         ELSE NULL END
     )) AS fhir
 FROM
-    fhir_observation_vs;
+    fhir_observation_vs WHERE vs_KEY = 'temperature';
 
 
 --unnest triage vitalsigns, since each stored as individual fhir resource
@@ -199,7 +204,7 @@ WITH triage_vitalsigns AS (
     SELECT
         CAST(ed.intime AS TIMESTAMPTZ) AS ed_INTIME
         , vs.KEY AS vs_KEY
-        , vs.value AS vs_VALUE
+        , CAST(vs.value AS NUMERIC) AS vs_VALUE
         , vs.sbp AS vs_SBP
   
         -- reference uuids
@@ -244,13 +249,13 @@ SELECT
         ))
         , 'dataAbsentReason', 
             CASE WHEN vs_VALUE IS NULL THEN
-                jsonb_build_array(jsonb_build_object(
+                jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'  
                         , 'code', 'unknown'
                         , 'display', 'Unknown'
                     ))
-                ))
+                )
             ELSE NULL END
         -- Item code for vitalsigns
         , 'code', jsonb_build_object(
@@ -259,6 +264,7 @@ SELECT
                     WHEN vs_KEY = 'temperature' THEN
                         jsonb_build_object(
                             'system', 'http://loinc.org'
+                            , 'version', '2.72'
                             , 'code', '8310-5'
                             , 'display', 'Body temperature'
                         )   
@@ -291,7 +297,7 @@ SELECT
         )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID)
-        , 'partOf', jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE)
+        , 'partOf', jsonb_build_array(jsonb_build_object('reference', 'Procedure/' || uuid_PROCEDURE))
         , 'effectiveDateTime', ed_INTIME
         , 'valueQuantity',
             CASE 
@@ -333,10 +339,12 @@ SELECT
                 jsonb_build_array(
                     jsonb_build_object(
                         'code', jsonb_build_object(
-                            'system', 'http://loinc.org'
-                            , 'code', '8480-6'
-                            , 'display', 'Systolic blood pressure'
-                        ) 
+                            'coding', jsonb_build_array(jsonb_build_object(                                
+                                'system', 'http://loinc.org'
+                                , 'code', '8480-6'
+                                , 'display', 'Systolic blood pressure'
+                            )) 
+                        )               
                         , 'valueQuantity', jsonb_build_object(
                             'value', vs_SBP
                             , 'unit', 'mm[Hg]'
@@ -346,10 +354,12 @@ SELECT
                     ),
                     jsonb_build_object(
                         'code', jsonb_build_object(
-                            'system', 'http://loinc.org'
-                            , 'code', ' 8462-4'
-                            , 'display', 'Diastolic blood pressure'
-                        ) 
+                            'coding', jsonb_build_array(jsonb_build_object(                                
+                                'system', 'http://loinc.org'
+                                , 'code', ' 8462-4'
+                                , 'display', 'Diastolic blood pressure'
+                            )) 
+                        )               
                         , 'valueQuantity', jsonb_build_object(
                             'value', vs_VALUE
                             , 'unit', 'mm[Hg]'
@@ -361,4 +371,4 @@ SELECT
         ELSE NULL END
     )) AS fhir
 FROM
-    fhir_observation_vs;
+    fhir_observation_vs WHERE vs_KEY = 'temperature';
