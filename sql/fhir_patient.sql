@@ -31,6 +31,19 @@ WITH tb_admissions AS (
     GROUP BY 
         pat.subject_id
         , pat.anchor_age
+), ed_race AS (
+    SELECT 
+        ed.subject_id
+        , ed.race
+    FROM (
+        SELECT 
+            ed.subject_id,
+            MAX(ed.outtime) OVER (PARTITION BY ed.subject_id) max_outtime,
+            ROW_NUMBER() OVER (PARTITION BY ed.subject_id ORDER BY ed.outtime DESC) rn,
+            race
+        FROM mimic_ed.edstays ed
+    ) AS ed
+    WHERE rn = 1
 ), fhir_patient AS (
     SELECT
         CAST(pat.subject_id AS TEXT) AS pat_SUBJECT_ID
@@ -43,7 +56,7 @@ WITH tb_admissions AS (
         
         , mms.fhir_system AS mms_FHIR_SYSTEM
         , mms.fhir_marital_status AS mms_FHIR_MARITAL_STATUS
-        , adm.adm_ETHNICITY
+        , COALESCE(adm.adm_ETHNICITY, ed.race) AS adm_ETHNICITY
         , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
           ELSE NULL END as adm_LANGUAGE
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS  UUID_organization
@@ -51,6 +64,8 @@ WITH tb_admissions AS (
         mimic_hosp.patients pat
         LEFT JOIN tb_admissions adm
             ON pat.subject_id = adm.subject_id
+        LEFT JOIN ed_race ed
+            ON pat.subject_id = ed.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_organization
