@@ -90,12 +90,12 @@ SELECT
               , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-dispense'
         ))    
         , 'status', 'completed' -- assumed all complete dispense in mimic
-        , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
+        , 'medicationCodeableConcept', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'code', ph_MEDICATION
                 , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-name'
             ))
-        ))
+        )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
             CASE WHEN uuid_HADM_ID IS NOT NULL

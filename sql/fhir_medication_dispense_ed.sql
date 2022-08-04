@@ -49,16 +49,15 @@ SELECT
         , 'status', 'unknown' -- assumed all complete dispense in mimic
         , 'medicationCodeableConcept', 
             CASE WHEN py_GSN IS NULL THEN
-                jsonb_build_array(jsonb_build_object('text', py_NAME))
+                jsonb_build_object('text', py_NAME)
             ELSE              
-                jsonb_build_array(jsonb_build_object(
+                jsonb_build_object(
                     'text', py_NAME
                     , 'coding', jsonb_build_array(jsonb_build_object(
                         'code', py_GSN
-                        , 'display', py_NAME
                         , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-gsn'
                     ))
-                ))
+                )
             END
         
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
