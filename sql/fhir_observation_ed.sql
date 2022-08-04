@@ -75,7 +75,7 @@ SELECT
                         jsonb_build_object(
                             'system', 'http://loinc.org'
                             , 'code', '98137-3'
-                            , 'display', 'Pain severity - Reported'
+                            , 'display', 'Pain assessment report'
                         ) 
                 END
             )
@@ -177,7 +177,7 @@ SELECT
                         jsonb_build_object(
                             'system', 'http://loinc.org'
                             , 'code', '98137-3'
-                            , 'display', 'Pain severity - Reported'
+                            , 'display', 'Pain assessment report'
                         ) 
                 END
             )
