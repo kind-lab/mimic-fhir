@@ -72,11 +72,9 @@ SELECT
         , 'status', 'unknown' -- UNKNOWN, NOT stated IN MIMIC
         , 'medicationCodeableConcept', 
             CASE WHEN med_GSN = '0' AND med_NDC = '0' AND med_ETC_CODES ='[null]' THEN
-                jsonb_build_array(jsonb_build_object(
-                    'text', med_NAME
-                ))
+                jsonb_build_object('text', med_NAME)
             ELSE
-                jsonb_build_array(jsonb_build_object(
+                jsonb_build_object(
                     'text', med_NAME
                     , 'coding', ARRAY_REMOVE(ARRAY[
                         CASE WHEN med_GSN != '0' THEN 
@@ -93,7 +91,7 @@ SELECT
                         ELSE NULL END,
                         CASE WHEN med_ETC_CODES != '[null]' THEN med_ETC_CODES ELSE NULL END
                     ], NULL)
-                ))
+                )
             END
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 

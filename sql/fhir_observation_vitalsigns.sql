@@ -187,10 +187,10 @@ SELECT
         ELSE NULL END
     )) AS fhir
 FROM
-    fhir_observation_vs WHERE vs_KEY = 'temperature';
+    fhir_observation_vs;
 
 
---unnest triage vitalsigns, since each stored as individual fhir resource
+ --unnest triage vitalsigns, since each stored as individual fhir resource
 WITH triage_vitalsigns AS (
     SELECT 
         tr.subject_id
@@ -207,7 +207,7 @@ WITH triage_vitalsigns AS (
         , CAST(vs.value AS NUMERIC) AS vs_VALUE
         , vs.sbp AS vs_SBP
   
-        -- reference uuids
+         reference uuids
         , uuid_generate_v5(ns_observation_vs.uuid, vs.stay_id || '-' || vs.KEY ) as uuid_VITALSIGN -- triage vitals ONLY happen once IN a stay (so no time needed)
         , uuid_generate_v5(ns_patient.uuid, CAST(vs.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter_ed.uuid, CAST(vs.stay_id AS TEXT)) AS uuid_STAY_ID
@@ -257,12 +257,15 @@ SELECT
                     ))
                 )
             ELSE NULL END
-        -- Item code for vitalsigns
+         Item code for vitalsigns
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(
                 CASE 
                     WHEN vs_KEY = 'temperature' THEN
                         jsonb_build_object(
+                            'system', 'http://snomed.info/sct'
+                            , 'code', '386478007'
+                            , 'display', 'Triage: emergency center (procedure)'
                             'system', 'http://loinc.org'
                             , 'version', '2.72'
                             , 'code', '8310-5'
@@ -371,4 +374,4 @@ SELECT
         ELSE NULL END
     )) AS fhir
 FROM
-    fhir_observation_vs WHERE vs_KEY = 'temperature';
+    fhir_observation_vs;
