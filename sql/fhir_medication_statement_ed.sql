@@ -35,8 +35,8 @@ WITH fhir_medication_statement_ed AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(med.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM 
         mimic_ed.medrecon med
-        INNER JOIN mimic_hosp.patients pat
-            ON med.subject_id = pat.subject_id
+--        INNER JOIN mimic_hosp.patients pat
+--            ON med.subject_id = pat.subject_id
         
         -- UUID namespaces
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
@@ -99,6 +99,4 @@ SELECT
 
     )) AS fhir  
 FROM 
-    fhir_medication_statement_ed
-WHERE med_GSN = '0' AND med_NDC = '0'
-LIMIT 1000
+    fhir_medication_statement_ed;
