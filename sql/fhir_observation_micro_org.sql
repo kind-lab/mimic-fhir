@@ -17,7 +17,7 @@ WITH micro_info AS (
         , MAX(mi.test_itemid) AS test_itemid 
         , MAX(mi.org_name) AS org_name
         , MAX(mi.subject_id) AS subject_id
-        , MAX(CAST(mi.charttime AS TIMESTAMPTZ)) AS charttime
+        , MAX(CAST(COALESCE(mi.charttime,mi.chartdate) AS TIMESTAMPTZ)) AS charttime
         , MAX(comments) AS comments
     
         -- Add a reference to susceptibility if an organism is tested for antibiotics

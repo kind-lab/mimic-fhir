@@ -17,7 +17,8 @@ WITH distinct_org AS (
         , MAX(mi.test_name) AS mi_TEST_NAME
         , MAX(mi.subject_id) AS mi_SUBJECT_ID
         , MAX(mi.hadm_id) AS mi_HADM_ID
-        , MAX(CAST(mi.charttime AS TIMESTAMPTZ)) AS mi_CHARTTIME
+        -- some charttimes are null, so take chartdate when not present
+        , MAX(CAST(COALESCE(mi.charttime, mi.chartdate) AS TIMESTAMPTZ)) AS mi_CHARTTIME
 		
         , CASE WHEN MIN(mi.org_itemid) IS NULL THEN NULL 
             ELSE
