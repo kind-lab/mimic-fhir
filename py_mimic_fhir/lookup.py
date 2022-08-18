@@ -137,7 +137,10 @@ MIMIC_BUNDLE_TABLE_LIST = {
         [
             'observation_chartevents', 'observation_datetimeevents',
             'observation_outputevents'
-        ]
+        ],
+    'ed_base': ['encounter_ed', 'procedure_ed'],
+    'ed_observation': ['observation_ed', 'observation_vitalsigns'],
+    'ed_medication': ['medication_statement_ed', 'medication_dispense_ed']
 }
 
 MIMIC_DATA_BUNDLE_LIST = [
