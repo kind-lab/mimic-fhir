@@ -82,18 +82,29 @@ def test_organization_validation(validator, organization_resource):
     assert result
 
 
-def test_condition_validation(validator, condition_resource):
+def test_condition_validation(db_conn, validator, condition_resource):
+    validate_reference_resource(
+        db_conn, condition_resource, 'encounter', 'encounter'
+    )
+
     result = validate_resource(validator, condition_resource)
     assert result
 
 
-def test_encounter_validation(validator, encounter_resource):
+def test_encounter_validation(db_conn, validator, encounter_resource):
+    validate_reference_resource(
+        db_conn, encounter_resource, 'patient', 'subject'
+    )
+
     print(f"ENCOUNTER RESOURCE ID: {encounter_resource['id']}")
     result = validate_resource(validator, encounter_resource)
     assert result
 
 
-def test_encounter_icu_validation(validator, encounter_icu_resource):
+def test_encounter_icu_validation(db_conn, validator, encounter_icu_resource):
+    validate_reference_resource(
+        db_conn, encounter_icu_resource, 'encounter', 'partOf'
+    )
     result = validate_resource(validator, encounter_icu_resource)
     assert result
 
@@ -254,21 +265,23 @@ def test_medication_statement_ed_validation(
         db_conn, medication_statement_ed_resource, 'encounter_ed', 'context'
     )
     result = validate_resource(validator, medication_statement_ed_resource)
+
     assert result
 
 
 def test_observation_ed_validation(db_conn, validator, observation_ed_resource):
     # validate encounter and procedure resource first for referencing
-    # validate_reference_resource(
-    #     db_conn, observation_ed_resource, 'encounter_ed', 'encounter'
-    # )
-    # validate_reference_resource(
-    #     db_conn,
-    #     observation_ed_resource,
-    #     'procedure_ed',
-    #     'partOf',
-    #     list_object=True
-    # )
+    validate_reference_resource(
+        db_conn, observation_ed_resource, 'encounter_ed', 'encounter'
+    )
+    validate_reference_resource(
+        db_conn,
+        observation_ed_resource,
+        'procedure_ed',
+        'partOf',
+        list_object=True
+    )
+    print(f'{observation_ed_resource["id"]}')
 
     result = validate_resource(validator, observation_ed_resource)
     assert result

@@ -160,7 +160,7 @@ def post_terminology(args):
     for codesystem in MIMIC_CODESYSTEMS:
         logger.info(f'Posting CodeSystem: {codesystem}')
         codesystem = codesystem.replace('_', '-')
-        codesystem_file = f'CodeSystem-{codesystem}.json'
+        codesystem_file = f'CodeSystem-mimic-{codesystem}.json'
         codesystem_path = base_path / codesystem_file
         with open(codesystem_path, mode='r') as cs_content:
             cs = json.load(cs_content)
@@ -171,7 +171,7 @@ def post_terminology(args):
     for valueset in MIMIC_VALUESETS:
         logger.info(f'Posting ValueSet: {valueset}')
         valueset = valueset.replace('_', '-')
-        valueset_file = f'ValueSet-{valueset}.json'
+        valueset_file = f'ValueSet-mimic-{valueset}.json'
         valueset_path = base_path / valueset_file
         with open(valueset_path, mode='r') as vs_content:
             vs = json.load(vs_content)
