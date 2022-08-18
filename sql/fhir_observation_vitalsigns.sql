@@ -124,7 +124,7 @@ SELECT
                         'value', vs_VALUE
                         , 'unit', 'F'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', 'degF'
+                        , 'code', '[degF]'
                     )
                 WHEN vs_KEY = 'resprate' THEN
                     jsonb_build_object(
@@ -307,7 +307,7 @@ SELECT
                         'value', vs_VALUE
                         , 'unit', 'F'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', 'degF'
+                        , 'code', '[degF]'
                     )
                 WHEN vs_KEY = 'resprate' THEN
                     jsonb_build_object(
