@@ -14,7 +14,8 @@ WITH fhir_encounter_ed AS (
         CAST(ed.stay_id AS TEXT) AS ed_STAY_ID	
         , CAST(ed.intime AS TIMESTAMPTZ) AS ed_INTIME
         , CAST(ed.outtime AS TIMESTAMPTZ) AS ed_OUTTIME
-
+        , arrival_transport AS ed_ARRIVAL_TRANSPORT
+        , disposition AS ed_DISPOSITION
   	
         -- reference uuids
         , uuid_generate_v5(ns_encounter.uuid, CAST(ed.hadm_id AS TEXT)) AS uuid_HADM_ID
@@ -76,6 +77,24 @@ SELECT
             CASE WHEN uuid_HADM_ID IS NOT NULL THEN
                 jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID)  
             ELSE NULL END
+        , 'hospitalization', jsonb_build_object(
+            'admitSource', 
+                CASE WHEN ed_ARRIVAL_TRANSPORT IS NOT NULL
+                THEN jsonb_build_object(
+                    'coding',  jsonb_build_array(jsonb_build_object(
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-admit-source'
+                        , 'code', ed_ARRIVAL_TRANSPORT
+                    ))                
+                ) ELSE NULL END
+        , 'dischargeDisposition', 
+            CASE WHEN ed_DISPOSITION IS NOT NULL
+                THEN jsonb_build_object(
+                    'coding',  jsonb_build_array(jsonb_build_object(
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-discharge-disposition'
+                        , 'code', ed_DISPOSITION
+                    ))                
+                ) ELSE NULL END
+        )   
         , 'serviceProvider', jsonb_build_object('reference', 'Organization/' || uuid_ORG)	 		
     )) AS fhir
 FROM 

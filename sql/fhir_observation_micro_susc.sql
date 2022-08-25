@@ -59,13 +59,14 @@ SELECT
         ) 
         , 'identifier',  jsonb_build_array(jsonb_build_object(
             'value', id_MICRO_SUSC
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-micro-susc'
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/obervation-micro-susc'
         ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://terminology.hl7.org/CodeSystem/mimic-observation-category'  
+                'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
+                , 'display', 'Laboratory'
             ))
         ))
         , 'code', jsonb_build_object(

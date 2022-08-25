@@ -105,6 +105,7 @@ SELECT
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
+                , 'display', 'Laboratory'
             ))
         ))
           

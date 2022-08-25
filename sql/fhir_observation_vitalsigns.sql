@@ -1,15 +1,15 @@
 -- Purpose: Generate a FHIR Observation resource for each row in vitalsign
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.observation_vitalsigns;
-CREATE TABLE mimic_fhir.observation_vitalsigns(
+DROP TABLE IF EXISTS mimic_fhir.observation_vital_signs;
+CREATE TABLE mimic_fhir.observation_vital_signs(
     id          uuid PRIMARY KEY,
     patient_id  uuid NOT NULL,
     fhir        jsonb NOT NULL
 );
 
 --unnest vitalsigns, since each stored as individual fhir resource
-WITH vitalsigns AS (
+WITH vital_signs AS (
     SELECT 
         vs.subject_id
         , vs.stay_id
@@ -31,7 +31,7 @@ WITH vitalsigns AS (
         , uuid_generate_v5(ns_encounter_ed.uuid, CAST(vs.stay_id AS TEXT)) AS uuid_STAY_ID
         , uuid_generate_v5(ns_procedure.uuid, vs.stay_id || '-' || vs.charttime) AS uuid_PROCEDURE
     FROM
-        vitalsigns vs
+        vital_signs vs
         INNER JOIN mimic_hosp.patients pat
             ON vs.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_ed
@@ -43,7 +43,7 @@ WITH vitalsigns AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_procedure
             ON ns_procedure.name = 'ProcedureED'
 )
-INSERT INTO mimic_fhir.observation_vitalsigns
+INSERT INTO mimic_fhir.observation_vital_signs
 SELECT 
     uuid_VITALSIGN AS id
     , uuid_SUBJECT_ID AS patient_id
@@ -191,7 +191,7 @@ FROM
 
 
  --unnest triage vitalsigns, since each stored as individual fhir resource
-WITH triage_vitalsigns AS (
+WITH triage_vital_signs AS (
     SELECT 
         tr.subject_id
         , tr.stay_id
@@ -213,7 +213,7 @@ WITH triage_vitalsigns AS (
         , uuid_generate_v5(ns_encounter_ed.uuid, CAST(vs.stay_id AS TEXT)) AS uuid_STAY_ID
         , uuid_generate_v5(ns_procedure.uuid, CAST(vs.stay_id AS TEXT)) AS uuid_PROCEDURE
     FROM
-        triage_vitalsigns vs
+        triage_vital_signs vs
         INNER JOIN mimic_hosp.patients pat
             ON vs.subject_id = pat.subject_id
         LEFT JOIN mimic_ed.edstays ed 
@@ -227,7 +227,7 @@ WITH triage_vitalsigns AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_procedure
             ON ns_procedure.name = 'ProcedureED'
 )
-INSERT INTO mimic_fhir.observation_vitalsigns
+INSERT INTO mimic_fhir.observation_vital_signs
 SELECT 
     uuid_VITALSIGN AS id
     , uuid_SUBJECT_ID AS patient_id
