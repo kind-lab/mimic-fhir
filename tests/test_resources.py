@@ -125,13 +125,34 @@ def test_medadmin_icu_validation(validator, medadmin_icu_resource):
 
 
 def test_medication_dispense_validation(
-    validator, medication_dispense_resource
+    db_conn, validator, medication_dispense_resource
 ):
+    validate_reference_resource(
+        db_conn, medication_dispense_resource, 'patient', 'subject'
+    )
+    validate_reference_resource(
+        db_conn, medication_dispense_resource, 'encounter', 'context'
+    )
+    validate_reference_resource(
+        db_conn,
+        medication_dispense_resource,
+        'medication_request',
+        'authorizingPrescription',
+        list_object=True
+    )
     result = validate_resource(validator, medication_dispense_resource)
     assert result
 
 
-def test_medication_request_validation(validator, medication_request_resource):
+def test_medication_request_validation(
+    db_conn, validator, medication_request_resource
+):
+    validate_reference_resource(
+        db_conn, medication_request_resource, 'patient', 'subject'
+    )
+    validate_reference_resource(
+        db_conn, medication_request_resource, 'encounter', 'encounter'
+    )
     result = validate_resource(validator, medication_request_resource)
     assert result
 
@@ -158,6 +179,13 @@ def test_observation_datetimeevents_validation(
         db_conn, observation_datetimeevents_resource, 'encounter_icu',
         'encounter'
     )
+
+    ref_encounter_id = observation_datetimeevents_resource['encounter'][
+        'reference'].split('/')[1]
+    ref_encounter = get_resource_by_id(
+        db_conn, 'encounter_icu', ref_encounter_id
+    )
+    validate_reference_resource(db_conn, ref_encounter, 'encounter', 'partOf')
     print(f"ENCOUNTER ID: {observation_datetimeevents_resource['encounter']}")
     result = validate_resource(validator, observation_datetimeevents_resource)
     assert result
@@ -216,17 +244,37 @@ def test_procedure_validation(validator, procedure_resource):
     assert result
 
 
-def test_procedure_icu_validation(validator, procedure_icu_resource):
+def test_procedure_icu_validation(db_conn, validator, procedure_icu_resource):
+    validate_reference_resource(
+        db_conn, procedure_icu_resource, 'patient', 'subject'
+    )
+    validate_reference_resource(
+        db_conn, procedure_icu_resource, 'encounter_icu', 'encounter'
+    )
+
+    ref_encounter_id = procedure_icu_resource['encounter']['reference'].split(
+        '/'
+    )[1]
+    ref_encounter = get_resource_by_id(
+        db_conn, 'encounter_icu', ref_encounter_id
+    )
+    validate_reference_resource(db_conn, ref_encounter, 'encounter', 'partOf')
     result = validate_resource(validator, procedure_icu_resource)
     assert result
 
 
-def test_specimen_validation(validator, specimen_resource):
+def test_specimen_validation(db_conn, validator, specimen_resource):
+    validate_reference_resource(
+        db_conn, specimen_resource, 'patient', 'subject'
+    )
     result = validate_resource(validator, specimen_resource)
     assert result
 
 
-def test_specimen_lab_validation(validator, specimen_lab_resource):
+def test_specimen_lab_validation(db_conn, validator, specimen_lab_resource):
+    validate_reference_resource(
+        db_conn, specimen_lab_resource, 'patient', 'subject'
+    )
     result = validate_resource(validator, specimen_lab_resource)
     assert result
 
@@ -260,10 +308,23 @@ def test_medication_dispense_ed_validation(
 def test_medication_statement_ed_validation(
     db_conn, validator, medication_statement_ed_resource
 ):
+    validate_reference_resource(
+        db_conn, medication_statement_ed_resource, 'patient', 'subject'
+    )
+    # validate parent reference encounter resource
+    ref_encounter_id = medication_statement_ed_resource['context'][
+        'reference'].split('/')[1]
+    print(f'RESOURCE ID: {ref_encounter_id}')
+    ref_encounter = get_resource_by_id(
+        db_conn, 'encounter_ed', ref_encounter_id
+    )
+    validate_reference_resource(db_conn, ref_encounter, 'encounter', 'partOf')
+
     # validate encounter resource first so that encounter is on the server
     validate_reference_resource(
         db_conn, medication_statement_ed_resource, 'encounter_ed', 'context'
     )
+
     result = validate_resource(validator, medication_statement_ed_resource)
 
     assert result
@@ -287,8 +348,8 @@ def test_observation_ed_validation(db_conn, validator, observation_ed_resource):
     assert result
 
 
-def test_observation_vitalsigns_validation(
-    db_conn, validator, observation_vitalsigns_resource
+def test_observation_vital_signs_validation(
+    db_conn, validator, observation_vital_signs_resource
 ):
     # validate encounter resource first so that encounter is on the server
     # validate_reference_resource(
@@ -297,8 +358,8 @@ def test_observation_vitalsigns_validation(
     # validate_reference_resource(
     #     db_conn, observation_vitalsigns_resource, 'procedure_ed', 'partOf'
     # )
-    result = validate_resource(validator, observation_vitalsigns_resource)
-    print(f"OBSERVATION ID: {observation_vitalsigns_resource['id']}")
+    result = validate_resource(validator, observation_vital_signs_resource)
+    print(f"OBSERVATION ID: {observation_vital_signs_resource['id']}")
     assert result
 
 
