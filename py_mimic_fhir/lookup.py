@@ -86,28 +86,29 @@ MIMIC_FHIR_PROFILE_NAMES = [
 ]
 
 MIMIC_CODESYSTEMS = [
-    'admit_source', 'bodysite', 'chartevents_d_items', 'd_items', 'd_labitems',
-    'diagnosis_icd9', 'diagnosis_icd10', 'discharge_disposition', 'hcpcs_cd',
-    'lab_fluid', 'lab_priority', 'medadmin_category_icu', 'medication_etc',
-    'medication_icu', 'medication_formulary_drug_cd', 'medication_frequency',
-    'medication_gsn', 'medication_method', 'medication_method_icu',
-    'medication_name', 'medication_ndc', 'medication_poe_iv',
-    'medication_route', 'medication_site', 'microbiology_antibiotic',
-    'microbiology_organism', 'microbiology_test', 'observation_category',
-    'procedure_category', 'procedure_icd9', 'procedure_icd10', 'services',
-    'spec_type_desc', 'units'
+    'admission_class', 'admission_type', 'admit_source', 'bodysite',
+    'chartevents_d_items', 'd_items', 'd_labitems', 'diagnosis_icd9',
+    'diagnosis_icd10', 'discharge_disposition', 'hcpcs_cd', 'lab_fluid',
+    'lab_priority', 'medadmin_category_icu', 'medication_etc', 'medication_icu',
+    'medication_formulary_drug_cd', 'medication_frequency', 'medication_gsn',
+    'medication_method', 'medication_method_icu', 'medication_name',
+    'medication_ndc', 'medication_poe_iv', 'medication_route',
+    'medication_site', 'microbiology_antibiotic', 'microbiology_organism',
+    'microbiology_test', 'observation_category', 'procedure_category',
+    'procedure_icd9', 'procedure_icd10', 'services', 'spec_type_desc', 'units'
 ]
 
 MIMIC_VALUESETS = [
-    'admit_source', 'bodysite', 'chartevents_d_items', 'd_labitems',
-    'datetimeevents_d_items', 'diagnosis_icd', 'discharge_disposition',
-    'encounter_type', 'lab_priority', 'medadmin_category_icu', 'medication',
-    'medication_etc', 'medication_frequency', 'medication_gsn',
-    'medication_method', 'medication_method_icu', 'medication_route',
-    'medication_site', 'microbiology_antibiotic', 'microbiology_organism',
-    'microbiology_test', 'observation_category', 'outputevents_d_items',
-    'procedure_category', 'procedureevents_d_items', 'procedure_icd',
-    'services', 'specimen_type', 'units'
+    'admission_class', 'admission_type', 'admit_source', 'bodysite',
+    'chartevents_d_items', 'd_labitems', 'datetimeevents_d_items',
+    'diagnosis_icd', 'discharge_disposition', 'encounter_type', 'lab_priority',
+    'medadmin_category_icu', 'medication', 'medication_etc',
+    'medication_frequency', 'medication_gsn', 'medication_method',
+    'medication_method_icu', 'medication_route', 'medication_site',
+    'microbiology_antibiotic', 'microbiology_organism', 'microbiology_test',
+    'observation_category', 'outputevents_d_items', 'procedure_category',
+    'procedureevents_d_items', 'procedure_icd', 'services', 'specimen_type',
+    'units'
 ]
 
 VALUESETS_COMPLEX = [
