@@ -112,7 +112,7 @@ MIMIC_VALUESETS = [
 ]
 
 VALUESETS_COMPLEX = [
-    'datetimeevents_d_items', 'diagnosis_icd', 'encounter_type', 'medication',
+    'admission_class', 'admission_type', 'datetimeevents_d_items', 'diagnosis_icd', 'encounter_type', 'medication',
     'outputevents_d_items', 'procedureevents_d_items', 'procedure_icd',
     'specimen_type'
 ]

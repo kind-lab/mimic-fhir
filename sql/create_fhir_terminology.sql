@@ -150,6 +150,12 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Encounter Type ValueSet
 \i codesystem/vs-encounter-type.sql
 
+\echo Admission Class ValueSet
+\i codesystem/vs-admission-class.sql
+
+\echo Admission Type ValueSet
+\i codesystem/vs-admission-type.sql
+
 -- Medication
 \echo Medication ValueSet
 \i codesystem/vs-medication.sql
