@@ -44,7 +44,7 @@ WITH fhir_medication_statement_ed AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_medication_statement
-            ON ns_medication_statement.name = 'MedicationStatement'
+            ON ns_medication_statement.name = 'MedicationStatementED'
     GROUP BY 
         stay_id
         , charttime

@@ -1,7 +1,9 @@
 -- Purpose: Generate a FHIR Observation resource from the labevents rows
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
-SET from_collapse_limit = 24;
-SET join_collapse_limit = 24;
+
+-- Parameters to potentially speed up generation of big tables
+-- SET from_collapse_limit = 24; 
+-- SET join_collapse_limit = 24;
 
 DROP TABLE IF EXISTS mimic_fhir.observation_labevents;
 CREATE TABLE mimic_fhir.observation_labevents(
@@ -82,7 +84,6 @@ WITH fhir_observation_labevents AS (
         -- mappings
         LEFT JOIN fhir_etl.map_lab_interpretation interp
             ON lab.flag = interp.mimic_interpretation
-    WHERE lab.labevent_id < 1000000
 )
 INSERT INTO mimic_fhir.observation_labevents
 SELECT 
