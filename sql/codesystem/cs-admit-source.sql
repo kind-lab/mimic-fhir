@@ -6,7 +6,18 @@ CREATE TABLE fhir_trm.cs_admit_source(
     code      VARCHAR NOT NULL
 );
 
+WITH mimic_admit_source AS (
+
+    -- Hospital admission sources
+    SELECT DISTINCT admission_location AS code FROM mimic_hosp.admissions 
+    UNION
+    
+    -- ED admission sources
+    SELECT DISTINCT arrival_transport AS code FROM mimic_ed.edstays 
+)
 INSERT INTO fhir_trm.cs_admit_source
-SELECT DISTINCT admission_location  
-FROM mimic_hosp.admissions a 
-WHERE admission_location IS NOT NULL
+SELECT code
+FROM mimic_admit_source
+WHERE 
+    code IS NOT NULL 
+

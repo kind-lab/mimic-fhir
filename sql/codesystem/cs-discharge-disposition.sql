@@ -6,7 +6,18 @@ CREATE TABLE fhir_trm.cs_discharge_disposition(
     code      VARCHAR NOT NULL
 );
 
+WITH mimic_discharge_disposition AS (
+
+    -- Hospital admission sources
+    SELECT DISTINCT discharge_location AS code FROM mimic_hosp.admissions 
+    UNION
+    
+    -- ED admission sources
+    SELECT DISTINCT disposition AS code FROM mimic_ed.edstays 
+)
 INSERT INTO fhir_trm.cs_discharge_disposition
-SELECT DISTINCT discharge_location  
-FROM mimic_hosp.admissions
-WHERE discharge_location IS NOT NULL
+SELECT code
+FROM mimic_discharge_disposition
+WHERE 
+    code IS NOT NULL 
+

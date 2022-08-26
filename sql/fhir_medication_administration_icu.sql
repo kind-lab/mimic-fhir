@@ -10,8 +10,7 @@ CREATE TABLE mimic_fhir.medication_administration_icu(
 
 WITH fhir_medication_administration_icu AS (
     SELECT
-        ie.stay_id || '-' || ie.orderid || '-' || ie.itemid AS id_INPUTEVENT
-        , CAST(ie.starttime AS TIMESTAMPTZ) AS ie_STARTTIME
+        CAST(ie.starttime AS TIMESTAMPTZ) AS ie_STARTTIME
         , CAST(ie.endtime AS TIMESTAMPTZ) AS ie_ENDTIME
         , ie.ordercategoryname AS ie_ORDERCATEGORYNAME
         , ie.ordercategorydescription AS ie_ORDERCATEGORYDESCRIPTION
@@ -53,22 +52,11 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration-icu'
             )
         ) 
-        , 'identifier', jsonb_build_array(jsonb_build_object(
-            'value', id_INPUTEVENT
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-administration-icu'
-            , 'type', jsonb_build_object(
-                'coding', jsonb_build_array(jsonb_build_object(
-                    'code', 'MEDICU'
-                    , 'display', 'Medication Admin in the ICU'
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/identifier-type'
-                ))
-            )
-        ))	
         , 'status', 'completed'
         , 'medicationCodeableConcept',
             jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
-                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-icu' 
+                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-icu' 
                     , 'code', di_ITEMID
                     , 'display', di_LABEL
                 ))
@@ -88,21 +76,21 @@ SELECT
         -- Category represent whether it is an inpatient/outpatient event	
         , 'category', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/medadmin-category-icu'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medadmin-category-icu'  
                 , 'code', ie_ORDERCATEGORYNAME
             ))
         )
         , 'dosage', jsonb_build_object(
           	'method', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-method-icu'  
+                  'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-method-icu'  
                   , 'code', ie_ORDERCATEGORYDESCRIPTION
               ))
             )
             , 'dose', jsonb_build_object(
                 'value', ie_AMOUNT
                 , 'unit', ie_AMOUNTUOM
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                 , 'code', ie_AMOUNTUOM
             )
             , 'rateQuantity', 
@@ -110,7 +98,7 @@ SELECT
                     jsonb_build_object(
                         'value', ie_RATE
                         , 'unit', ie_RATEUOM
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                         , 'code', ie_RATEUOM
                     )
                 ELSE NULL END

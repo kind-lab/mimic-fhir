@@ -276,6 +276,59 @@ def specimen_lab_resource(validator, db_conn):
 
 
 #----------------------------------------------------------------
+#----------------- MIMIMC ED RESOURCES --------------------------
+#----------------------------------------------------------------
+
+
+# Return a single encounter ed resource
+@pytest.fixture(scope="session")
+def encounter_ed_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'encounter_ed')
+
+
+# Return a single condition ed resource
+@pytest.fixture(scope="session")
+def condition_ed_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'condition_ed')
+
+
+# Return a single medication dispense ed resource
+@pytest.fixture(scope="session")
+def medication_dispense_ed_resource(validator, db_conn):
+    return initialize_single_resource(
+        validator, db_conn, 'medication_dispense_ed'
+    )
+
+
+# Return a single medication statement ed resource
+@pytest.fixture(scope="session")
+def medication_statement_ed_resource(validator, db_conn):
+    return initialize_single_resource(
+        validator, db_conn, 'medication_statement_ed'
+    )
+
+
+# Return a single observation  ed resource
+@pytest.fixture(scope="session")
+def observation_ed_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'observation_ed')
+
+
+# Return a single observation vital signs resource
+@pytest.fixture(scope="session")
+def observation_vital_signs_resource(validator, db_conn):
+    return initialize_single_resource(
+        validator, db_conn, 'observation_vital_signs'
+    )
+
+
+# Return a single procedure ed resource
+@pytest.fixture(scope="session")
+def procedure_ed_resource(validator, db_conn):
+    return initialize_single_resource(validator, db_conn, 'procedure_ed')
+
+
+#----------------------------------------------------------------
 #----------------- DATA BUNDLE RESOURCES -----------------------------
 #----------------------------------------------------------------
 

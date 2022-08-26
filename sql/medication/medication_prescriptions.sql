@@ -46,6 +46,7 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
             )
         ) 
+        , 'status', 'active'
         , 'identifier', fhir_etl.fn_build_medication_identifier(pr_NDC,pr_FORMULARY_DRUG_CD, pr_DRUG)
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(

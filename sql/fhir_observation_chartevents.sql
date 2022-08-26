@@ -10,8 +10,7 @@ CREATE TABLE mimic_fhir.observation_chartevents(
 
 WITH fhir_observation_ce as (
     SELECT
-        ce.stay_id || '-' || ce.charttime || '-' || ce.itemid || '-' ||ce.value AS ce_IDENTIFIER
-        , CAST(ce.itemid AS TEXT) AS ce_ITEMID
+        CAST(ce.itemid AS TEXT) AS ce_ITEMID
         , CAST(ce.charttime AS TIMESTAMPTZ) AS ce_CHARTTIME
         , CAST(ce.storetime AS TIMESTAMPTZ) AS ce_STORETIME
         , ce.valueuom AS ce_VALUEUOM
@@ -40,6 +39,7 @@ WITH fhir_observation_ce as (
     WHERE   
         -- filter out the one duplicate value (one patient at one charttime)
         ((stay_id = 34934165) AND (charttime = '2151-10-03 05:14:00.000')) = FALSE
+        AND value IS NOT NULL -- one value in the whole TABLE
 )
 INSERT INTO mimic_fhir.observation_chartevents
 SELECT 
@@ -53,20 +53,16 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevents'
             )
         )
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', ce_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-chartevents'
-        ))
         , 'status', 'final' -- All observations considered final
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'
                 , 'code', di_CATEGORY
             ))
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/chartevents-d-items'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-chartevents-d-items'
                 , 'code', ce_ITEMID
                 , 'display', di_LABEL
             ))
@@ -80,7 +76,7 @@ SELECT
                 jsonb_build_object(
                     'value', ce_VALUENUM
                     , 'unit', ce_VALUEUOM
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                     , 'code', ce_VALUEUOM 
             ) ELSE NULL END
         , 'valueString',
@@ -95,7 +91,7 @@ SELECT
                             jsonb_build_object(
                                 'value', di_LOWNORMALVALUE
                                 , 'unit', ce_VALUEUOM
-                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                                 , 'code', ce_VALUEUOM
                             )
                         ELSE NULL END
@@ -104,7 +100,7 @@ SELECT
                             jsonb_build_object(
                                 'value', di_HIGHNORMALVALUE
                                 , 'unit', ce_VALUEUOM
-                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                                 , 'code', ce_VALUEUOM
                             )
                         ELSE NULL END

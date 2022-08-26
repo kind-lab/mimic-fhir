@@ -54,7 +54,7 @@ SELECT
                 'coding', jsonb_build_array(jsonb_build_object(
                     'code', mi_SPEC_ITEMID
                     , 'display', mi_SPEC_TYPE_DESC
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/spec-type-desc'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-spec-type-desc'
                 ))
             )
         ELSE NULL END

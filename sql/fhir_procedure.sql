@@ -10,14 +10,13 @@ CREATE TABLE mimic_fhir.procedure(
 
 WITH fhir_procedure AS (
     SELECT
-        proc.hadm_id || '-' || proc.seq_num || '-' || proc.icd_code AS proc_IDENTIFIER 
-        , TRIM(proc.icd_code) AS proc_ICD_CODE
+        TRIM(proc.icd_code) AS proc_ICD_CODE
         , icd.long_title AS icd_LONG_TITLE
         , CAST(proc.chartdate AS TIMESTAMPTZ) AS proc_CHARTDATE
         , proc.icd_version AS proc_ICD_VERSION
         , CASE WHEN proc.icd_version = 9 
-            THEN 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd9' 
-            ELSE 'http://fhir.mimic.mit.edu/CodeSystem/procedure-icd10' 
+            THEN 'http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-icd9' 
+            ELSE 'http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-icd10' 
         END AS proc_ICD_SYSTEM
   
         -- reference uuids
@@ -49,10 +48,6 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure'
             )
         ) 
-        , 'identifier', jsonb_build_array(jsonb_build_object(
-            'value', proc_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/procedure'
-        ))		 
         , 'status', 'completed' -- All procedures are considered complete
         
         -- ICD code for procedure event

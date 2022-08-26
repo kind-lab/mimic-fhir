@@ -1,17 +1,17 @@
--- Purpose: Generate a FHIR Condition resource for each row in diagnosis_icd 
+-- Purpose: Generate a FHIR Condition resource for each row in diagnosis row in mimic-ed 
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.condition;
-CREATE TABLE mimic_fhir.condition(
+DROP TABLE IF EXISTS mimic_fhir.condition_ed;
+CREATE TABLE mimic_fhir.condition_ed(
     id          uuid PRIMARY KEY,
     patient_id  uuid NOT NULL,
     fhir        jsonb NOT NULL 
 );
 
-WITH fhir_condition AS (
+WITH fhir_condition_ed AS (
     SELECT
         TRIM(diag.icd_code) AS diag_ICD_CODE
-        , icd.long_title AS icd_LONG_TITLE
+        , diag.icd_title  AS diag_ICD_TITLE
         , diag.icd_version AS diag_ICD_VERSION
         , CASE WHEN diag.icd_version = 9 
             THEN 'http://fhir.mimic.mit.edu/CodeSystem/mimic-diagnosis-icd9' 
@@ -20,23 +20,22 @@ WITH fhir_condition AS (
             
   
         -- reference uuids
-        , uuid_generate_v5(ns_condition.uuid, diag.hadm_id || '-' || diag.seq_num || '-' || diag.icd_code) as uuid_DIAGNOSIS
+        , uuid_generate_v5(ns_condition.uuid, diag.stay_id || '-' || diag.seq_num || '-' || diag.icd_code) as uuid_DIAGNOSIS
         , uuid_generate_v5(ns_patient.uuid, CAST(diag.subject_id AS TEXT)) as uuid_SUBJECT_ID
-        , uuid_generate_v5(ns_encounter.uuid, CAST(diag.hadm_id AS TEXT)) as uuid_HADM_ID
+        , uuid_generate_v5(ns_encounter.uuid, CAST(diag.stay_id AS TEXT)) as uuid_STAY_ID
     FROM
-        mimic_hosp.diagnoses_icd diag
-        LEFT JOIN mimic_hosp.d_icd_diagnoses icd
-            ON diag.icd_code = icd.icd_code
-            AND diag.icd_version = icd.icd_version
+        mimic_ed.diagnosis diag
+        INNER JOIN mimic_hosp.patients pat
+            ON diag.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter 
-            ON ns_encounter.name = 'Encounter'
+            ON ns_encounter.name = 'EncounterED'
         LEFT JOIN fhir_etl.uuid_namespace ns_patient 
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_condition
-            ON ns_condition.name = 'Condition'
+            ON ns_condition.name = 'ConditionED'
 )
 
-INSERT INTO mimic_fhir.condition
+INSERT INTO mimic_fhir.condition_ed
 SELECT 
     uuid_DIAGNOSIS as id
     , uuid_SUBJECT_ID AS patient_id 
@@ -47,7 +46,7 @@ SELECT
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-condition'
             )
-        )      
+        )           
         -- All diagnoses in MIMIC are considered encounter derived
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
@@ -60,11 +59,11 @@ SELECT
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', diag_ICD_SYSTEM
                 , 'code', diag_ICD_CODE
-                , 'display', icd_LONG_TITLE
+                , 'display', diag_ICD_TITLE
             ))
         )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-        , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_HADM_ID) 
+        , 'encounter', jsonb_build_object('reference', 'Encounter/' || uuid_STAY_ID) 
     )) as fhir 
 FROM
-    fhir_condition
+    fhir_condition_ed;

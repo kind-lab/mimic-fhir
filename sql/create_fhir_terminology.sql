@@ -55,6 +55,12 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 \echo Medication Frequency
 \i codesystem/cs-medication-frequency.sql
 
+\echo Medication GSN
+\i codesystem/cs-medication-gsn.sql
+
+\echo Medication ETC
+\i codesystem/cs-medication-etc.sql
+
 -- Medication Related CodeSystems
 \echo Medadmin Category ICU
 \i codesystem/cs-medadmin-category-icu.sql
@@ -143,6 +149,12 @@ CREATE SCHEMA IF NOT EXISTS fhir_trm;
 -- Encounter
 \echo Encounter Type ValueSet
 \i codesystem/vs-encounter-type.sql
+
+\echo Admission Class ValueSet
+\i codesystem/vs-admission-class.sql
+
+\echo Admission Type ValueSet
+\i codesystem/vs-admission-type.sql
 
 -- Medication
 \echo Medication ValueSet

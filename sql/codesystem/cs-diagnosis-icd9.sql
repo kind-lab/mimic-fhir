@@ -11,13 +11,31 @@ CREATE TABLE fhir_trm.cs_diagnosis_icd9(
     display   VARCHAR NOT NULL
 );
 
+
+WITH icd9_codes AS (
+    SELECT 
+        DISTINCT TRIM(diag.icd_code) AS code
+        , icd.long_title AS display
+    FROM 
+        mimic_hosp.diagnoses_icd diag
+        LEFT JOIN mimic_hosp.d_icd_diagnoses icd
+            ON diag.icd_code = icd.icd_code 
+            AND diag.icd_version = icd.icd_version 
+    WHERE diag.icd_version = 9
+    
+    UNION 
+    
+    SELECT 
+        DISTINCT TRIM(eddg.icd_code) AS code
+        , eddg.icd_title AS display
+    FROM
+        mimic_ed.diagnosis eddg
+    WHERE icd_version = 9   
+)
 INSERT INTO fhir_trm.cs_diagnosis_icd9
 SELECT 
-    DISTINCT TRIM(diag.icd_code) AS code, icd.long_title AS display
-FROM 
-    mimic_hosp.diagnoses_icd diag
-    LEFT JOIN mimic_hosp.d_icd_diagnoses icd
-        ON diag.icd_code = icd.icd_code 
-        AND diag.icd_version = icd.icd_version 
-WHERE diag.icd_version = 9
+    code
+    , MAX(display) -- sometimes display IS slightly different (caps or lowercase)
+FROM icd9_codes
+GROUP BY code
 

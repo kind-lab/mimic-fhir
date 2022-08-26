@@ -63,11 +63,11 @@ def generate_valuesets(db_conn, meta, terminology_path):
 
 def generate_codesystem(mimic_codesystem, db_conn, meta):
     codesystem = CodeSystem(status=meta.status, content=meta.content)
-    codesystem.id = mimic_codesystem.replace('_', '-')
+    codesystem.id = f"mimic-{mimic_codesystem.replace('_', '-')}"
     codesystem.url = f'{meta.base_url}/CodeSystem/{codesystem.id}'
     codesystem.version = meta.version
     codesystem.language = meta.language
-    codesystem.name = mimic_codesystem.title().replace('_', '')
+    codesystem.name = f"Mimic{mimic_codesystem.title().replace('_', '')}"
     codesystem.title = codesystem.name
     codesystem.date = meta.current_date
     codesystem.publisher = meta.publisher
@@ -89,11 +89,11 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
 
 def generate_valueset(mimic_valueset, db_conn, meta):
     valueset = ValueSet(status=meta.status)
-    valueset.id = mimic_valueset.replace('_', '-')
+    valueset.id = f"mimic-{mimic_valueset.replace('_', '-')}"
     valueset.url = f'{meta.base_url}/ValueSet/{valueset.id}'
     valueset.version = meta.version
     valueset.language = meta.language
-    valueset.name = mimic_valueset.title().replace('_', '')
+    valueset.name = f"Mimic{mimic_valueset.title().replace('_', '')}"
     valueset.title = valueset.name
     valueset.date = meta.current_date
     valueset.publisher = meta.publisher
@@ -160,7 +160,7 @@ def post_terminology(args):
     for codesystem in MIMIC_CODESYSTEMS:
         logger.info(f'Posting CodeSystem: {codesystem}')
         codesystem = codesystem.replace('_', '-')
-        codesystem_file = f'CodeSystem-{codesystem}.json'
+        codesystem_file = f'CodeSystem-mimic-{codesystem}.json'
         codesystem_path = base_path / codesystem_file
         with open(codesystem_path, mode='r') as cs_content:
             cs = json.load(cs_content)
@@ -171,7 +171,7 @@ def post_terminology(args):
     for valueset in MIMIC_VALUESETS:
         logger.info(f'Posting ValueSet: {valueset}')
         valueset = valueset.replace('_', '-')
-        valueset_file = f'ValueSet-{valueset}.json'
+        valueset_file = f'ValueSet-mimic-{valueset}.json'
         valueset_path = base_path / valueset_file
         with open(valueset_path, mode='r') as vs_content:
             vs = json.load(vs_content)

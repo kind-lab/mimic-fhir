@@ -31,4 +31,3 @@ CREATE INDEX emar_idx02
 DROP INDEX IF EXISTS poe_idx01;
 CREATE INDEX poe_idx01
   ON mimic_hosp.poe (poe_id);
-  

@@ -79,7 +79,7 @@ SELECT
     , uuid_SUBJECT_ID AS patient_id
     , jsonb_strip_nulls(jsonb_build_object(
         'resourceType', 'MedicationDispense'
-        , 'id', uuid_MEDICATION_REQUEST
+        , 'id', uuid_MEDICATION_DISPENSE
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-dispense'
@@ -90,12 +90,12 @@ SELECT
               , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-dispense'
         ))    
         , 'status', 'completed' -- assumed all complete dispense in mimic
-        , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
+        , 'medicationCodeableConcept', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'code', ph_MEDICATION
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-name'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-name'
             ))
-        ))
+        )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
             CASE WHEN uuid_HADM_ID IS NOT NULL
@@ -118,7 +118,7 @@ SELECT
             'route', CASE WHEN ph_ROUTE IS NOT NULL THEN 
                jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-route'  
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-route'  
                         , 'code', ph_ROUTE
                     ))
                 )
@@ -128,7 +128,7 @@ SELECT
                     jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(
                             'code', ph_FREQUENCY
-                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/medication-frequency'
+                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-frequency'
                         ))
                     )
                     ELSE NULL END

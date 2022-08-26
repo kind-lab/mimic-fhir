@@ -35,6 +35,18 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo map race
 \i fhir_etl/map_race_omb.sql
 
+\echo map encounter class
+\i fhir_etl/map_encounter_class.sql
+
+\echo map encounter priority
+\i fhir_etl/map_encounter_priority.sql
+
+\echo map microbiology interpretation
+\i fhir_etl/map_micro_interpretation.sql
+
+\echo map lab interpretation
+\i fhir_etl/map_lab_interpretation.sql
+
 \echo =========================== fhir_etl functions ====================================
 \echo fn_patient_extension
 \i fn/fn_patient_extension.sql
@@ -115,6 +127,28 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 \echo fhir_observation_outputevents
 \i fhir_observation_outputevents.sql
+
+-- mimic-ed tables
+\echo fhir_condition_ed
+\i fhir_condition_ed.sql
+
+\echo fhir_encounter_ed
+\i fhir_encounter_ed.sql
+
+\echo fhir_medication_dispense_ed
+\i fhir_medication_dispense_ed.sql
+
+\echo fhir_medication_statement_ed
+\i fhir_medication_statement_ed.sql
+
+\echo fhir_observation_ed
+\i fhir_observation_ed.sql
+
+\echo fhir_observation_vitalsigns
+\i fhir_observation_vitalsigns.sql
+
+\echo fhir_procedure_ed
+\i fhir_procedure_ed.sql
 
 -- fhir terminology tables
 \echo create_fhir_terminology

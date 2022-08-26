@@ -17,7 +17,7 @@ WITH micro_info AS (
         , MAX(mi.test_itemid) AS test_itemid 
         , MAX(mi.org_name) AS org_name
         , MAX(mi.subject_id) AS subject_id
-        , MAX(CAST(mi.charttime AS TIMESTAMPTZ)) AS charttime
+        , MAX(CAST(COALESCE(mi.charttime,mi.chartdate) AS TIMESTAMPTZ)) AS charttime
         , MAX(comments) AS comments
     
         -- Add a reference to susceptibility if an organism is tested for antibiotics
@@ -42,7 +42,6 @@ WITH micro_info AS (
 ), fhir_observation_micro_org AS (
     SELECT 
         mi.org_itemid AS mi_ORG_ITEMID
-        , mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid AS id_MICRO_ORG
         , mi.org_name AS mi_ORG_NAME
         , mi.charttime AS mi_CHARTTIME
         
@@ -84,22 +83,19 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-org'
             )
         ) 
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', id_MICRO_ORG
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-micro-org'
-        ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory' 
+                , 'display', 'Laboratory'
             ))
         ))
           
         -- Organism item code  
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-organism'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-organism'  
                 , 'code', mi_ORG_ITEMID
                 , 'display', mi_ORG_NAME
             ))

@@ -1,6 +1,10 @@
 -- Purpose: Generate a FHIR Observation resource from the labevents rows
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
+-- Parameters to potentially speed up generation of big tables
+-- SET from_collapse_limit = 24; 
+-- SET join_collapse_limit = 24;
+
 DROP TABLE IF EXISTS mimic_fhir.observation_labevents;
 CREATE TABLE mimic_fhir.observation_labevents(
     id          uuid PRIMARY KEY,
@@ -15,7 +19,6 @@ WITH fhir_observation_labevents AS (
         , dlab.label AS dlab_LABEL
         , CAST(lab.charttime AS TIMESTAMPTZ) AS lab_CHARTTIME
         , CAST(lab.storetime AS TIMESTAMPTZ) AS lab_STORETIME
-        , lab.flag AS lab_FLAG
         , lab.comments AS lab_COMMENTS
         , lab.ref_range_lower AS lab_REF_RANGE_LOWER
         , lab.ref_range_upper AS lab_REF_RANGE_UPPER
@@ -37,6 +40,7 @@ WITH fhir_observation_labevents AS (
             WHEN value LIKE '%>%' THEN CAST(split_part(lab.value,'>',2) AS NUMERIC)
             ELSE NULL
         END as lab_VALUENUM
+--        , lab.valuenum AS lab_VALUENUM
         , CASE 
             WHEN value LIKE '%<=%' THEN '<='
             WHEN value LIKE '%<%' THEN '<'
@@ -54,6 +58,10 @@ WITH fhir_observation_labevents AS (
             WHEN comments ILIKE '%cancel%' THEN 'cancelled'
             ELSE 'final'
         END AS lab_STATUS
+        
+        -- interpretation
+        , interp.fhir_interpretation_code AS interp_FHIR_INTERPRETATION_CODE
+        , interp.fhir_interpretation_display AS interp_FHIR_INTERPRETATION_DISPLAY
   
         -- reference uuids
         , uuid_generate_v5(ns_observation_labs.uuid, CAST(lab.labevent_id AS TEXT)) AS uuid_LABEVENT_ID
@@ -69,9 +77,13 @@ WITH fhir_observation_labevents AS (
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_labs
-            ON ns_observation_labs.name = 'ObservationLabs'
+            ON ns_observation_labs.name = 'ObservationLabevents'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen
             ON ns_specimen.name = 'SpecimenLab'
+            
+        -- mappings
+        LEFT JOIN fhir_etl.map_lab_interpretation interp
+            ON lab.flag = interp.mimic_interpretation
 )
 INSERT INTO mimic_fhir.observation_labevents
 SELECT 
@@ -87,20 +99,21 @@ SELECT
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', lab_LABEVENT_ID
-            , 'system', 'http://fhir.mimic.mit.edu//identifier/observation-labevents'
+            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-labevents'
         ))       
         , 'status', lab_STATUS
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
+                , 'display', 'Laboratory'
             ))
         ))
           
         -- Lab test completed  
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-labitems'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-labitems'  
                 , 'code', lab_ITEMID
                 , 'display', dlab_LABEL
             ))
@@ -117,7 +130,7 @@ SELECT
                 jsonb_build_object(
                     'value', lab_VALUENUM
                     , 'unit', lab_VALUEUOM
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                     , 'code', lab_VALUEUOM 
                     , 'comparator', VALUE_COMPARATOR
                 ) 
@@ -135,11 +148,12 @@ SELECT
             ))
             ELSE NULL END
         , 'interpretation', 
-            CASE WHEN lab_FLAG IS NOT NULL THEN
+            CASE WHEN interp_FHIR_INTERPRETATION_CODE IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/lab-flags'  
-                        , 'code', lab_FLAG
+                        'system', 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation'  
+                        , 'code', interp_FHIR_INTERPRETATION_CODE
+                        , 'display', interp_FHIR_INTERPRETATION_DISPLAY
                     ))
                 ))
             ELSE NULL END
@@ -159,7 +173,7 @@ SELECT
                         jsonb_strip_nulls(jsonb_build_object(
                             'value', lab_REF_RANGE_LOWER
                             , 'unit', lab_VALUEUOM
-                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                             , 'code', lab_VALUEUOM
                         ))
                     ELSE NULL END
@@ -167,7 +181,7 @@ SELECT
                         jsonb_strip_nulls(jsonb_build_object(
                             'value', lab_REF_RANGE_UPPER
                             , 'unit', lab_VALUEUOM
-                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                            , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                             , 'code', lab_VALUEUOM
                         ))
                     ELSE NULL END
@@ -176,7 +190,7 @@ SELECT
         , 'extension', 
             CASE WHEN lab_PRIORITY IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
-                    'url', 'http://fhir.mimic.mit.edu/StructureDefinition/lab-priority'
+                    'url', 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-lab-priority'
                     , 'valueString', lab_PRIORITY
                 ))
             ELSE NULL END

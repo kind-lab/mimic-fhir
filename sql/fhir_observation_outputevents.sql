@@ -10,8 +10,7 @@ CREATE TABLE mimic_fhir.observation_outputevents(
 
 WITH fhir_observation_oe AS (
     SELECT
-        oe.stay_id || '-' || oe.charttime || '-' || oe.itemid AS oe_IDENTIFIER
-        , CAST(oe.itemid AS TEXT) AS oe_ITEMID
+        CAST(oe.itemid AS TEXT) AS oe_ITEMID
         , CAST(oe.charttime AS TIMESTAMPTZ) AS oe_CHARTTIME
         , CAST(oe.storetime AS TIMESTAMPTZ) AS oe_STORETIME
         , oe.valueuom AS oe_VALUEUOM
@@ -46,21 +45,17 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevents'
             )
         ) 
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', oe_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-outputevents'
-        ))
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/observation-category'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'  
                 , 'code', di_CATEGORY
             ))
         ))
         -- Item code for outputevent
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-items'
                 , 'code', oe_ITEMID
                 , 'display', di_LABEL
             ))
@@ -73,7 +68,7 @@ SELECT
             jsonb_build_object(
                 'value', oe_VALUE
                 , 'unit', oe_VALUEUOM
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/units'
+                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
                 , 'code', oe_VALUEUOM
             )
     )) AS fhir

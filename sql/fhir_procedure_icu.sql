@@ -10,8 +10,7 @@ CREATE TABLE mimic_fhir.procedure_icu(
 
 WITH fhir_procedure_icu AS (
     SELECT
-        pe.stay_id || '-' || pe.orderid || '-' || pe.itemid AS pe_IDENTIFIER
-        , pe.ordercategoryname AS pe_ORDERCATEGORYNAME
+        pe.ordercategoryname AS pe_ORDERCATEGORYNAME
         , CAST(pe.itemid AS TEXT) AS pe_ITEMID
         , CAST(pe.starttime AS TIMESTAMPTZ) AS pe_STARTTIME
         , CAST(pe.endtime AS TIMESTAMPTZ) AS pe_ENDTIME
@@ -49,21 +48,17 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-icu'
             )
         )
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', pe_IDENTIFIER
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/procedure-icu'
-        ))
         , 'status', fhir_STATUS
         , 'category', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/procedure-category'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-category'  
                 , 'code', pe_ORDERCATEGORYNAME
             ))
         )
         -- Procedure item codes
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/d-items'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-items'  
                 , 'code', pe_ITEMID
                 , 'display', di_LABEL
             ))
@@ -73,7 +68,7 @@ SELECT
             CASE WHEN pe_LOCATION IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/bodysite'
+                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-bodysite'
                         , 'code', pe_LOCATION
                     ))
                 ))

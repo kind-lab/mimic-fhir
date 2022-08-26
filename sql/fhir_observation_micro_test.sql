@@ -17,7 +17,8 @@ WITH distinct_org AS (
         , MAX(mi.test_name) AS mi_TEST_NAME
         , MAX(mi.subject_id) AS mi_SUBJECT_ID
         , MAX(mi.hadm_id) AS mi_HADM_ID
-        , MAX(CAST(mi.charttime AS TIMESTAMPTZ)) AS mi_CHARTTIME
+        -- some charttimes are null, so take chartdate when not present
+        , MAX(CAST(COALESCE(mi.charttime, mi.chartdate) AS TIMESTAMPTZ)) AS mi_CHARTTIME
 		
         , CASE WHEN MIN(mi.org_itemid) IS NULL THEN NULL 
             ELSE
@@ -78,7 +79,6 @@ WITH distinct_org AS (
 ), fhir_observation_micro_test AS (
     SELECT 
         mi_MICRO_SPECIMEN_ID
-        , mi_MICRO_SPECIMEN_ID|| '-' || mi_TEST_ITEMID AS id_MICRO_TEST
         , mi_TEST_ITEMID
         , mi_TEST_NAME
         , mi_SUBJECT_ID
@@ -117,20 +117,17 @@ SELECT
                 'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-test'
             )
         ) 
-        , 'identifier',  jsonb_build_array(jsonb_build_object(
-            'value', id_MICRO_TEST
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/observation-micro-test'
-        ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/observation-category'  
                 , 'code', 'laboratory'
+                , 'display', 'Laboratory'
             ))
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/microbiology-test'  
+                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-test'  
                 , 'code', mi_TEST_ITEMID
                 , 'display', mi_TEST_NAME
             ))
