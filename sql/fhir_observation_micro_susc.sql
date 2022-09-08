@@ -82,7 +82,17 @@ SELECT
             'coding', jsonb_build_array(jsonb_build_object(
                 'system', 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation'  
                 , 'code', interp_FHIR_INTERPRETATION_CODE
-                , 'display', interp_FHIR_INTERPRETATION_DISPLAY    WHERE lab.labevent_id < 1000000tails'
+                , 'display', interp_FHIR_INTERPRETATION_DISPLAY
+            ))
+        )
+        , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_ORG)) 
+        , 'note', jsonb_build_array(jsonb_build_object(
+            'text',  mi_COMMENTS
+        ))
+        , 'extension', CASE
+            WHEN mi_DILUTION_COMPARISON IS NOT NULL THEN
+                jsonb_build_array(jsonb_build_object(
+                    'url', 'http://fhir.mimic.mit.edu/StructureDefinition/dilution-details'
                     , 'valueQuantity', jsonb_build_object(
                         'value', mi_DILUTION_VALUE
                         , 'comparator', mi_DILUTION_COMPARISON
