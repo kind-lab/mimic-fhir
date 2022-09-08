@@ -10,7 +10,7 @@ CREATE TABLE mimic_fhir.organization(
 -- BIDMC top level organization
 INSERT INTO mimic_fhir.organization
 SELECT 
-    uuid_generate_v5(ns_organization.uuid, 'Beth Israel Deaconess Medical Center') AS id
+    uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS id
     , jsonb_build_object(
         'resourceType', 'Organization'
         , 'id', uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720')
