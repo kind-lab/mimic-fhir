@@ -112,9 +112,9 @@ MIMIC_VALUESETS = [
 ]
 
 VALUESETS_COMPLEX = [
-    'admission_class', 'admission_type', 'datetimeevents_d_items', 'diagnosis_icd', 'encounter_type', 'medication',
-    'outputevents_d_items', 'procedureevents_d_items', 'procedure_icd',
-    'specimen_type'
+    'admission_class', 'admission_type', 'datetimeevents_d_items',
+    'diagnosis_icd', 'encounter_type', 'medication', 'outputevents_d_items',
+    'procedureevents_d_items', 'procedure_icd', 'specimen_type'
 ]
 # ORDER MATTERS!!
 # The patient bundle must be first and the icu_encounter bundle must be before all other icu bundles
@@ -129,19 +129,19 @@ MIMIC_BUNDLE_TABLE_LIST = {
             'observation_micro_test', 'observation_micro_org',
             'observation_micro_susc'
         ],
-    'medication_preparation': ['medication_request', 'medication_dispense'],
-    'medication_administration': ['medication_administration'],
-    'icu_encounter': ['encounter_icu'],
-    'icu_medication': ['medication_administration_icu'],
-    'icu_procedure': ['procedure_icu'],
-    'icu_observation':
+    'medication-preparation': ['medication_request', 'medication_dispense'],
+    'medication-administration': ['medication_administration'],
+    'icu-encounter': ['encounter_icu'],
+    'icu-medication': ['medication_administration_icu'],
+    'icu-procedure': ['procedure_icu'],
+    'icu-observation':
         [
             'observation_chartevents', 'observation_datetimeevents',
             'observation_outputevents'
         ],
-    'ed_base': ['encounter_ed', 'procedure_ed'],
-    'ed_observation': ['observation_ed', 'observation_vitalsigns'],
-    'ed_medication': ['medication_statement_ed', 'medication_dispense_ed']
+    'ed-base': ['encounter_ed', 'procedure_ed'],
+    'ed-observation': ['observation_ed', 'observation_vitalsigns'],
+    'ed-medication': ['medication_statement_ed', 'medication_dispense_ed']
 }
 
 MIMIC_DATA_BUNDLE_LIST = [

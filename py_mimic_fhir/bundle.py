@@ -12,6 +12,7 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from uuid import uuid4
 
 from py_mimic_fhir.db import (
     get_resources_by_pat, get_patient_resource, get_resource_by_id,
@@ -60,6 +61,7 @@ class ErrBundle():
 class Bundle():
     def __init__(self, name, table_list=[], patient_id=None):
         self.bundle_name = name
+        self.id = f'{name}-{str(uuid4())}'
         self.table_list = table_list
         self.resourceType = 'Bundle'
         self.type = 'transaction'

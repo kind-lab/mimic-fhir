@@ -154,6 +154,30 @@ def parse_arguments(arguments=None):
         help='Number of cores to use when validating'
     )
 
+    arg_validate.add_argument(
+        '--gcp-project',
+        action=EnvDefault,
+        envvar='GCP_PROJECT',
+        help='Google Cloud project name',
+        required=True
+    )
+
+    arg_validate.add_argument(
+        '--gcp-topic',
+        action=EnvDefault,
+        envvar='GCP_TOPIC',
+        help='Google Cloud topic name to submit bundles to',
+        required=True
+    )
+
+    arg_validate.add_argument(
+        '--validator',
+        action=EnvDefault,
+        envvar='FHIR_VALIDATOR',
+        help='FHIR Validator being used. One of HAPI, GCP, or JAVA',
+        required=True
+    )
+
     # Export - can be run separate from validation
     arg_export = subparsers.add_parser(
         "export", help=("Export options for mimic-fhir data")
@@ -217,7 +241,7 @@ def parse_arguments(arguments=None):
 
 # Validate all resources for user specified number of patients
 def validate(args):
-    margs = MimicArgs(args.fhir_server, args.err_path)
+    margs = MimicArgs(args.fhir_server, args.err_path, args.validator)
     if args.rerun:
         validation_result = revalidate_bad_bundles(args, margs)
     elif args.cores > 1:
