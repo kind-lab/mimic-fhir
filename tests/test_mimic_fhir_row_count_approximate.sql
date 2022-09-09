@@ -1,3 +1,6 @@
+-- Compare an estimated row count with the expected row counts.
+-- Note the estimated row count uses a statistics table, and it is not
+-- an exact measure. As a result, we look for a match with a ~3% tolerance.
 WITH expected_counts AS
 ( 
               SELECT   5006884 AS n_row_expected, 'condition' AS table_name
@@ -31,20 +34,33 @@ WITH expected_counts AS
     UNION ALL SELECT 124342638 AS n_row_expected, 'observation_labevents' AS table_name
     UNION ALL SELECT 329822254 AS n_row_expected, 'observation_chartevents' AS table_name
 )
--- TODO: deal with small tables
-SELECT c.relname AS table_name
--- for smaller tables, we do an exact count
+-- for smaller tables, we do an exact count as the estimate is always -1
+, small_table_counts AS
+(
+    SELECT 'location' AS table_name, COUNT(*) AS n_row_observed FROM mimic_fhir.location
+    UNION ALL
+    SELECT 'organization' AS table_name, COUNT(*) AS n_row_observed  FROM mimic_fhir.organization
+)
+-- for larger tables, pull the estimated count from reltuples
+, observed_counts AS
+(
+    SELECT c.relname AS table_name
+    , CAST(c.reltuples AS INTEGER) AS n_row_observed
+    FROM pg_class c
+    -- only include tables in the expected count CTE
+    WHERE c.relname IN (SELECT table_name FROM expected_counts)
+    -- exclude small tables with an exact count available, union them after
+    AND c.relname NOT IN (SELECT table_name from small_table_counts)
+    UNION ALL
+    SELECT table_name, n_row_observed
+    FROM small_table_counts
+)
+SELECT c.table_name
+, n_row_expected, n_row_observed
 , CASE
-    WHEN c.relname = 'location' THEN (SELECT COUNT(*) FROM mimic_fhir.location)
-    WHEN c.relname = 'organization' THEN (SELECT COUNT(*) FROM mimic_fhir.organization)
-    -- approximate estimate is c.reltuples
-    ELSE CAST(c.reltuples AS INTEGER)
-END AS n_row_estimate
-, e.n_row_expected
-, CASE
-    WHEN c.reltuples BETWEEN (0.97*n_row_expected) AND (1.03*n_row_expected) THEN 'PASS'
+    WHEN c.n_row_observed BETWEEN (0.97*n_row_expected) AND (1.03*n_row_expected) THEN 'PASS'
 ELSE 'FAIL' END AS test_status
-FROM pg_class c
+FROM observed_counts c
 INNER JOIN expected_counts e
-ON c.relname = e.table_name
+    ON c.table_name = e.table_name
 ORDER BY table_name;
