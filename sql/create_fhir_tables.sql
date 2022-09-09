@@ -52,6 +52,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \i fn/fn_patient_extension.sql
 -- prepare MIMIC-IV tables
 
+\echo fn_med_statement
+\i fn/fn_med_statement.sql
+
 -- institutional resources
 \echo =========================== mimic_fhir tables ====================================
 \echo fhir_organization

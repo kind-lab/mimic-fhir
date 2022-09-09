@@ -17,15 +17,14 @@ WITH fhir_medication_statement_ed AS (
         gsn AS med_GSN
         , ndc AS med_NDC
         , med.name AS med_NAME
-        , jsonb_agg(
-            CASE WHEN etccode IS NOT NULL THEN 
+        , STRING_AGG(
+            CAST(CASE WHEN etccode IS NOT NULL THEN 
                 jsonb_build_object(
                     'code', etccode
                     , 'display', etcdescription
-                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-etc'
-                )
-            ELSE NULL END
-        ) AS med_ETC_CODES
+                    , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-etc'                
+                ) 
+            ELSE NULL END AS TEXT), ',')  AS med_ETC_CODES
         
         , CAST(med.charttime AS TIMESTAMPTZ) AS med_CHARTTIME
         
@@ -76,21 +75,7 @@ SELECT
             ELSE
                 jsonb_build_object(
                     'text', med_NAME
-                    , 'coding', ARRAY_REMOVE(ARRAY[
-                        CASE WHEN med_GSN != '0' THEN 
-                            jsonb_build_object(
-                                'code', med_GSN
-                                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-gsn'
-                            )
-                        ELSE NULL END,
-                        CASE WHEN med_NDC != '0' THEN 
-                            jsonb_build_object(
-                                'code', med_NDC
-                                , 'system', 'http://hl7.org/fhir/sid/ndc'
-                            )
-                        ELSE NULL END,
-                        CASE WHEN med_ETC_CODES != '[null]' THEN med_ETC_CODES ELSE NULL END
-                    ], NULL)
+                    , 'coding', fhir_etl.fn_med_statement(med_GSN, med_NDC, med_ETC_CODES)
                 )
             END
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
