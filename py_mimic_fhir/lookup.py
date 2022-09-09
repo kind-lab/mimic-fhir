@@ -129,6 +129,11 @@ MIMIC_BUNDLE_TABLE_LIST = {
             'observation_micro_test', 'observation_micro_org',
             'observation_micro_susc'
         ],
+    'medication-workflow':
+        [
+            'medication_request', 'medication_dispense',
+            'medication_administration'
+        ],
     'medication-preparation': ['medication_request', 'medication_dispense'],
     'medication-administration': ['medication_administration'],
     'icu-encounter': ['encounter_icu'],
@@ -140,7 +145,7 @@ MIMIC_BUNDLE_TABLE_LIST = {
             'observation_outputevents'
         ],
     'ed-base': ['encounter_ed', 'procedure_ed'],
-    'ed-observation': ['observation_ed', 'observation_vitalsigns'],
+    'ed-observation': ['observation_ed', 'observation_vital_signs'],
     'ed-medication': ['medication_statement_ed', 'medication_dispense_ed']
 }
 
