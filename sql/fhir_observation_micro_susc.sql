@@ -86,9 +86,11 @@ SELECT
             ))
         )
         , 'derivedFrom', jsonb_build_array(jsonb_build_object('reference', 'Observation/' || uuid_MICRO_ORG)) 
-        , 'note', jsonb_build_array(jsonb_build_object(
-            'text',  mi_COMMENTS
-        ))
+        , 'note', CASE WHEN mi_COMMENTS IS NOT NULL THEN
+            jsonb_build_array(jsonb_build_object(
+                'text',  mi_COMMENTS
+            ))
+        ELSE NULL END
         , 'extension', CASE
             WHEN mi_DILUTION_COMPARISON IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
