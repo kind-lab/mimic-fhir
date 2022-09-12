@@ -134,8 +134,8 @@ MIMIC_BUNDLE_TABLE_LIST = {
             'medication_request', 'medication_dispense',
             'medication_administration'
         ],
-    'medication-preparation': ['medication_request', 'medication_dispense'],
-    'medication-administration': ['medication_administration'],
+    # 'medication-preparation': ['medication_request', 'medication_dispense'],
+    # 'medication-administration': ['medication_administration'],
     'icu-encounter': ['encounter_icu'],
     'icu-medication': ['medication_administration_icu'],
     'icu-procedure': ['procedure_icu'],
@@ -152,3 +152,5 @@ MIMIC_BUNDLE_TABLE_LIST = {
 MIMIC_DATA_BUNDLE_LIST = [
     'organization', 'location', 'medication', 'medication_mix'
 ]
+
+MIMIC_BUNDLES_NO_SPLIT_LIST = ['microbiology', 'medication-workflow']

@@ -30,6 +30,7 @@ def multiprocess_validate(args, margs):
     db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
+    gcp_args = GoogleArgs(args.gcp_project, args.gcp_topic)
 
     if args.init:
         init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
@@ -40,7 +41,7 @@ def multiprocess_validate(args, margs):
     for patient_id in patient_ids:
         pool.apply_async(
             validation_worker,
-            args=(patient_id, args, margs),
+            args=(patient_id, args, margs, gcp_args),
             callback=result_list.update
         )
 
@@ -55,13 +56,16 @@ def multiprocess_validate(args, margs):
     return result
 
 
-def validation_worker(patient_id, args, margs):
+def validation_worker(patient_id, args, margs, gcp_args):
     try:
         response_list = [False]
+
         db_conn = connect_db(
             args.sqluser, args.sqlpass, args.dbname_mimic, args.host
         )
-        response_list = validate_all_bundles(patient_id, db_conn, margs)
+        response_list = validate_all_bundles(
+            patient_id, db_conn, margs, gcp_args
+        )
         result = True
         if False in response_list:
             result = False
@@ -119,16 +123,7 @@ def validate_bundle(name, patient_id, db_conn, margs, gcp_args):
     if margs.validator == 'HAPI':
         response = bundle.request(margs.fhir_server, margs.err_path)
     elif margs.validator == 'GCP':
-        byte_bundle = json.dumps(bundle.json()).encode('utf-8')
-        publisher = pubsub_v1.PublisherClient()
-        topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
-        future_response = publisher.publish(
-            topic_path, byte_bundle, blob_dir=gcp_args.blob_dir
-        )
-        if len(future_response.result()) == 16:
-            response = True
-        else:
-            response = False
+        response = bundle.publish(gcp_args)
     return response
 
 
