@@ -1,6 +1,8 @@
 import os
+import json
 import pytest
 import pandas as pd
+from google.cloud import pubsub_v1
 
 from py_mimic_fhir.bundle import Bundle
 from py_mimic_fhir.db import get_n_patient_id, get_n_resources
@@ -56,7 +58,7 @@ def test_rerun_bundle(db_conn, margs):
     assert False not in resp_list
 
 
-def test_post_100_resources(db_conn, margs):
+def test_post_100_resources(db_conn, margs, gcp_args):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.patient LIMIT 100
     """
@@ -64,9 +66,18 @@ def test_post_100_resources(db_conn, margs):
     resources = pd_resources.fhir.to_list()
     split_flag = True  # Divide up bundles into smaller chunks
 
-    bundle = Bundle('test_100')
+    bundle = Bundle('test-100')
     bundle.add_entry(resources)
-    resp = bundle.request(margs.fhir_server, margs.err_path)
+    if margs.validator == 'HAPI':
+        resp = bundle.request(margs.fhir_server, margs.err_path)
+    elif margs.validator == 'GCP':
+        bundle_to_send = json.dumps(bundle.json()).encode('utf-8')
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
+        response = publisher.publish(
+            topic_path, bundle_to_send, blob_dir=gcp_args.blob_dir
+        )
+        resp = len(response.result())
     assert resp
 
 

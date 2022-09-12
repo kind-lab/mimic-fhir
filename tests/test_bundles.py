@@ -55,42 +55,29 @@ def test_bad_bundle_gcp(db_conn, margs, gcp_args):
 
     bundle = Bundle(name='bad-bundle')
     bundle.add_entry([resource])
-    bundle_to_send = json.dumps(bundle.json()).encode('utf-8')
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
-    response = publisher.publish(
-        topic_path, bundle_to_send, blob_dir=gcp_args.blob_dir
-    )
+    response = bundle.publish(gcp_args)
+    # bundle_to_send = json.dumps(bundle.json()).encode('utf-8')
+    # publisher = pubsub_v1.PublisherClient()
+    # topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
+    # response = publisher.publish(
+    #     topic_path, bundle_to_send, blob_dir=gcp_args.blob_dir,
+    # )
 
     # message id is 16 digit int that is returned if processed. Else an exception is returned
-    assert len(response.result()) == 16
-
-
-def test_organization_bundle(organization_bundle_resources, margs):
-    resources = organization_bundle_resources
-    bundle = Bundle('init_organization_data')
-    bundle.add_entry(resources)
-    response = bundle.request(margs.fhir_server, margs.err_path)
-    logging.error(response)
     assert response
 
 
-def test_organization_bundle_gcp(
-    organization_bundle_resources, margs, gcp_args
-):
+def test_organization_bundle(organization_bundle_resources, margs, gcp_args):
     resources = organization_bundle_resources
-    bundle = Bundle('organization')
+    bundle = Bundle('init-org-data')
     bundle.add_entry(resources)
-
-    bundle_to_send = json.dumps(bundle.json()).encode('utf-8')
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
-    response = publisher.publish(
-        topic_path, bundle_to_send, blob_dir=gcp_args.blob_dir
-    )
-
-    # message id is 16 digit int that is returned if processed. Else an exception is returned
-    assert len(response.result()) == 16
+    if margs.validator == 'HAPI':
+        response = bundle.request(margs.fhir_server, margs.err_path)
+    elif margs.validator == 'GCP':
+        response = bundle.publish(gcp_args)
+    else:
+        response = False
+    assert response
 
 
 def test_patient_bundle(db_conn, margs, gcp_args):
@@ -117,30 +104,17 @@ def test_condition_bundle(db_conn, margs, gcp_args):
     assert response
 
 
-def test_location_bundle(location_bundle_resources, margs):
+def test_location_bundle(location_bundle_resources, margs, gcp_args):
     resources = location_bundle_resources
-    bundle = Bundle('init_location_data')
+    bundle = Bundle('init-location-data')
     bundle.add_entry(resources)
-    response = bundle.request(margs.fhir_server, margs.err_path)
-    logging.error(response)
+    if margs.validator == 'HAPI':
+        response = bundle.request(margs.fhir_server, margs.err_path)
+    elif margs.validator == 'GCP':
+        response = bundle.publish(gcp_args)
+    else:
+        response = False
     assert response
-
-
-def test_location_bundle_gcp(location_bundle_resources, margs, gcp_args):
-    resources = location_bundle_resources
-    bundle = Bundle('location')
-    bundle.add_entry(resources)
-
-    bundle_to_send = json.dumps(bundle.json()).encode('utf-8')
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
-    response = publisher.publish(
-        topic_path, bundle_to_send, blob_dir=gcp_args.blob_dir
-    )
-    print(bundle.json()['id'])
-
-    # message id is 16 digit int that is returned if processed. Else an exception is returned
-    assert len(response.result()) == 16
 
 
 def test_procedure_bundle(db_conn, margs, gcp_args):
@@ -187,112 +161,138 @@ def test_microbiology_bundle(db_conn, margs, gcp_args):
     assert response
 
 
-def test_lab_bundle(db_conn, margs):
+def test_lab_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'lab'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient and spcimen bundle, must do first to avoid referencing issues
-    validate_bundle('patient', patient_id, db_conn, margs)
-    validate_bundle('specimen', patient_id, db_conn, margs)
-    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    validate_bundle('specimen', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
     assert response
 
 
-def test_med_data_bundle(med_data_bundle_resources, margs):
+# Only passing a small portion of the meds here (~100)
+def test_med_data_bundle(med_data_bundle_resources, margs, gcp_args):
     # Can pass all meds if slicing is dropped
-    resources = med_data_bundle_resources[0:100]
+    resources = med_data_bundle_resources  #[0:1000]
     split_flag = True  # Divide up bundles into smaller chunks
-    bundle = Bundle('medication-data')
+    bundle = Bundle('init-medication')
     bundle.add_entry(resources)
-    response = bundle.request(margs.fhir_server, margs.err_path)
-    logging.error(response)
+    if margs.validator == 'HAPI':
+        response = bundle.request(margs.fhir_server, margs.err_path)
+    elif margs.validator == 'GCP':
+        response = bundle.publish(gcp_args)
+    else:
+        response = False
     assert response
 
 
-def test_med_mix_data_bundle(med_mix_data_bundle_resources, margs):
+def test_med_mix_data_bundle(med_mix_data_bundle_resources, margs, gcp_args):
     # Can pass all meds if slicing is dropped
-    resources = med_mix_data_bundle_resources[0:100]
+    resources = med_mix_data_bundle_resources  #[0:100]
     split_flag = True  # Divide up bundles into smaller chunks
     bundle = Bundle('init-medication-mix')
     bundle.add_entry(resources)
-    response = bundle.request(margs.fhir_server, margs.err_path)
-    logging.error(response)
+    if margs.validator == 'HAPI':
+        response = bundle.request(margs.fhir_server, margs.err_path)
+    elif margs.validator == 'GCP':
+        response = bundle.publish(gcp_args)
+    else:
+        response = False
     assert response
 
 
-def test_med_prep_bundle(db_conn, margs):
+def test_med_workflow_bundle(db_conn, margs, gcp_args):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'medication-workflow'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    # Generate and post patient bundle, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
+    assert response
+
+
+def test_med_prep_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'medication-preparation'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
-    validate_bundle('patient', patient_id, db_conn, margs)
-    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
     assert response
 
 
-def test_med_admin_bundle(db_conn, margs):
+def test_med_admin_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'medication-administration'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
-    validate_bundle('patient', patient_id, db_conn, margs)
-    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    validate_bundle(
+        'medication-preparation', patient_id, db_conn, margs, gcp_args
+    )
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
     assert response
 
 
-def test_icu_medication_bundle(db_conn, margs):
+def test_icu_medication_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-medication'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
-    validate_bundle('patient', patient_id, db_conn, margs)
-    validate_bundle('icu-encounter', patient_id, db_conn, margs)
-    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    validate_bundle('icu-encounter', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
     assert response
 
 
-def test_icu_encounter_bundle(db_conn, margs):
+def test_icu_encounter_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-encounter'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
-    validate_bundle('patient', patient_id, db_conn, margs)
-    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
     assert response
 
 
-def test_icu_procedure_bundle(db_conn, margs):
+def test_icu_procedure_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-procedure'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
     # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
-    validate_bundle('patient', patient_id, db_conn, margs)
-    validate_bundle('icu-encounter', patient_id, db_conn, margs)
-    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
-    assert response
-
-
-# Only passing a small portion of the meds here (~100)
-def test_med_data_bundle(med_data_bundle_resources, margs):
-    # Can pass all meds if slicing is dropped
-    resources = med_data_bundle_resources[0:100]
-    split_flag = True  # Divide up bundles into smaller chunks
-    bundle = Bundle('init-medication')
-    bundle.add_entry(resources)
-    response = bundle.request(margs.fhir_server, margs.err_path)
-    logging.error(response)
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    validate_bundle('icu-encounter', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
     assert response
 
 
@@ -319,14 +319,73 @@ def test_med_bundle_n_patients(db_conn, margs):
 
 
 # Test all observation resources coming out of the ICU
-def test_icu_observation_bundle(db_conn, margs):
+def test_icu_observation_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-observation'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
     patient_id = get_pat_id_with_links(db_conn, table_list)
 
-    # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
-    validate_bundle('patient', patient_id, db_conn, margs)
-    validate_bundle('icu-encounter', patient_id, db_conn, margs)
-    response = validate_bundle(bundle_name, patient_id, db_conn, margs)
+    #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    validate_bundle('icu-encounter', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
+
+    assert response
+
+
+# -------------- ED BUNDLES -----------------------
+# 'ed-base': ['encounter_ed', 'procedure_ed'],
+# 'ed-observation': ['observation_ed', 'observation_vitalsigns'],
+# 'ed-medication': ['medication_statement_ed', 'medication_dispense_ed']
+
+
+# Test ED encounter and procedure resources
+def test_ed_base_bundle(db_conn, margs, gcp_args):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'ed-base'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
+
+    assert response
+
+
+# Test ED observation resources
+def test_ed_observation_bundle(db_conn, margs, gcp_args):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'ed-observation'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    validate_bundle('ed-base', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
+
+    assert response
+
+
+# Test ED medication resources
+def test_ed_medication_bundle(db_conn, margs, gcp_args):
+    # Get patient_id that has resources from the resource_list
+    bundle_name = 'ed-medication'
+    table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
+    patient_id = get_pat_id_with_links(db_conn, table_list)
+
+    #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
+    validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
+    validate_bundle('ed-base', patient_id, db_conn, margs, gcp_args)
+    response = validate_bundle(
+        bundle_name, patient_id, db_conn, margs, gcp_args
+    )
+
     assert response
