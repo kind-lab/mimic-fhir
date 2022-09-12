@@ -12,7 +12,7 @@ WITH fhir_specimen AS (
     SELECT
         CAST(mi.micro_specimen_id AS TEXT)  AS mi_MICRO_SPECIMEN_ID
         , CAST(MAX(mi.charttime) AS TIMESTAMPTZ) AS mi_CHARTTIME
-        , MAX(spec_itemid) AS mi_SPEC_ITEMID
+        , CAST(MAX(spec_itemid) AS TEXT) AS mi_SPEC_ITEMID
         , MAX(spec_type_desc) AS mi_SPEC_TYPE_DESC
 
         , uuid_generate_v5(ns_specimen.uuid, CAST(mi.micro_specimen_id AS TEXT)) AS uuid_SPECIMEN

@@ -18,7 +18,7 @@ WITH fhir_medication_administration_icu AS (
         , TRIM(ie.amountuom) AS ie_AMOUNTUOM -- FHIR VALIDATOR fails IF ANY leading/trailing white space present
         , ie.rate AS ie_RATE
         , TRIM(ie.rateuom) AS ie_RATEUOM -- FHIR VALIDATOR fails IF ANY leading/trailing white space present	
-        , di.itemid AS di_ITEMID
+        , CAST(di.itemid AS TEXT) AS di_ITEMID
         , di.label AS di_LABEL
   
         -- reference uuids
