@@ -106,7 +106,7 @@ class Bundle():
         bundle_json.pop('patient_id')
         return bundle_json
 
-    def publish(self, gcp_args, split_flag=True, bundle_size=400):
+    def publish(self, gcp_args, split_flag=True, bundle_size=200):
         output = True  # True until proven false
         if self.bundle_name in MIMIC_BUNDLES_NO_SPLIT_LIST:
             split_flag = False
@@ -141,6 +141,7 @@ class Bundle():
             pub_response = publisher.publish(
                 topic_path,
                 bundle_to_send,
+                patient_id=self.patient_id,
                 blob_dir=gcp_args.blob_dir,
                 bundle_group=self.bundle_name
             )
