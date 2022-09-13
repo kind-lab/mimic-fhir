@@ -80,7 +80,6 @@ SELECT
                     WHEN vs_KEY = 'temperature' THEN
                         jsonb_build_object(
                             'system', 'http://loinc.org'
-                            , 'version', '2.72'
                             , 'code', '8310-5'
                             , 'display', 'Body temperature'
                         )   
