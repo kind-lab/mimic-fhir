@@ -9,7 +9,7 @@ from pathlib import Path
 from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
-from py_mimic_fhir.config import MimicArgs
+from py_mimic_fhir.config import MimicArgs, GoogleArgs
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +155,7 @@ def parse_arguments(arguments=None):
     )
 
     arg_validate.add_argument(
-        '--gcp-project',
+        '--gcp_project',
         action=EnvDefault,
         envvar='GCP_PROJECT',
         help='Google Cloud project name',
@@ -163,10 +163,42 @@ def parse_arguments(arguments=None):
     )
 
     arg_validate.add_argument(
-        '--gcp-topic',
+        '--gcp_topic',
         action=EnvDefault,
         envvar='GCP_TOPIC',
         help='Google Cloud topic name to submit bundles to',
+        required=True
+    )
+
+    arg_validate.add_argument(
+        '--gcp_location',
+        action=EnvDefault,
+        envvar='GCP_LOCATION',
+        help='Google Cloud location of services',
+        required=True
+    )
+
+    arg_validate.add_argument(
+        '--gcp_bucket',
+        action=EnvDefault,
+        envvar='GCP_BUCKET',
+        help='Google Storage bucket where bundles errors can be logged',
+        required=True
+    )
+
+    arg_validate.add_argument(
+        '--gcp_dataset',
+        action=EnvDefault,
+        envvar='GCP_DATASET',
+        help='Google Heatlhcare API dataset',
+        required=True
+    )
+
+    arg_validate.add_argument(
+        '--gcp_fhirstore',
+        action=EnvDefault,
+        envvar='GCP_FHIRSTORE',
+        help='Google Heatlhcare API FHIR store',
         required=True
     )
 
@@ -242,12 +274,16 @@ def parse_arguments(arguments=None):
 # Validate all resources for user specified number of patients
 def validate(args):
     margs = MimicArgs(args.fhir_server, args.err_path, args.validator)
+    gcp_args = GoogleArgs(
+        args.gcp_project, args.topic, args.gcp_location, args.gcp_bucket,
+        args.gcp_dataset, args.gcp_fhirstore
+    )
     if args.rerun:
         validation_result = revalidate_bad_bundles(args, margs)
     elif args.cores > 1:
-        validation_result = multiprocess_validate(args, margs)
+        validation_result = multiprocess_validate(args, margs, gcp_args)
     else:
-        validation_result = validate_n_patients(args, margs)
+        validation_result = validate_n_patients(args, margs, gcp_args)
 
     if validation_result == True:
         logger.info('Validation successful')

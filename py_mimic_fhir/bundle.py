@@ -143,7 +143,12 @@ class Bundle():
                 bundle_to_send,
                 patient_id=self.patient_id,
                 blob_dir=gcp_args.blob_dir,
-                bundle_group=self.bundle_name
+                bundle_group=self.bundle_name,
+                gcp_project=gcp_args.gcp_project,
+                gcp_location=gcp_args.gcp_location,
+                gcp_bucket=gcp_args.gcp_bucket,
+                gcp_dataset=gcp_args.gcp_dataset,
+                gcp_fhirstore=gcp_args.gcp_fhirstore
             )
             # submitted properly if 16 digit id returned
             output = len(pub_response.result()) == 16

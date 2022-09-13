@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 output_list = []
 
 
-def multiprocess_validate(args, margs):
+def multiprocess_validate(args, margs, gcp_args):
     num_workers = args.cores
     max_workers = mp.cpu_count()
     if num_workers > max_workers:
@@ -30,7 +30,6 @@ def multiprocess_validate(args, margs):
     db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
-    gcp_args = GoogleArgs(args.gcp_project, args.gcp_topic)
 
     if args.init:
         init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
@@ -76,12 +75,11 @@ def validation_worker(patient_id, args, margs, gcp_args):
 
 
 # Validate n patients and all their associated resources
-def validate_n_patients(args, margs):
+def validate_n_patients(args, margs, gcp_args):
     # initialize db connection
     db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
-    gcp_args = GoogleArgs(args.gcp_project, args.gcp_topic)
 
     if args.init:
         init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
