@@ -60,24 +60,18 @@ def test_rerun_bundle(db_conn, margs):
 
 def test_post_100_resources(db_conn, margs, gcp_args):
     q_resource = f"""
-        SELECT fhir FROM mimic_fhir.patient LIMIT 100
+        SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 100000
     """
     pd_resources = pd.read_sql_query(q_resource, db_conn)
     resources = pd_resources.fhir.to_list()
     split_flag = True  # Divide up bundles into smaller chunks
 
-    bundle = Bundle('test-100')
+    bundle = Bundle('chartevents-100000', patient_id='test_pat_id')
     bundle.add_entry(resources)
     if margs.validator == 'HAPI':
         resp = bundle.request(margs.fhir_server, margs.err_path)
     elif margs.validator == 'GCP':
-        bundle_to_send = json.dumps(bundle.json()).encode('utf-8')
-        publisher = pubsub_v1.PublisherClient()
-        topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
-        response = publisher.publish(
-            topic_path, bundle_to_send, blob_dir=gcp_args.blob_dir
-        )
-        resp = len(response.result())
+        resp = bundle.publish(gcp_args)
     assert resp
 
 
