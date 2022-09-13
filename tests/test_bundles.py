@@ -56,14 +56,7 @@ def test_bad_bundle_gcp(db_conn, margs, gcp_args):
     bundle = Bundle(name='bad-bundle')
     bundle.add_entry([resource])
     response = bundle.publish(gcp_args)
-    # bundle_to_send = json.dumps(bundle.json()).encode('utf-8')
-    # publisher = pubsub_v1.PublisherClient()
-    # topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
-    # response = publisher.publish(
-    #     topic_path, bundle_to_send, blob_dir=gcp_args.blob_dir,
-    # )
 
-    # message id is 16 digit int that is returned if processed. Else an exception is returned
     assert response
 
 

@@ -28,7 +28,7 @@ SELECT
         , 'id', uuid_CAREUNIT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://hl7.org/fhir/us/core/StructureDefinition/mimic-location'
+                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-location'
             )
         ) 
         , 'name', tfr_CAREUNIT
