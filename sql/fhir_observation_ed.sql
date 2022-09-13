@@ -187,13 +187,13 @@ SELECT
         , 'effectiveDateTime', stay_INTIME
         , 'dataAbsentReason', 
             CASE WHEN ed_VALUE IS NULL THEN
-                jsonb_build_array(jsonb_build_object(
+                jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'  
                         , 'code', 'unknown'
                         , 'display', 'Unknown'
                     ))
-                ))
+                )
             ELSE NULL END
         , 'valueString',
             CASE 

@@ -12,11 +12,14 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from uuid import uuid4
+from google.cloud import pubsub_v1
 
 from py_mimic_fhir.db import (
     get_resources_by_pat, get_patient_resource, get_resource_by_id,
     get_n_patient_id, get_n_resources
 )
+from py_mimic_fhir.lookup import MIMIC_BUNDLES_NO_SPLIT_LIST
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +63,7 @@ class ErrBundle():
 class Bundle():
     def __init__(self, name, table_list=[], patient_id=None):
         self.bundle_name = name
+        self.id = f'{name}-{str(uuid4())}'
         self.table_list = table_list
         self.resourceType = 'Bundle'
         self.type = 'transaction'
@@ -102,6 +106,48 @@ class Bundle():
         bundle_json.pop('patient_id')
         return bundle_json
 
+    def publish(self, gcp_args, split_flag=True, bundle_size=400):
+        output = True  # True until proven false
+        if self.bundle_name in MIMIC_BUNDLES_NO_SPLIT_LIST:
+            split_flag = False
+
+        # Split the entry into smaller bundles to speed up posting
+        if split_flag:
+            # Generate smaller bundles
+            split_count = len(self.entry) // bundle_size
+            split_count = 1 if split_count == 0 else split_count  # for bundles smaller than bundle_size
+
+            entry_groups = np.array_split(self.entry, split_count)
+            for entries in entry_groups:
+                # Pull out resources from entries
+                resources = [entry['resource'] for entry in entries]
+
+                # Recreate smaller bundles and post
+                bundle = Bundle(
+                    self.bundle_name,
+                    self.table_list,
+                    patient_id=self.patient_id
+                )
+                bundle.add_entry(resources)
+                output_temp = bundle.publish(gcp_args, split_flag=False)
+
+                if output_temp == False:
+                    output = False
+        else:
+            # Post full bundle, no restriction on bundle size
+            bundle_to_send = json.dumps(self.json()).encode('utf-8')
+            publisher = pubsub_v1.PublisherClient()
+            topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
+            pub_response = publisher.publish(
+                topic_path,
+                bundle_to_send,
+                blob_dir=gcp_args.blob_dir,
+                bundle_group=self.bundle_name
+            )
+            # submitted properly if 16 digit id returned
+            output = len(pub_response.result()) == 16
+        return output
+
     # Send request out to HAPI server, validates on the server
     def request(
         self,
@@ -111,7 +157,7 @@ class Bundle():
         bundle_size=60,  # optimal based on testing, seems small but if no links is quick!
     ):
         output = True  # True until proven false
-        if self.bundle_name in ['microbiology', 'medication_preparation']:
+        if self.bundle_name in MIMIC_BUNDLES_NO_SPLIT_LIST:
             split_flag = False
 
         # Split the entry into smaller bundles to speed up posting

@@ -140,12 +140,12 @@ SELECT
                  WHEN lab_VALUENUM IS NULL AND lab_VALUE IS NULL THEN lab_COMMENTS                 
             ELSE NULL END   
         , 'dataAbsentReason', CASE WHEN lab_VALUENUM IS NULL AND lab_VALUE IS NULL AND lab_COMMENTS IS NULL THEN
-            jsonb_build_array(jsonb_build_object(
+            jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
                     'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'  
                     , 'code', 'unknown'
                 ))
-            ))
+            )
             ELSE NULL END
         , 'interpretation', 
             CASE WHEN interp_FHIR_INTERPRETATION_CODE IS NOT NULL THEN

@@ -9,7 +9,7 @@ import pytest
 
 from py_mimic_fhir.db import get_n_resources, connect_db
 import py_mimic_fhir.terminology as trm
-from py_mimic_fhir.config import MimicArgs
+from py_mimic_fhir.config import MimicArgs, GoogleArgs
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent.resolve() / '.env')
@@ -22,6 +22,10 @@ HOST = os.getenv('DBHOST')
 TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 FHIR_BUNDLE_ERROR_PATH = os.getenv('FHIR_BUNDLE_ERROR_PATH')
+FHIR_VALIDATOR = os.getenv('FHIR_VALIDATOR')
+
+GCP_PROJECT = os.getenv('GCP_PROJECT')
+GCP_TOPIC = os.getenv('GCP_TOPIC')
 
 
 # Example patient that has links to all other resources
@@ -63,7 +67,7 @@ def warn_java_validator():
 # Set validator for the session
 @pytest.fixture(scope="session")
 def validator():
-    validator = 'HAPI'  # JAVA or HAPI
+    validator = 'GCP'  # JAVA, HAPI, GCP
     if validator == 'JAVA':
         warn_java_validator()
     return validator
@@ -98,8 +102,15 @@ def db_conn_hapi():
 # Initialize mimic args
 @pytest.fixture(scope="session")
 def margs():
-    mimic_args = MimicArgs(FHIR_SERVER, FHIR_BUNDLE_ERROR_PATH)
+    mimic_args = MimicArgs(FHIR_SERVER, FHIR_BUNDLE_ERROR_PATH, FHIR_VALIDATOR)
     return mimic_args
+
+
+# Initialize gcp args
+@pytest.fixture(scope="session")
+def gcp_args():
+    gcp_args = GoogleArgs(GCP_PROJECT, GCP_TOPIC)
+    return gcp_args
 
 
 # Generic function to initialize resources based on VALIDATOR

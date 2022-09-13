@@ -355,7 +355,7 @@ SELECT
                         'code', jsonb_build_object(
                             'coding', jsonb_build_array(jsonb_build_object(                                
                                 'system', 'http://loinc.org'
-                                , 'code', ' 8462-4'
+                                , 'code', '8462-4'
                                 , 'display', 'Diastolic blood pressure'
                             )) 
                         )               
