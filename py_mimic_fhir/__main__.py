@@ -275,7 +275,7 @@ def parse_arguments(arguments=None):
 def validate(args):
     margs = MimicArgs(args.fhir_server, args.err_path, args.validator)
     gcp_args = GoogleArgs(
-        args.gcp_project, args.topic, args.gcp_location, args.gcp_bucket,
+        args.gcp_project, args.gcp_topic, args.gcp_location, args.gcp_bucket,
         args.gcp_dataset, args.gcp_fhirstore
     )
     if args.rerun:
