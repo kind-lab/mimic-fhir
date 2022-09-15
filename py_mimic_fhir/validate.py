@@ -32,7 +32,10 @@ def multiprocess_validate(args, margs, gcp_args):
     )
 
     if args.init:
-        init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
+        init_data_bundles(
+            db_conn, margs.fhir_server, margs.err_path, gcp_args,
+            margs.validator
+        )
 
     patient_ids = get_n_patient_id(db_conn, args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
@@ -82,7 +85,10 @@ def validate_n_patients(args, margs, gcp_args):
     )
 
     if args.init:
-        init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
+        init_data_bundles(
+            db_conn, margs.fhir_server, margs.err_path, gcp_args,
+            margs.validator
+        )
 
     logger.info('---------- Validating patients -----------------')
     logger.info(f'patient num: {args.num_patients}')
@@ -126,19 +132,26 @@ def validate_bundle(name, patient_id, db_conn, margs, gcp_args):
 
 
 # Post data bundles before patient bundles. This includes Organization and Medication
-def init_data_bundles(db_conn, fhir_server, err_path):
+def init_data_bundles(db_conn, fhir_server, err_path, gcp_args, validator):
     data_tables = MIMIC_DATA_BUNDLE_LIST
     logger.info('----------- Initializing Data Tables ------------')
     for table in data_tables:
         logger.info(f'{table} data being uploaded to HAPI')
         resources = get_n_resources(db_conn, table)
-        init_data_bundle(table, resources, fhir_server, err_path)
+        init_data_bundle(
+            table, resources, fhir_server, err_path, gcp_args, validator
+        )
 
 
-def init_data_bundle(table, resources, fhir_server, err_path):
+def init_data_bundle(
+    table, resources, fhir_server, err_path, gcp_args, validator
+):
     bundle = Bundle(f'init_{table}')
     bundle.add_entry(resources)
-    response = bundle.request(fhir_server, err_path)
+    if validator == 'HAPI':
+        response = bundle.request(fhir_server, err_path)
+    elif validator == 'GCP':
+        response = bundle.publish(gcp_args)
 
 
 #----------------- Revalidate bad bundles ----------------------------
