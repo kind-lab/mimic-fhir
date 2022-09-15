@@ -9,4 +9,4 @@ FROM (
         JOIN pg_catalog.pg_namespace ON relnamespace = pg_catalog.pg_namespace.oid
 ) t
 WHERE schema_name = 'mimic_fhir'
-GROUP BY schema_name
+GROUP BY schema_name;
