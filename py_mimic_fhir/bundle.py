@@ -61,7 +61,7 @@ class ErrBundle():
 
 # FHIR bundle class with options to add entries and send requests to the server
 class Bundle():
-    def __init__(self, name, table_list=[], patient_id=None):
+    def __init__(self, name, table_list=[], patient_id='no_pat_id'):
         self.bundle_name = name
         self.id = f'{name}-{str(uuid4())}'
         self.table_list = table_list
@@ -143,7 +143,12 @@ class Bundle():
                 bundle_to_send,
                 patient_id=self.patient_id,
                 blob_dir=gcp_args.blob_dir,
-                bundle_group=self.bundle_name
+                bundle_group=self.bundle_name,
+                gcp_project=gcp_args.project,
+                gcp_location=gcp_args.location,
+                gcp_bucket=gcp_args.bucket,
+                gcp_dataset=gcp_args.dataset,
+                gcp_fhirstore=gcp_args.fhirstore
             )
             # submitted properly if 16 digit id returned
             output = len(pub_response.result()) == 16

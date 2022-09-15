@@ -1,0 +1,8 @@
+# Function dependencies, for example:
+# package>=version
+
+requests==2.20.0
+google-cloud-storage
+google-cloud-bigquery
+pandas
+datetime

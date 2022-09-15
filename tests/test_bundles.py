@@ -60,6 +60,21 @@ def test_bad_bundle_gcp(db_conn, margs, gcp_args):
     assert response
 
 
+def test_bad_ref_bundle_gcp(db_conn, margs, gcp_args):
+    q_resource = f"""
+        SELECT fhir FROM mimic_fhir.encounter LIMIT 1
+    """
+    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    resource = pd_resources.fhir[0]
+    resource['subject'] = {"reference": "Patient/DOES_NOT_EXISSSSST"}
+
+    bundle = Bundle(name='bad-bundle')
+    bundle.add_entry([resource])
+    response = bundle.publish(gcp_args)
+
+    assert response
+
+
 def test_organization_bundle(organization_bundle_resources, margs, gcp_args):
     resources = organization_bundle_resources
     bundle = Bundle('init-org-data')

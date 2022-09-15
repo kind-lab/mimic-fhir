@@ -26,6 +26,10 @@ FHIR_VALIDATOR = os.getenv('FHIR_VALIDATOR')
 
 GCP_PROJECT = os.getenv('GCP_PROJECT')
 GCP_TOPIC = os.getenv('GCP_TOPIC')
+GCP_LOCATION = os.getenv('GCP_LOCATION')
+GCP_BUCKET = os.getenv('GCP_BUCKET')
+GCP_DATASET = os.getenv('GCP_DATASET')
+GCP_FHIRSTORE = os.getenv('GCP_FHIRSTORE')
 
 
 # Example patient that has links to all other resources
@@ -109,7 +113,10 @@ def margs():
 # Initialize gcp args
 @pytest.fixture(scope="session")
 def gcp_args():
-    gcp_args = GoogleArgs(GCP_PROJECT, GCP_TOPIC)
+    gcp_args = GoogleArgs(
+        GCP_PROJECT, GCP_TOPIC, GCP_LOCATION, GCP_BUCKET, GCP_DATASET,
+        GCP_FHIRSTORE
+    )
     return gcp_args
 
 

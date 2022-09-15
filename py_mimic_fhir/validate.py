@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 output_list = []
 
 
-def multiprocess_validate(args, margs):
+def multiprocess_validate(args, margs, gcp_args):
     num_workers = args.cores
     max_workers = mp.cpu_count()
     if num_workers > max_workers:
@@ -30,10 +30,12 @@ def multiprocess_validate(args, margs):
     db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
-    gcp_args = GoogleArgs(args.gcp_project, args.gcp_topic)
 
     if args.init:
-        init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
+        init_data_bundles(
+            db_conn, margs.fhir_server, margs.err_path, gcp_args,
+            margs.validator
+        )
 
     patient_ids = get_n_patient_id(db_conn, args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
@@ -76,15 +78,17 @@ def validation_worker(patient_id, args, margs, gcp_args):
 
 
 # Validate n patients and all their associated resources
-def validate_n_patients(args, margs):
+def validate_n_patients(args, margs, gcp_args):
     # initialize db connection
     db_conn = connect_db(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host
     )
-    gcp_args = GoogleArgs(args.gcp_project, args.gcp_topic)
 
     if args.init:
-        init_data_bundles(db_conn, margs.fhir_server, margs.err_path)
+        init_data_bundles(
+            db_conn, margs.fhir_server, margs.err_path, gcp_args,
+            margs.validator
+        )
 
     logger.info('---------- Validating patients -----------------')
     logger.info(f'patient num: {args.num_patients}')
@@ -128,19 +132,27 @@ def validate_bundle(name, patient_id, db_conn, margs, gcp_args):
 
 
 # Post data bundles before patient bundles. This includes Organization and Medication
-def init_data_bundles(db_conn, fhir_server, err_path):
+def init_data_bundles(db_conn, fhir_server, err_path, gcp_args, validator):
     data_tables = MIMIC_DATA_BUNDLE_LIST
     logger.info('----------- Initializing Data Tables ------------')
+
     for table in data_tables:
-        logger.info(f'{table} data being uploaded to HAPI')
+        logger.info(f'{table} data being uploaded to {validator}')
         resources = get_n_resources(db_conn, table)
-        init_data_bundle(table, resources, fhir_server, err_path)
+        init_data_bundle(
+            table, resources, fhir_server, err_path, gcp_args, validator
+        )
 
 
-def init_data_bundle(table, resources, fhir_server, err_path):
-    bundle = Bundle(f'init_{table}')
+def init_data_bundle(
+    table, resources, fhir_server, err_path, gcp_args, validator
+):
+    bundle = Bundle(f"init-{table.replace('_','-')}")
     bundle.add_entry(resources)
-    response = bundle.request(fhir_server, err_path)
+    if validator == 'HAPI':
+        response = bundle.request(fhir_server, err_path)
+    elif validator == 'GCP':
+        response = bundle.publish(gcp_args)
 
 
 #----------------- Revalidate bad bundles ----------------------------

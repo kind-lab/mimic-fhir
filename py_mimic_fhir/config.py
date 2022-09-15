@@ -9,9 +9,13 @@ class MimicArgs():
 
 
 class GoogleArgs():
-    def __init__(self, project, topic):
+    def __init__(self, project, topic, location, bucket, dataset, fhirstore):
         self.project = project
         self.topic = topic
+        self.location = location
+        self.bucket = bucket
+        self.dataset = dataset
+        self.fhirstore = fhirstore
         self.blob_dir = f'bundle-loading/bundles-{time.strftime("%Y%m%d-%H%M%S")}'
 
 
