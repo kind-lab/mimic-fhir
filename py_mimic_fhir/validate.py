@@ -135,8 +135,9 @@ def validate_bundle(name, patient_id, db_conn, margs, gcp_args):
 def init_data_bundles(db_conn, fhir_server, err_path, gcp_args, validator):
     data_tables = MIMIC_DATA_BUNDLE_LIST
     logger.info('----------- Initializing Data Tables ------------')
+
     for table in data_tables:
-        logger.info(f'{table} data being uploaded to HAPI')
+        logger.info(f'{table} data being uploaded to {validator}')
         resources = get_n_resources(db_conn, table)
         init_data_bundle(
             table, resources, fhir_server, err_path, gcp_args, validator
@@ -146,7 +147,7 @@ def init_data_bundles(db_conn, fhir_server, err_path, gcp_args, validator):
 def init_data_bundle(
     table, resources, fhir_server, err_path, gcp_args, validator
 ):
-    bundle = Bundle(f'init_{table}')
+    bundle = Bundle(f"init-{table.replace('_','-')}")
     bundle.add_entry(resources)
     if validator == 'HAPI':
         response = bundle.request(fhir_server, err_path)
