@@ -43,7 +43,7 @@ SELECT
         , 'id', med_UUID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication'
             )
         ) 
         , 'status', 'active'

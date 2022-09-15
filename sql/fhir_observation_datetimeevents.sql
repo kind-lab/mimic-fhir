@@ -41,19 +41,19 @@ SELECT
         , 'id', uuid_DATETIMEEVENT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-datetimeevents'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-datetimeevents'
             )
         )
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-observation-category'
+                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-observation-category'
                 , 'code', di_CATEGORY
             ))
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-items'
+                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-d-items'
                 , 'code', de_ITEMID
                 , 'display', di_LABEL
             ))

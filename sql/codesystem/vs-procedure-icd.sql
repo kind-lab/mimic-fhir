@@ -9,5 +9,5 @@ CREATE TABLE fhir_trm.vs_procedure_icd(
 
 INSERT INTO fhir_trm.vs_procedure_icd (SYSTEM, code)
 VALUES
-    ('http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-icd9', '*')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/mimic-procedure-icd10', '*')
+    ('http://mimic.mit.edu/fhir/CodeSystem/mimic-procedure-icd9', '*')
+    , ('http://mimic.mit.edu/fhir/CodeSystem/mimic-procedure-icd10', '*')

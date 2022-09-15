@@ -11,7 +11,7 @@ CREATE TABLE fhir_trm.vs_outputevents_d_items(
 
 INSERT INTO fhir_trm.vs_outputevents_d_items
 SELECT DISTINCT 
-    'http://fhir.mimic.mit.edu/CodeSystem/mimic-d-items' AS system
+    'http://mimic.mit.edu/fhir/CodeSystem/mimic-d-items' AS system
     , itemid AS code
     , label AS display
 FROM mimic_icu.d_items 

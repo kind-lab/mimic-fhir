@@ -2,51 +2,51 @@
 
 MIMIC_FHIR_PROFILE_URL = {
     'Condition':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-condition',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-condition',
     'Encounter':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter',
     'EncounterTransfers':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-transfers',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter-transfers',
     'EncounterICU':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter-icu',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter-icu',
     'Location':
         '',
     'Medication':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication',
     'MedicationAdministration':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-administration',
     'MedicationAdministrationICU':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration-icu',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-administration-icu',
     'MedicationDispense':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-dispense',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-dispense',
     'MedicationRequest':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-request',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-request',
     'ObservationChartevents':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-chartevents',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-chartevents',
     'ObservationDatetimeevents':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-datetimeevents',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-datetimeevents',
     'ObservationLabevents':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-labevents',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-labevents',
     'ObservationMicroTest':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-test',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-test',
     'ObservationMicroOrg':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-org',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-org',
     'ObservationMicroSusc':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-susc',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-susc',
     'ObservationOutputevents':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-outputevents',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-outputevents',
     'Organization':
         '',
     'Patient':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-patient',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-patient',
     'Procedure':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure',
     'ProcedureICU':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-icu',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure-icu',
     'Specimen':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen',
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-specimen',
     'SpecimenLab':
-        'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen'
+        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-specimen'
 }
 
 MIMIC_FHIR_RESOURCES = {

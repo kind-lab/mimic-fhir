@@ -11,7 +11,7 @@ BEGIN
         || CASE WHEN med_GSN != '0'
             THEN jsonb_build_object(
                         'code', med_GSN
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-gsn'
+                        , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-gsn'
                 )::TEXT
             ELSE NULL
         END
