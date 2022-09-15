@@ -27,7 +27,8 @@ def bundler(event, context):
 
     starttime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     bundle, resp_fhir = send_bundle_to_healthcare_api(
-        message, fhir_access_token
+        message, fhir_access_token, gcp_project, gcp_location, gcp_dataset,
+        gcp_fhirstore
     )
     endtime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(resp_fhir)
@@ -95,7 +96,7 @@ def store_bad_bundle_in_cloud_storage(
 
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(gcp_bucket)
-    blob = bucket.blob(f"{blob_dir}/error/{bundle['id']}")
+    blob = bucket.blob(f"{blob_dir}/{bundle['id']}")
     blob.upload_from_string(json.dumps(err_bundle))
 
 
@@ -110,11 +111,12 @@ def log_error_to_bigquery(
             [logtime, bundle_group, bundle_id, bundle_dir, error_text, "", ""]
         ]
     else:
+        error_exp = error['expression'][0] if 'expression' in error else ""
+        error_diag = error['diagnostics'] if 'diagnostics' in error else ""
         data = [
             [
                 logtime, bundle_group, bundle_id, bundle_dir,
-                error['details']['text'], error['diagnostics'],
-                error['expression'][0]
+                error['details']['text'], error_diag, error_exp
             ]
         ]
     df = pd.DataFrame(
