@@ -8,8 +8,8 @@ import multiprocessing as mp
 from datetime import datetime
 from google.cloud import pubsub_v1
 
-from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id
-from py_mimic_fhir.bundle import Bundle, get_n_resources
+from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id, get_n_resources
+from py_mimic_fhir.bundle import Bundle
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST, MIMIC_DATA_BUNDLE_LIST
 from py_mimic_fhir.config import ResultList, GoogleArgs
 
