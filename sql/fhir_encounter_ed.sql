@@ -45,12 +45,12 @@ SELECT
         , 'id', uuid_STAY_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-encounter'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
                 'value', ed_STAY_ID
-                , 'system', 'http://fhir.mimic.mit.edu/identifier/encounter-ed'
+                , 'system', 'http://mimic.mit.edu/fhir/identifier/encounter-ed'
                 , 'use', 'usual'
                 , 'assigner', jsonb_build_object('reference', 'Organization/' || uuid_ORG)
         ))	
@@ -82,7 +82,7 @@ SELECT
                 CASE WHEN ed_ARRIVAL_TRANSPORT IS NOT NULL
                 THEN jsonb_build_object(
                     'coding',  jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-admit-source'
+                        'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-admit-source'
                         , 'code', ed_ARRIVAL_TRANSPORT
                     ))                
                 ) ELSE NULL END
@@ -90,7 +90,7 @@ SELECT
             CASE WHEN ed_DISPOSITION IS NOT NULL
                 THEN jsonb_build_object(
                     'coding',  jsonb_build_array(jsonb_build_object(
-                        'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-discharge-disposition'
+                        'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-discharge-disposition'
                         , 'code', ed_DISPOSITION
                     ))                
                 ) ELSE NULL END

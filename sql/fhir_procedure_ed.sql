@@ -40,7 +40,7 @@ SELECT
         , 'id', uuid_PROCEDURE_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-ed'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure-ed'
             )
         )  
         , 'status', 'completed' -- All procedures are considered complete        
@@ -88,7 +88,7 @@ SELECT
         , 'id', uuid_PROCEDURE_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-procedure-ed'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure-ed'
             )
         ) 
         , 'status', 'completed' -- All procedures are considered complete        

@@ -9,6 +9,6 @@ CREATE TABLE fhir_trm.vs_admission_class(
 
 INSERT INTO fhir_trm.vs_admission_class (SYSTEM, code)
 VALUES
-    ('http://fhir.mimic.mit.edu/CodeSystem/mimic-admission-class', '*') -- used for HSOP
+    ('http://mimic.mit.edu/fhir/CodeSystem/mimic-admission-class', '*') -- used for HSOP
     , ('http://terminology.hl7.org/CodeSystem/v3-ActCode', 'EMER') -- used for ED
     , ('http://terminology.hl7.org/CodeSystem/v3-ActCode', 'ACUTE') -- used for ICU

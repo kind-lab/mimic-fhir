@@ -10,8 +10,8 @@ CREATE TABLE fhir_trm.vs_medication(
 
 INSERT INTO fhir_trm.vs_medication (SYSTEM, code)
 VALUES
-    ('http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-formulary-drug-cd', '*')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-icu', '*')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-name', '*')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-ndc', '*')
-    , ('http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-poe-iv', '*')
+    ('http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-formulary-drug-cd', '*')
+    , ('http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-icu', '*')
+    , ('http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-name', '*')
+    , ('http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-ndc', '*')
+    , ('http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-poe-iv', '*')

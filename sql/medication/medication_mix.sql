@@ -73,13 +73,13 @@ SELECT
         )
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication'
             )
         ) 
         , 'status', 'active'
         , 'identifier', jsonb_build_array(jsonb_build_object(
               'value', medmix_id
-              , 'system', 'http://fhir.mimic.mit.edu/identifier/medication-mix'
+              , 'system', 'http://mimic.mit.edu/fhir/identifier/medication-mix'
         ))    
         , 'ingredient', pr_INGREDIENTS
     )) AS fhir 

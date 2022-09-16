@@ -45,17 +45,17 @@ SELECT
         , 'id', uuid_SPECIMEN
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-specimen'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-specimen'
             )
         )
         , 'identifier',   jsonb_build_array(jsonb_build_object(
             'value', lab_SPECIMEN_ID
-            , 'system', 'http://fhir.mimic.mit.edu/identifier/specimen-lab'
+            , 'system', 'http://mimic.mit.edu/fhir/identifier/specimen-lab'
         ))
         , 'type', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'code', dlab_FLUID
-                , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-lab-fluid'
+                , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-lab-fluid'
             ))
         )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)

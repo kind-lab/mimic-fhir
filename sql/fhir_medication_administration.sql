@@ -109,11 +109,11 @@ WITH prescriptions AS (
         
         , CASE 
             WHEN emd.product_code IS NOT NULL THEN 
-                'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-formulary-drug-cd' 
+                'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-formulary-drug-cd' 
             WHEN em.medication IS NOT NULL THEN
-                'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-name'
+                'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-name'
             WHEN poe.order_type IN ('TPN', 'IV therapy') THEN
-                'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-poe-iv' 
+                'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-poe-iv' 
             ELSE 
                 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'
         END AS emd_MEDICATION_SYSTEM
@@ -158,7 +158,7 @@ SELECT
         , 'id', uuid_MEDADMIN
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-medication-administration'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-administration'
             )
         ) 
         , 'status', 'completed' -- All medication adminstrations considered complete
@@ -182,7 +182,7 @@ SELECT
                 CASE WHEN emd_SITE IS NOT NULL THEN 
                     jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(
-                            'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-site'  
+                            'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-site'  
                             , 'code', emd_SITE
                         ))
                     )
@@ -191,14 +191,14 @@ SELECT
                 CASE WHEN emd_ROUTE IS NOT NULL THEN 
                     jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(
-                            'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-route'  
+                            'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-route'  
                             , 'code', emd_ROUTE
                         ))
                     )
                 ELSE NULL END
             , 'method', CASE WHEN em_EVENT_TXT IS NOT NULL THEN jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
-                    'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-medication-method'  
+                    'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-method'  
                     , 'code', em_EVENT_TXT
                 ))
             ) ELSE NULL END
@@ -207,7 +207,7 @@ SELECT
                     jsonb_build_object(
                         'value', emd_DOSE_GIVEN
                         , 'unit', emd_DOSE_GIVEN_UNIT
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
+                        , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
                         , 'code', emd_DOSE_GIVEN_UNIT
                     )
                 ELSE NULL END
@@ -216,7 +216,7 @@ SELECT
                     jsonb_build_object(
                         'value', emd_INFUSION_RATE
                         , 'unit', emd_INFUSION_RATE_UNIT
-                        , 'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-units'
+                        , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
                         , 'code', emd_INFUSION_RATE_UNIT
                     )   
                 ELSE NULL END

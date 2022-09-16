@@ -80,7 +80,7 @@ SELECT
         , 'id', uuid_MICRO_ORG 
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://fhir.mimic.mit.edu/StructureDefinition/mimic-observation-micro-org'
+                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-org'
             )
         ) 
         , 'status', 'final'        
@@ -95,7 +95,7 @@ SELECT
         -- Organism item code  
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://fhir.mimic.mit.edu/CodeSystem/mimic-microbiology-organism'  
+                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-microbiology-organism'  
                 , 'code', mi_ORG_ITEMID
                 , 'display', mi_ORG_NAME
             ))
