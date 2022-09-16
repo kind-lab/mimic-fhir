@@ -1,6 +1,5 @@
-# IO module has functions for exporting resources from HAPI
+# IO module has functions for exporting resources from HAPI and GCP
 
-# NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
 import numpy as np
 import pandas as pd
@@ -10,6 +9,7 @@ import base64
 import os
 import subprocess
 import time
+from googleapiclient import discovery
 
 from py_mimic_fhir.lookup import (
     MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES
@@ -19,7 +19,19 @@ logger = logging.getLogger(__name__)
 
 
 # Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
-def export_all_resources(fhir_server, output_path, limit=10000):
+def export_all_resources(
+    fhir_server, output_path, gcp_args, validator, limit=10000
+):
+    if validator == 'HAPI':
+        result_dict = export_all_resources_hapi(fhir_server, output_path, limit)
+        result = False not in result_dict.values()
+    elif validator == 'GCP':
+        result = export_all_resources_gcp(gcp_args)
+
+    return result
+
+
+def export_all_resources_hapi(fhir_server, output_path, limit=10000):
     result_dict = {}
 
     # Export each resource based on its profile name
@@ -151,6 +163,35 @@ def write_exported_resource_to_ndjson(
             out_file.write(output_data)
 
     result = os.path.exists(output_file) and os.path.getsize(output_file) > 0
+    return result
+
+
+def export_all_resources_gcp(gcp_args):
+    api_version = "v1"
+    service_name = "healthcare"
+    client = discovery.build(service_name, api_version)
+
+    export_today_folder = time.strftime("%Y%m%d-%H%M%S")
+    gcs_uri = f'{gcp_args.bucket}/{gcp_args.export_folder}/{export_today_folder}'
+
+    fhir_store_parent = f"projects/{gcp_args.project}/locations/{gcp_args.location}/datasets/{gcp_args.dataset}"
+    fhir_store_name = f"{fhir_store_parent}/fhirStores/{gcp_args.fhirstore}"
+
+    body = {"gcsDestination": {"uriPrefix": f"gs://{gcs_uri}"}}
+
+    request = (
+        client.projects().locations().datasets().fhirStores().export(
+            name=fhir_store_name, body=body
+        )
+    )
+    try:
+        response = request.execute()
+        logger.info(response)
+        result = True
+    except Exception as e:
+        logger.error(e)
+        result = False
+
     return result
 
 

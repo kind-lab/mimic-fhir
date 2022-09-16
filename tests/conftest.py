@@ -30,6 +30,7 @@ GCP_LOCATION = os.getenv('GCP_LOCATION')
 GCP_BUCKET = os.getenv('GCP_BUCKET')
 GCP_DATASET = os.getenv('GCP_DATASET')
 GCP_FHIRSTORE = os.getenv('GCP_FHIRSTORE')
+GCP_EXPORT_FOLDER = os.getenv('GCP_EXPORT_FOLDER')
 
 
 # Example patient that has links to all other resources
@@ -71,10 +72,9 @@ def warn_java_validator():
 # Set validator for the session
 @pytest.fixture(scope="session")
 def validator():
-    validator = 'GCP'  # JAVA, HAPI, GCP
-    if validator == 'JAVA':
+    if FHIR_VALIDATOR == 'JAVA':
         warn_java_validator()
-    return validator
+    return FHIR_VALIDATOR
     #------------------------ WARNING ---------------------------
     # DO NOT RUN all validation tests when JAVA is set
     # Run individual tests, or java validator will crash everything
@@ -115,7 +115,7 @@ def margs():
 def gcp_args():
     gcp_args = GoogleArgs(
         GCP_PROJECT, GCP_TOPIC, GCP_LOCATION, GCP_BUCKET, GCP_DATASET,
-        GCP_FHIRSTORE
+        GCP_FHIRSTORE, GCP_EXPORT_FOLDER
     )
     return gcp_args
 
