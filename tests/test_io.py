@@ -22,20 +22,11 @@ FHIR_SERVER = os.getenv('FHIR_SERVER')
 MIMIC_JSON_PATH = os.getenv('MIMIC_JSON_PATH')
 
 
-def test_export_all_resources_gcp(gcp_args):
-    result = io.export_all_resources_gcp(gcp_args)
-
-    # Assert all resources exported without error
+def test_export_all_resources(gcp_args, validator):
+    result = io.export_all_resources(
+        FHIR_SERVER, MIMIC_JSON_PATH, gcp_args, validator, 1
+    )
     assert result
-
-
-# Bulk export and get the resources into json
-def test_export_all_resources_hapi(validator, gcp_args):
-    limit = 1
-    result_dict = io.export_all_resources(FHIR_SERVER, MIMIC_JSON_PATH, limit)
-
-    # Assert all resources exported without error
-    assert False not in result_dict.values()
 
 
 def test_send_export_resource_request():
