@@ -89,6 +89,12 @@ def db_conn():
     return conn
 
 
+# Initialize database name to either mimic or mimic_demo
+@pytest.fixture(scope="session")
+def dbname():
+    return DBNAME_MIMIC
+
+
 # Initialize database connection to hapi
 @pytest.fixture(scope="session")
 def db_conn_hapi():
