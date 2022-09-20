@@ -1,6 +1,5 @@
 WITH table_counts AS
-(
-              SELECT COUNT(*) AS n_row_observed,    5006884 AS n_row_expected, 'condition' AS table_name FROM mimic_fhir.condition
+(          SELECT COUNT(*) AS n_row_observed,    5006884 AS n_row_expected, 'condition' AS table_name FROM mimic_fhir.condition
     UNION ALL SELECT COUNT(*) AS n_row_observed,     946692 AS n_row_expected, 'condition_ed' AS table_name FROM mimic_fhir.condition_ed
     UNION ALL SELECT COUNT(*) AS n_row_observed,     454324 AS n_row_expected, 'encounter' AS table_name FROM mimic_fhir.encounter
     UNION ALL SELECT COUNT(*) AS n_row_observed,     447712 AS n_row_expected, 'encounter_ed' AS table_name FROM mimic_fhir.encounter_ed
@@ -27,7 +26,8 @@ WITH table_counts AS
     UNION ALL SELECT COUNT(*) AS n_row_observed,    2094688 AS n_row_expected, 'procedure_ed' AS table_name FROM mimic_fhir.procedure_ed
     UNION ALL SELECT COUNT(*) AS n_row_observed,     731788 AS n_row_expected, 'procedure_icu' AS table_name FROM mimic_fhir.procedure_icu
     UNION ALL SELECT COUNT(*) AS n_row_observed,    1670188 AS n_row_expected, 'specimen' AS table_name FROM mimic_fhir.specimen
-    UNION ALL SELECT COUNT(*) AS n_row_observed,   14081306 AS n_row_expected, 'specimen_lab' AS table_name FROM mimic_fhir.specimen_lab
+    UNION ALL SELECT COUNT(*) AS n_row_observed,   14081306 AS n_row_expected, 'specimen_lab' 
+    AS table_name FROM mimic_fhir.specimen_lab
     -- below are the two largest tables by an order of magnitude
     -- commenting them out reduces query time from ~10 minutes to just ~1 minute
     UNION ALL SELECT COUNT(*) AS n_row_observed, 124342638 AS n_row_expected, 'observation_labevents' AS table_name FROM mimic_fhir.observation_labevents
