@@ -114,7 +114,7 @@ SELECT
         , 'id', uuid_MICRO_TEST	 
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-test'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-test'
             )
         ) 
         , 'status', 'final'        
@@ -127,7 +127,7 @@ SELECT
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-microbiology-test'  
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-microbiology-test'  
                 , 'code', mi_TEST_ITEMID
                 , 'display', mi_TEST_NAME
             ))

@@ -42,20 +42,20 @@ SELECT
         , 'id', uuid_OUTPUTEVENT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-outputevents'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-outputevents'
             )
         ) 
         , 'status', 'final'
         , 'category', jsonb_build_array(jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-observation-category'  
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-observation-category'  
                 , 'code', di_CATEGORY
             ))
         ))
         -- Item code for outputevent
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-d-items'
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-d-items'
                 , 'code', oe_ITEMID
                 , 'display', di_LABEL
             ))
@@ -68,7 +68,7 @@ SELECT
             jsonb_build_object(
                 'value', oe_VALUE
                 , 'unit', oe_VALUEUOM
-                , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
+                , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-units'
                 , 'code', oe_VALUEUOM
             )
     )) AS fhir

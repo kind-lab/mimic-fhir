@@ -45,20 +45,20 @@ SELECT
         , 'id', uuid_PROCEDUREEVENT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure-icu'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-procedure-icu'
             )
         )
         , 'status', fhir_STATUS
         , 'category', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-procedure-category'  
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-procedure-category'  
                 , 'code', pe_ORDERCATEGORYNAME
             ))
         )
         -- Procedure item codes
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-d-items'  
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-d-items'  
                 , 'code', pe_ITEMID
                 , 'display', di_LABEL
             ))
@@ -68,7 +68,7 @@ SELECT
             CASE WHEN pe_LOCATION IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
                     'coding', jsonb_build_array(jsonb_build_object(
-                        'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-bodysite'
+                        'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-bodysite'
                         , 'code', pe_LOCATION
                     ))
                 ))

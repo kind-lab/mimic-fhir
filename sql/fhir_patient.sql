@@ -84,7 +84,7 @@ SELECT
         'resourceType', 'Patient'
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-patient'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-patient'
             )
         ) 
         , 'gender', pat_GENDER
@@ -94,7 +94,7 @@ SELECT
         ))		
         , 'identifier',  jsonb_build_array(jsonb_build_object(
             'value', pat_SUBJECT_ID
-            , 'system', 'http://mimic.mit.edu/fhir/identifier/patient'
+            , 'system', 'http://mimic.mit.edu/fhir/mimic/identifier/patient'
         ))		
         , 'maritalStatus', 
             CASE WHEN mms_FHIR_MARITAL_STATUS IS NOT NULL THEN

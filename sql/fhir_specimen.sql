@@ -38,12 +38,12 @@ SELECT
         , 'id', uuid_SPECIMEN
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-specimen'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-specimen'
             )
         )
         , 'identifier',   jsonb_build_array(jsonb_build_object(
             'value', mi_MICRO_SPECIMEN_ID
-            , 'system', 'http://mimic.mit.edu/fhir/identifier/specimen-micro'
+            , 'system', 'http://mimic.mit.edu/fhir/mimic/identifier/specimen-micro'
         ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'collection', jsonb_build_object(
@@ -54,7 +54,7 @@ SELECT
                 'coding', jsonb_build_array(jsonb_build_object(
                     'code', mi_SPEC_ITEMID
                     , 'display', mi_SPEC_TYPE_DESC
-                    , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-spec-type-desc'
+                    , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-spec-type-desc'
                 ))
             )
         ELSE NULL END

@@ -26,7 +26,7 @@ class TerminologyMetaData():
         self.current_date = str(
             datetime.now().strftime('%Y-%m-%dT%H:%M:%S-04:00')
         )
-        self.base_url = 'http://mimic.mit.edu/fhir'
+        self.base_url = 'http://mimic.mit.edu/fhir/mimic'
         self.set_cs_descriptions(db_conn)
         self.set_vs_descriptions(db_conn)
 

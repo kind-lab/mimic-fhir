@@ -22,7 +22,7 @@ WITH fhir_medication_statement_ed AS (
                 jsonb_build_object(
                     'code', etccode
                     , 'display', etcdescription
-                    , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-etc'                
+                    , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-etc'                
                 ) 
             ELSE NULL END AS TEXT), ',')  AS med_ETC_CODES
         
@@ -65,7 +65,7 @@ SELECT
         , 'id', uuid_MEDICATION_STATEMENT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-statement-ed'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-statement-ed'
             )
          ) 
         , 'status', 'unknown' -- UNKNOWN, NOT stated IN MIMIC

@@ -54,12 +54,12 @@ SELECT
         , 'id', uuid_MICRO_SUSC 
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-susc'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-susc'
             )
         ) 
         , 'identifier',  jsonb_build_array(jsonb_build_object(
             'value', id_MICRO_SUSC
-            , 'system', 'http://mimic.mit.edu/fhir/identifier/observation-micro-susc'
+            , 'system', 'http://mimic.mit.edu/fhir/mimic/identifier/observation-micro-susc'
         ))  
         , 'status', 'final'        
         , 'category', jsonb_build_array(jsonb_build_object(
@@ -71,7 +71,7 @@ SELECT
         ))
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-microbiology-antibiotic'  
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-microbiology-antibiotic'  
                 , 'code', mi_AB_ITEMID
                 , 'display', mi_AB_NAME
             ))
@@ -94,7 +94,7 @@ SELECT
         , 'extension', CASE
             WHEN mi_DILUTION_COMPARISON IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
-                    'url', 'http://mimic.mit.edu/fhir/StructureDefinition/dilution-details'
+                    'url', 'http://mimic.mit.edu/fhir/mimic/StructureDefinition/dilution-details'
                     , 'valueQuantity', jsonb_build_object(
                         'value', mi_DILUTION_VALUE
                         , 'comparator', mi_DILUTION_COMPARISON
@@ -103,7 +103,7 @@ SELECT
             -- Comparator is not present or set to '=', which gets omitted in fhir. Just store value
             WHEN mi_DILUTION_VALUE IS NOT NULL THEN 
                 jsonb_build_array(jsonb_build_object(
-                    'url', 'http://mimic.mit.edu/fhir/StructureDefinition/dilution-details'
+                    'url', 'http://mimic.mit.edu/fhir/mimic/StructureDefinition/dilution-details'
                     , 'valueQuantity', jsonb_build_object(
                         'value', mi_DILUTION_VALUE
                      )

@@ -94,12 +94,12 @@ SELECT
         , 'id', uuid_LABEVENT_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-labevents'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-labevents'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', lab_LABEVENT_ID
-            , 'system', 'http://mimic.mit.edu/fhir/identifier/observation-labevents'
+            , 'system', 'http://mimic.mit.edu/fhir/mimic/identifier/observation-labevents'
         ))       
         , 'status', lab_STATUS
         , 'category', jsonb_build_array(jsonb_build_object(
@@ -113,7 +113,7 @@ SELECT
         -- Lab test completed  
         , 'code', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-d-labitems'  
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-d-labitems'  
                 , 'code', lab_ITEMID
                 , 'display', dlab_LABEL
             ))
@@ -130,7 +130,7 @@ SELECT
                 jsonb_build_object(
                     'value', lab_VALUENUM
                     , 'unit', lab_VALUEUOM
-                    , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
+                    , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-units'
                     , 'code', lab_VALUEUOM 
                     , 'comparator', VALUE_COMPARATOR
                 ) 
@@ -173,7 +173,7 @@ SELECT
                         jsonb_strip_nulls(jsonb_build_object(
                             'value', lab_REF_RANGE_LOWER
                             , 'unit', lab_VALUEUOM
-                            , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
+                            , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-units'
                             , 'code', lab_VALUEUOM
                         ))
                     ELSE NULL END
@@ -181,7 +181,7 @@ SELECT
                         jsonb_strip_nulls(jsonb_build_object(
                             'value', lab_REF_RANGE_UPPER
                             , 'unit', lab_VALUEUOM
-                            , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
+                            , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-units'
                             , 'code', lab_VALUEUOM
                         ))
                     ELSE NULL END
@@ -190,7 +190,7 @@ SELECT
         , 'extension', 
             CASE WHEN lab_PRIORITY IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
-                    'url', 'http://mimic.mit.edu/fhir/StructureDefinition/mimic-lab-priority'
+                    'url', 'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-lab-priority'
                     , 'valueString', lab_PRIORITY
                 ))
             ELSE NULL END

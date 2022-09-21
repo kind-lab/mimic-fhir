@@ -49,14 +49,14 @@ SELECT
         , 'id', uuid_INPUTEVENT
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-administration-icu'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-administration-icu'
             )
         ) 
         , 'status', 'completed'
         , 'medicationCodeableConcept',
             jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(
-                    'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-icu' 
+                    'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-icu' 
                     , 'code', di_ITEMID
                     , 'display', di_LABEL
                 ))
@@ -76,21 +76,21 @@ SELECT
         -- Category represent whether it is an inpatient/outpatient event	
         , 'category', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
-                'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medadmin-category-icu'  
+                'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medadmin-category-icu'  
                 , 'code', ie_ORDERCATEGORYNAME
             ))
         )
         , 'dosage', jsonb_build_object(
           	'method', jsonb_build_object(
               'coding', jsonb_build_array(jsonb_build_object(
-                  'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-method-icu'  
+                  'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-method-icu'  
                   , 'code', ie_ORDERCATEGORYDESCRIPTION
               ))
             )
             , 'dose', jsonb_build_object(
                 'value', ie_AMOUNT
                 , 'unit', ie_AMOUNTUOM
-                , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
+                , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-units'
                 , 'code', ie_AMOUNTUOM
             )
             , 'rateQuantity', 
@@ -98,7 +98,7 @@ SELECT
                     jsonb_build_object(
                         'value', ie_RATE
                         , 'unit', ie_RATEUOM
-                        , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-units'
+                        , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-units'
                         , 'code', ie_RATEUOM
                     )
                 ELSE NULL END

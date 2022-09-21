@@ -14,8 +14,8 @@ WITH fhir_condition AS (
         , icd.long_title AS icd_LONG_TITLE
         , diag.icd_version AS diag_ICD_VERSION
         , CASE WHEN diag.icd_version = 9 
-            THEN 'http://mimic.mit.edu/fhir/CodeSystem/mimic-diagnosis-icd9' 
-            ELSE 'http://mimic.mit.edu/fhir/CodeSystem/mimic-diagnosis-icd10'
+            THEN 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-diagnosis-icd9' 
+            ELSE 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-diagnosis-icd10'
         END AS diag_ICD_SYSTEM
             
   
@@ -45,7 +45,7 @@ SELECT
         , 'id', uuid_DIAGNOSIS
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-condition'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-condition'
             )
         )      
         -- All diagnoses in MIMIC are considered encounter derived

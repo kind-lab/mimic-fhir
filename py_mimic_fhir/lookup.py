@@ -2,51 +2,51 @@
 
 MIMIC_FHIR_PROFILE_URL = {
     'Condition':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-condition',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-condition',
     'Encounter':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-encounter',
     'EncounterTransfers':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter-transfers',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-encounter-transfers',
     'EncounterICU':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter-icu',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-encounter-icu',
     'Location':
         '',
     'Medication':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication',
     'MedicationAdministration':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-administration',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-administration',
     'MedicationAdministrationICU':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-administration-icu',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-administration-icu',
     'MedicationDispense':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-dispense',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-dispense',
     'MedicationRequest':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-request',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-request',
     'ObservationChartevents':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-chartevents',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-chartevents',
     'ObservationDatetimeevents':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-datetimeevents',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-datetimeevents',
     'ObservationLabevents':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-labevents',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-labevents',
     'ObservationMicroTest':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-test',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-test',
     'ObservationMicroOrg':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-org',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-org',
     'ObservationMicroSusc':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-micro-susc',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-susc',
     'ObservationOutputevents':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-outputevents',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-outputevents',
     'Organization':
         '',
     'Patient':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-patient',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-patient',
     'Procedure':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-procedure',
     'ProcedureICU':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure-icu',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-procedure-icu',
     'Specimen':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-specimen',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-specimen',
     'SpecimenLab':
-        'http://mimic.mit.edu/fhir/StructureDefinition/mimic-specimen'
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-specimen'
 }
 
 MIMIC_FHIR_RESOURCES = {

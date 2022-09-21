@@ -9,5 +9,5 @@ CREATE TABLE fhir_trm.vs_admission_type(
 
 INSERT INTO fhir_trm.vs_admission_type (SYSTEM, code)
 VALUES
-    ('http://mimic.mit.edu/fhir/CodeSystem/mimic-admission-type', '*') -- used for HSOP
+    ('http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-admission-type', '*') -- used for HSOP
     , ('http://snomed.info/sct', '308335008') -- Patient encounter procedure -- used for ED/ICU
