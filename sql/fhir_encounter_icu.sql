@@ -76,12 +76,12 @@ SELECT
         , 'id', uuid_STAY_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-encounter'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-encounter'
             )
         ) 
         , 'identifier', jsonb_build_array(jsonb_build_object(
             'value', icu_STAY_ID
-            , 'system', 'http://mimic.mit.edu/fhir/identifier/encounter-icu'	
+            , 'system', 'http://mimic.mit.edu/fhir/mimic/identifier/encounter-icu'	
         ))	
         , 'status', 'finished' -- ALL encounters considered finished
         -- All ICU encounters in the class ACUTE

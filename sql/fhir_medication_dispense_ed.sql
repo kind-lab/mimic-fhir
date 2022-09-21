@@ -43,7 +43,7 @@ SELECT
         , 'id', uuid_MEDICATION_DISPENSE
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-medication-dispense-ed'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-dispense-ed'
             )
          ) 
         , 'status', 'unknown' -- assumed all complete dispense in mimic
@@ -55,7 +55,7 @@ SELECT
                     'text', py_NAME
                     , 'coding', jsonb_build_array(jsonb_build_object(
                         'code', py_GSN
-                        , 'system', 'http://mimic.mit.edu/fhir/CodeSystem/mimic-medication-gsn'
+                        , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-gsn'
                     ))
                 )
             END

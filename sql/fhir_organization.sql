@@ -16,7 +16,7 @@ SELECT
         , 'id', uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720')
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-organization'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-organization'
             )
         ) 
         , 'identifier', jsonb_build_array(json_build_object(

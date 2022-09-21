@@ -15,8 +15,8 @@ WITH fhir_procedure AS (
         , CAST(proc.chartdate AS TIMESTAMPTZ) AS proc_CHARTDATE
         , proc.icd_version AS proc_ICD_VERSION
         , CASE WHEN proc.icd_version = 9 
-            THEN 'http://mimic.mit.edu/fhir/CodeSystem/mimic-procedure-icd9' 
-            ELSE 'http://mimic.mit.edu/fhir/CodeSystem/mimic-procedure-icd10' 
+            THEN 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-procedure-icd9' 
+            ELSE 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-procedure-icd10' 
         END AS proc_ICD_SYSTEM
   
         -- reference uuids
@@ -45,7 +45,7 @@ SELECT
         , 'id', uuid_PROCEDURE_ID
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-procedure'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-procedure'
             )
         ) 
         , 'status', 'completed' -- All procedures are considered complete

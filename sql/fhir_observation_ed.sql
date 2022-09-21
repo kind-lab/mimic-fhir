@@ -50,7 +50,7 @@ SELECT
         , 'id', uuid_OBSERVATION_ED
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-ed'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-ed'
             )
         ) 
         , 'status', 'final'
@@ -146,7 +146,7 @@ SELECT
         , 'id', uuid_OBSERVATION_ED
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(
-                'http://mimic.mit.edu/fhir/StructureDefinition/mimic-observation-ed'
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-ed'
             )
         ) 
         , 'status', 'final'
