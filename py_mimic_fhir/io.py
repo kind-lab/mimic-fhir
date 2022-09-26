@@ -20,12 +20,14 @@ logger = logging.getLogger(__name__)
 
 # Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
 def export_all_resources(
-    fhir_server, output_path, gcp_args, validator, limit=10000
+    fhir_server, output_path, gcp_args, pe_args, validator, limit=10000
 ):
     if validator == 'HAPI':
         result_dict = export_all_resources_hapi(fhir_server, output_path, limit)
         result = False not in result_dict.values()
-    elif validator == 'GCP':
+    elif validator == 'GCP' and pe_args.patient_bundle:
+        result = export_patient_everything_gcp(gcp_args, pe_args)
+    elif validator == 'GCP' and not pe_args.patient_bundle:
         result = export_all_resources_gcp(gcp_args)
 
     return result
@@ -193,6 +195,33 @@ def export_all_resources_gcp(gcp_args):
         result = False
 
     return result
+
+
+def export_patient_everything_gcp(gcp_args, pe_args):
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
+
+    patient_list = get_n_patient_id(pe_args.num_patients)
+    result_flag = True
+    for patient_id in patient_list:
+        pub_response = publisher.publish(
+            topic_path,
+            bundle_to_send,
+            patient_id=patient_id,
+            blob_dir=gcp_args.blob_dir,
+            gcp_project=gcp_args.project,
+            gcp_location=gcp_args.location,
+            gcp_bucket=gcp_args.bucket,
+            gcp_dataset=gcp_args.dataset,
+            gcp_fhirstore=gcp_args.fhirstore,
+            resource_types=pe_args.resource_type
+        )
+        # submitted properly if 16 digit id returned
+        result = len(pub_response.result()) == 16
+        if result_flag and not result:
+            result_flag = False  # basically one fail and return fail
+
+    return result_flag
 
 
 # PUT resources to HAPI fhir server

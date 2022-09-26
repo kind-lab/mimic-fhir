@@ -8,6 +8,14 @@ class MimicArgs():
         self.validator = validator
 
 
+class PatientEverythingArgs():
+    def __init__(self, patient_bundle, num_patients, resource_types, topic):
+        self.patient_bundle = patient_bundle
+        self.num_patients = num_patients
+        self.resource_types = resource_types
+        self.topic = topic
+
+
 class GoogleArgs():
     def __init__(
         self, project, topic, location, bucket, dataset, fhirstore,

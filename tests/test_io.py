@@ -22,9 +22,9 @@ FHIR_SERVER = os.getenv('FHIR_SERVER')
 MIMIC_JSON_PATH = os.getenv('MIMIC_JSON_PATH')
 
 
-def test_export_all_resources(gcp_args, validator):
+def test_export_all_resources(gcp_args, pe_args, validator):
     result = io.export_all_resources(
-        FHIR_SERVER, MIMIC_JSON_PATH, gcp_args, validator, 1
+        FHIR_SERVER, MIMIC_JSON_PATH, gcp_args, pe_args, validator, 1
     )
     assert result
 

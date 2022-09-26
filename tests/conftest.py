@@ -31,6 +31,7 @@ GCP_BUCKET = os.getenv('GCP_BUCKET')
 GCP_DATASET = os.getenv('GCP_DATASET')
 GCP_FHIRSTORE = os.getenv('GCP_FHIRSTORE')
 GCP_EXPORT_FOLDER = os.getenv('GCP_EXPORT_FOLDER')
+GCP_TOPIC_PATIENT_EVERYTHING = os.getenv('GCP_TOPIC_PATIENT_EVERYTHING')
 
 
 # Example patient that has links to all other resources
@@ -124,6 +125,18 @@ def gcp_args():
         GCP_FHIRSTORE, GCP_EXPORT_FOLDER
     )
     return gcp_args
+
+
+# Initialize patient everything args
+@pytest.fixture(scope="session")
+def pe_args():
+    pe_args = PatientEverythingArgs(
+        patient_bundle=False,
+        num_patients=1,
+        resource_types='Patient,Encounter,Condtion,Procedure',
+        topic=GCP_TOPIC_PATIENT_EVERYTHING
+    )
+    return pe_args
 
 
 # Generic function to initialize resources based on VALIDATOR

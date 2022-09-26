@@ -9,7 +9,7 @@ from pathlib import Path
 from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
-from py_mimic_fhir.config import MimicArgs, GoogleArgs
+from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
 
 logger = logging.getLogger(__name__)
 
@@ -230,6 +230,37 @@ def parse_arguments(arguments=None):
         help='Export Limit, 1 is ~ 1000 resources'
     )
 
+    arg_export.add_argument(
+        '--patient_bundle',
+        required=False,
+        action='store_true',
+        help='Flag to export patient-everything bundles'
+    )
+
+    arg_export.add_argument(
+        '--num_patients',
+        required=False,
+        type=int,
+        default=1,
+        help='Number of patients to export patient-everything bundles'
+    )
+
+    arg_export.add_argument(
+        '--resource_types',
+        required=False,
+        type=str,
+        default='Patient,Encounter,Condition,Procedure',
+        help='Resource types to be included in patient-everything bundles'
+    )
+
+    arg_terminology.add_argument(
+        '--pe_topic',
+        required=True,
+        action=EnvDefault,
+        envvar='GCP_TOPIC_PATIENT_EVERYTHING',
+        help='Google PubSub Topic for patient-everything'
+    )
+
     # Terminology
     arg_terminology = subparsers.add_parser(
         "terminology",
@@ -303,8 +334,12 @@ def validate(args, gcp_args):
 
 # Export all resources from FHIR Server and write to NDJSON
 def export(args, gcp_args):
+    pe_args = PatientEverythingArgs(
+        args.patient_bundle, args.num_patients, args.resource_types,
+        args.pe_topic
+    )
     export_all_resources(
-        args.fhir_server, args.output_path, gcp_args, args.validator,
+        args.fhir_server, args.output_path, gcp_args, pe_args, args.validator,
         args.export_limit
     )
 
