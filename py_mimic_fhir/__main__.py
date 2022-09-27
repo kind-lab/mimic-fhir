@@ -10,6 +10,7 @@ from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, r
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
 from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
+from py_mimic_fhir.db import connect_db
 
 logger = logging.getLogger(__name__)
 
@@ -246,6 +247,14 @@ def parse_arguments(arguments=None):
     )
 
     arg_export.add_argument(
+        '--count',
+        required=False,
+        type=int,
+        default=100,
+        help='Number of resources allowed per page, max 1000'
+    )
+
+    arg_export.add_argument(
         '--resource_types',
         required=False,
         type=str,
@@ -253,7 +262,7 @@ def parse_arguments(arguments=None):
         help='Resource types to be included in patient-everything bundles'
     )
 
-    arg_terminology.add_argument(
+    arg_export.add_argument(
         '--pe_topic',
         required=True,
         action=EnvDefault,
@@ -334,13 +343,16 @@ def validate(args, gcp_args):
 
 # Export all resources from FHIR Server and write to NDJSON
 def export(args, gcp_args):
+    db_conn = connect_db(
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+    )
     pe_args = PatientEverythingArgs(
         args.patient_bundle, args.num_patients, args.resource_types,
-        args.pe_topic
+        args.pe_topic, args.count
     )
     export_all_resources(
         args.fhir_server, args.output_path, gcp_args, pe_args, args.validator,
-        args.export_limit
+        db_conn, args.export_limit
     )
 
 

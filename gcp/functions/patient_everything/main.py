@@ -14,53 +14,11 @@ def patient_everything(event, context):
          context (google.cloud.functions.Context): Metadata for the event.
       """
     fhir_access_token = get_fhir_access_token()
-
     message = base64.b64decode(event['data']).decode('utf-8')
-    blob_dir = event['attributes']['blob_dir']
-    patient_id = event['attributes']['patient_id']
-    gcp_project = event['attributes']['gcp_project']
-    gcp_location = event['attributes']['gcp_location']
-    gcp_bucket = event['attributes']['gcp_bucket']
-    gcp_dataset = event['attributes']['gcp_dataset']
-    gcp_fhirstore = event['attributes']['gcp_fhirstore']
-    resource_types = event['attributes']['resource_types']
+    args = PatientEverythingArgs(event)
 
-    resp_fhir = send_patient_everything(
-        fhir_access_token, gcp_project, gcp_location, gcp_dataset,
-        gcp_fhirstore, patient_id, resource_types
-    )
-    print(resp_fhir)
-
-    # Error will show up when the Healthcare API is unresponsive or crashes
-    if 'error' in resp_fhir:
-        print(bundle['id'])
-        print(bundle)
-        store_bad_bundle_in_cloud_storage(
-            resp_fhir, gcp_bucket, bundle, blob_dir, error_key='error'
-        )
-        log_error_to_bigquery(
-            bundle_group,
-            bundle['id'],
-            blob_dir,
-            resp_fhir['error'],
-            err_flg=True
-        )
-    # OperationOutcome will be returned when a validation issue has been found
-    elif resp_fhir['resourceType'] == 'OperationOutcome':
-        print(bundle['id'])
-        print(bundle)
-        store_bad_bundle_in_cloud_storage(
-            resp_fhir, gcp_bucket, bundle, blob_dir
-        )
-        log_error_to_bigquery(
-            gcp_project, bundle_group, bundle['id'], blob_dir,
-            resp_fhir['issue'][0]
-        )
-    else:
-        log_pass_to_bigquery(
-            gcp_project, patient_id, bundle_group, bundle['id'], blob_dir,
-            starttime, endtime
-        )
+    print(args.patient_id)
+    send_patient_everything(args, fhir_access_token)
 
 
 def get_fhir_access_token():
@@ -72,85 +30,108 @@ def get_fhir_access_token():
     return resp_fhir_access.json()['access_token']
 
 
-def send_patient_everything(
-    fhir_access_token, gcp_project, gcp_location, gcp_dataset, gcp_fhirstore,
-    patient_id, resource_types
-):
-    fhir_url = f"https://healthcare.googleapis.com/v1/projects/{gcp_project}/ \
-                 locations/{gcp_location}/datasets/{gcp_dataset}/fhirStores/ \
-                 {gcp_fhirstore}/fhir/Patient/{patient_id}/$everything?_type={resource_types}"
+def send_patient_everything(args, fhir_access_token, page_num=1, link=None):
+
+    print(f'page_num: {page_num}')
+
+    if page_num == 1:
+        fhir_url = f"https://healthcare.googleapis.com/v1/projects/{args.gcp_project}/locations/{args.gcp_location}/datasets/{args.gcp_dataset}/fhirStores/{args.gcp_fhirstore}/fhir/Patient/{args.patient_id}/$everything?_count={args.count}&_type={args.resource_types}"
+    else:
+        fhir_url = link
+        print(link)
 
     fhir_headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {fhir_access_token}"
     }
+
     resp_fhir = requests.get(fhir_url, headers=fhir_headers).json()
+    print(resp_fhir)
+
+    # Error will show up when the Healthcare API is unresponsive or crashes
+    if 'error' in resp_fhir:
+        log_error_to_bigquery(args, resp_fhir['error'], page_num, err_flg=True)
+        print(resp_fhir['error'])
+    # OperationOutcome will be returned when a validation issue has been found
+    elif resp_fhir['resourceType'] == 'OperationOutcome':
+        log_error_to_bigquery(args, resp_fhir['issue'][0], page_num)
+        print(resp_fhir['issue'][0])
+    elif ((resp_fhir['resourceType'] == 'Bundle') and ('link' in resp_fhir)):
+        stored_filename = store_bundle_in_storage(args, resp_fhir, page_num)
+        log_pass_to_bigquery(args, page_num, stored_filename)
+
+        link_info = [
+            resp for resp in resp_fhir['link'] if resp['relation'] == 'next'
+        ]
+        if len(link_info) > 0:
+            send_patient_everything(
+                args, fhir_access_token, page_num + 1, link_info[0]['url']
+            )
+    else:
+        stored_filename = store_bundle_in_storage(args, resp_fhir, page_num)
+        log_pass_to_bigquery(args, page_num, stored_filename)
+
     return resp_fhir
 
 
-def store_bad_bundle_in_cloud_storage(
-    resp_fhir, gcp_bucket, bundle, blob_dir, error_key='issue'
-):
-    err_bundle = {"error": resp_fhir[error_key], "bundle": bundle}
+def store_bundle_in_storage(args, resp_fhir, page_num):
+    bundle = resp_fhir
 
     storage_client = storage.Client()
-    bucket = storage_client.get_bucket(gcp_bucket)
-    blob = bucket.blob(f"{blob_dir}/{bundle['id']}")
-    blob.upload_from_string(json.dumps(err_bundle))
+    bucket = storage_client.get_bucket(args.gcp_bucket)
+    filename = f"{args.blob_dir}/patient-{args.patient_id}-page{page_num}"
+    blob = bucket.blob(filename)
+    blob.upload_from_string(json.dumps(bundle))
+
+    return filename
 
 
-def log_error_to_bigquery(
-    gcp_project, bundle_group, bundle_id, bundle_dir, error, err_flg=False
-):
+##############################################
+############ BIGQUERY LOGGING ################
+##############################################
+def log_error_to_bigquery(args, error, page_num, err_flg=False):
     now = datetime.now()
     logtime = now.strftime("%Y-%m-%d %H:%M:%S")
     if err_flg:
         error_text = json.dumps(error)
-        data = [
-            [logtime, bundle_group, bundle_id, bundle_dir, error_text, "", ""]
-        ]
+        data = [[logtime, args.patient_id, args.resource_types, error_text, ""]]
     else:
-        error_exp = error['expression'][0] if 'expression' in error else ""
-        error_diag = error['diagnostics'] if 'diagnostics' in error else ""
+        error_diagnostics = error['diagnostics'
+                                 ] if 'diagnostics' in error else ""
+        error_text = error['details']['text'] if 'details' in error else ""
         data = [
             [
-                logtime, bundle_group, bundle_id, bundle_dir,
-                error['details']['text'], error_diag, error_exp
+                logtime, args.patient_id, page_num, args.resource_types,
+                error_text, error_diagnostics
             ]
         ]
     df = pd.DataFrame(
         data,
         columns=[
-            'logtime', 'bundle_group', 'bundle_id', 'bundle_dir', 'error_text',
-            'error_diagnostics', 'error_expression'
+            'logtime', 'patient_id', 'page_num', 'resource_types', 'error_text',
+            'error_diagnostics'
         ]
     )
 
-    table_id = f'{gcp_project}.mimic_fhir_log.bundle_error'
+    table_id = f'{args.gcp_project}.mimic_fhir_log.pat_everything_error'
     send_bigquery_insert(table_id, df)
 
 
-def log_pass_to_bigquery(
-    gcp_project, patient_id, bundle_group, bundle_id, bundle_dir, startime,
-    endtime
-):
+def log_pass_to_bigquery(args, page_num, gcp_filename):
     now = datetime.now()
     logtime = now.strftime("%Y-%m-%d %H:%M:%S")
     data = [
-        [
-            logtime, patient_id, bundle_group, bundle_id, bundle_dir, startime,
-            endtime
-        ]
+        [logtime, args.patient_id, page_num, args.resource_types, gcp_filename]
     ]
     df = pd.DataFrame(
         data,
         columns=[
-            'logtime', 'patient_id', 'bundle_group', 'bundle_id', 'bundle_dir',
-            'starttime', 'endtime'
+            'logtime', 'patient_id', 'page_num', 'resource_types',
+            'gcp_filename'
         ]
     )
 
-    table_id = f'{gcp_project}.mimic_fhir_log.bundle_pass'
+    table_id = f'{args.gcp_project}.mimic_fhir_log.pat_everything_pass'
     send_bigquery_insert(table_id, df)
 
 
@@ -164,3 +145,16 @@ def send_bigquery_insert(table_id, df):
     else:
         print("FAILURE: NOT LOGGED")
         print(resp)
+
+
+class PatientEverythingArgs():
+    def __init__(self, event):
+        self.blob_dir = event['attributes']['blob_dir']
+        self.patient_id = event['attributes']['patient_id']
+        self.gcp_project = event['attributes']['gcp_project']
+        self.gcp_location = event['attributes']['gcp_location']
+        self.gcp_bucket = event['attributes']['gcp_bucket']
+        self.gcp_dataset = event['attributes']['gcp_dataset']
+        self.gcp_fhirstore = event['attributes']['gcp_fhirstore']
+        self.resource_types = event['attributes']['resource_types']
+        self.count = event['attributes']['count']

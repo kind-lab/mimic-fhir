@@ -10,23 +10,31 @@ import os
 import subprocess
 import time
 from googleapiclient import discovery
+from google.cloud import pubsub_v1
 
 from py_mimic_fhir.lookup import (
     MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES
 )
+from py_mimic_fhir.db import get_n_patient_id
 
 logger = logging.getLogger(__name__)
 
 
 # Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
 def export_all_resources(
-    fhir_server, output_path, gcp_args, pe_args, validator, limit=10000
+    fhir_server,
+    output_path,
+    gcp_args,
+    pe_args,
+    validator,
+    db_conn,
+    limit=10000
 ):
     if validator == 'HAPI':
         result_dict = export_all_resources_hapi(fhir_server, output_path, limit)
         result = False not in result_dict.values()
     elif validator == 'GCP' and pe_args.patient_bundle:
-        result = export_patient_everything_gcp(gcp_args, pe_args)
+        result = export_patient_everything_gcp(gcp_args, pe_args, db_conn)
     elif validator == 'GCP' and not pe_args.patient_bundle:
         result = export_all_resources_gcp(gcp_args)
 
@@ -197,24 +205,26 @@ def export_all_resources_gcp(gcp_args):
     return result
 
 
-def export_patient_everything_gcp(gcp_args, pe_args):
+def export_patient_everything_gcp(gcp_args, pe_args, db_conn):
     publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
+    topic_path = publisher.topic_path(gcp_args.project, pe_args.topic)
 
-    patient_list = get_n_patient_id(pe_args.num_patients)
+    patient_list = get_n_patient_id(db_conn, pe_args.num_patients)
     result_flag = True
     for patient_id in patient_list:
+        data_to_send = patient_id.encode('utf-8')
         pub_response = publisher.publish(
             topic_path,
-            bundle_to_send,
+            data_to_send,
             patient_id=patient_id,
-            blob_dir=gcp_args.blob_dir,
+            blob_dir=pe_args.blob_dir,
             gcp_project=gcp_args.project,
             gcp_location=gcp_args.location,
             gcp_bucket=gcp_args.bucket,
             gcp_dataset=gcp_args.dataset,
             gcp_fhirstore=gcp_args.fhirstore,
-            resource_types=pe_args.resource_type
+            resource_types=pe_args.resource_types,
+            count=pe_args.count
         )
         # submitted properly if 16 digit id returned
         result = len(pub_response.result()) == 16
