@@ -9,7 +9,7 @@ import pytest
 
 from py_mimic_fhir.db import get_n_resources, connect_db
 import py_mimic_fhir.terminology as trm
-from py_mimic_fhir.config import MimicArgs, GoogleArgs
+from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent.resolve() / '.env')
@@ -134,7 +134,8 @@ def pe_args():
         patient_bundle=False,
         num_patients=1,
         resource_types='Patient,Encounter,Condtion,Procedure',
-        topic=GCP_TOPIC_PATIENT_EVERYTHING
+        topic=GCP_TOPIC_PATIENT_EVERYTHING,
+        count=100
     )
     return pe_args
 

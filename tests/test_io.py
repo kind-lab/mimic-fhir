@@ -270,3 +270,8 @@ def test_export_sorted():
     resp = io.sort_resources(MIMIC_JSON_PATH)
     print(resp.stderr)
     assert len(resp.stderr) == 0
+
+
+def test_export_patient_everything_gcp(gcp_args, pe_args, db_conn):
+    result = io.export_patient_everything_gcp(gcp_args, pe_args, db_conn)
+    assert result
