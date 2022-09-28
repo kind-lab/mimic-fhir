@@ -22,14 +22,17 @@ FHIR_SERVER = os.getenv('FHIR_SERVER')
 MIMIC_JSON_PATH = os.getenv('MIMIC_JSON_PATH')
 
 
-# Bulk export and get the resources into json
-# Currently failing just based on MedicationDispense
-def test_export_all_resources():
-    limit = 1
-    result_dict = io.export_all_resources(FHIR_SERVER, MIMIC_JSON_PATH, limit)
-
-    # Assert all resources exported without error
-    assert False not in result_dict.values()
+def test_export_all_resources(gcp_args, pe_args, validator, db_conn):
+    result = io.export_all_resources(
+        FHIR_SERVER,
+        MIMIC_JSON_PATH,
+        gcp_args,
+        pe_args,
+        validator,
+        db_conn,
+        limit=1
+    )
+    assert result
 
 
 def test_send_export_resource_request():
@@ -267,3 +270,8 @@ def test_export_sorted():
     resp = io.sort_resources(MIMIC_JSON_PATH)
     print(resp.stderr)
     assert len(resp.stderr) == 0
+
+
+def test_export_patient_everything_gcp(gcp_args, pe_args, db_conn):
+    result = io.export_patient_everything_gcp(gcp_args, pe_args, db_conn)
+    assert result

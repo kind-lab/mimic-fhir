@@ -1,6 +1,5 @@
-# IO module has functions for exporting resources from HAPI
+# IO module has functions for exporting resources from HAPI and GCP
 
-# NEED TO UPDATE LOGGING WHEN __MAIN__ IS ADDED!!!
 import logging
 import numpy as np
 import pandas as pd
@@ -10,16 +9,39 @@ import base64
 import os
 import subprocess
 import time
+from googleapiclient import discovery
+from google.cloud import pubsub_v1
 
 from py_mimic_fhir.lookup import (
     MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES
 )
+from py_mimic_fhir.db import get_n_patient_id
 
 logger = logging.getLogger(__name__)
 
 
 # Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
-def export_all_resources(fhir_server, output_path, limit=10000):
+def export_all_resources(
+    fhir_server,
+    output_path,
+    gcp_args,
+    pe_args,
+    validator,
+    db_conn,
+    limit=10000
+):
+    if validator == 'HAPI':
+        result_dict = export_all_resources_hapi(fhir_server, output_path, limit)
+        result = False not in result_dict.values()
+    elif validator == 'GCP' and pe_args.patient_bundle:
+        result = export_patient_everything_gcp(gcp_args, pe_args, db_conn)
+    elif validator == 'GCP' and not pe_args.patient_bundle:
+        result = export_all_resources_gcp(gcp_args)
+
+    return result
+
+
+def export_all_resources_hapi(fhir_server, output_path, limit=10000):
     result_dict = {}
 
     # Export each resource based on its profile name
@@ -152,6 +174,64 @@ def write_exported_resource_to_ndjson(
 
     result = os.path.exists(output_file) and os.path.getsize(output_file) > 0
     return result
+
+
+def export_all_resources_gcp(gcp_args):
+    api_version = "v1"
+    service_name = "healthcare"
+    client = discovery.build(service_name, api_version)
+
+    export_today_folder = time.strftime("%Y%m%d-%H%M%S")
+    gcs_uri = f'{gcp_args.bucket}/{gcp_args.export_folder}/{export_today_folder}'
+
+    fhir_store_parent = f"projects/{gcp_args.project}/locations/{gcp_args.location}/datasets/{gcp_args.dataset}"
+    fhir_store_name = f"{fhir_store_parent}/fhirStores/{gcp_args.fhirstore}"
+
+    body = {"gcsDestination": {"uriPrefix": f"gs://{gcs_uri}"}}
+
+    request = (
+        client.projects().locations().datasets().fhirStores().export(
+            name=fhir_store_name, body=body
+        )
+    )
+    try:
+        response = request.execute()
+        logger.info(response)
+        result = True
+    except Exception as e:
+        logger.error(e)
+        result = False
+
+    return result
+
+
+def export_patient_everything_gcp(gcp_args, pe_args, db_conn):
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(gcp_args.project, pe_args.topic)
+
+    patient_list = get_n_patient_id(db_conn, pe_args.num_patients)
+    result_flag = True
+    for patient_id in patient_list:
+        data_to_send = patient_id.encode('utf-8')
+        pub_response = publisher.publish(
+            topic_path,
+            data_to_send,
+            patient_id=patient_id,
+            blob_dir=pe_args.blob_dir,
+            gcp_project=gcp_args.project,
+            gcp_location=gcp_args.location,
+            gcp_bucket=gcp_args.bucket,
+            gcp_dataset=gcp_args.dataset,
+            gcp_fhirstore=gcp_args.fhirstore,
+            resource_types=pe_args.resource_types,
+            count=pe_args.count
+        )
+        # submitted properly if 16 digit id returned
+        result = len(pub_response.result()) == 16
+        if result_flag and not result:
+            result_flag = False  # basically one fail and return fail
+
+    return result_flag
 
 
 # PUT resources to HAPI fhir server

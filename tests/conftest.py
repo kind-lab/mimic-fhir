@@ -9,7 +9,7 @@ import pytest
 
 from py_mimic_fhir.db import get_n_resources, connect_db
 import py_mimic_fhir.terminology as trm
-from py_mimic_fhir.config import MimicArgs, GoogleArgs
+from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent.resolve() / '.env')
@@ -30,6 +30,8 @@ GCP_LOCATION = os.getenv('GCP_LOCATION')
 GCP_BUCKET = os.getenv('GCP_BUCKET')
 GCP_DATASET = os.getenv('GCP_DATASET')
 GCP_FHIRSTORE = os.getenv('GCP_FHIRSTORE')
+GCP_EXPORT_FOLDER = os.getenv('GCP_EXPORT_FOLDER')
+GCP_TOPIC_PATIENT_EVERYTHING = os.getenv('GCP_TOPIC_PATIENT_EVERYTHING')
 
 
 # Example patient that has links to all other resources
@@ -71,10 +73,9 @@ def warn_java_validator():
 # Set validator for the session
 @pytest.fixture(scope="session")
 def validator():
-    validator = 'GCP'  # JAVA, HAPI, GCP
-    if validator == 'JAVA':
+    if FHIR_VALIDATOR == 'JAVA':
         warn_java_validator()
-    return validator
+    return FHIR_VALIDATOR
     #------------------------ WARNING ---------------------------
     # DO NOT RUN all validation tests when JAVA is set
     # Run individual tests, or java validator will crash everything
@@ -87,6 +88,12 @@ def validator():
 def db_conn():
     conn = connect_db(SQLUSER, SQLPASS, DBNAME_MIMIC, HOST)
     return conn
+
+
+# Initialize database name to either mimic or mimic_demo
+@pytest.fixture(scope="session")
+def dbname():
+    return DBNAME_MIMIC
 
 
 # Initialize database connection to hapi
@@ -115,9 +122,22 @@ def margs():
 def gcp_args():
     gcp_args = GoogleArgs(
         GCP_PROJECT, GCP_TOPIC, GCP_LOCATION, GCP_BUCKET, GCP_DATASET,
-        GCP_FHIRSTORE
+        GCP_FHIRSTORE, GCP_EXPORT_FOLDER
     )
     return gcp_args
+
+
+# Initialize patient everything args
+@pytest.fixture(scope="session")
+def pe_args():
+    pe_args = PatientEverythingArgs(
+        patient_bundle=False,
+        num_patients=1,
+        resource_types='Patient,Encounter,Condtion,Procedure',
+        topic=GCP_TOPIC_PATIENT_EVERYTHING,
+        count=100
+    )
+    return pe_args
 
 
 # Generic function to initialize resources based on VALIDATOR

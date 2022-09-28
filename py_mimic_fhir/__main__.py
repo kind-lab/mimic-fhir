@@ -9,7 +9,8 @@ from pathlib import Path
 from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, revalidate_bad_bundles
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
-from py_mimic_fhir.config import MimicArgs, GoogleArgs
+from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
+from py_mimic_fhir.db import connect_db
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,70 @@ def parse_arguments(arguments=None):
         required=True
     )
 
+    parser.add_argument(
+        '--gcp_project',
+        action=EnvDefault,
+        envvar='GCP_PROJECT',
+        help='Google Cloud project name',
+        required=True
+    )
+
+    parser.add_argument(
+        '--gcp_topic',
+        action=EnvDefault,
+        envvar='GCP_TOPIC',
+        help='Google Cloud topic name to submit bundles to',
+        required=True
+    )
+
+    parser.add_argument(
+        '--gcp_location',
+        action=EnvDefault,
+        envvar='GCP_LOCATION',
+        help='Google Cloud location of services',
+        required=True
+    )
+
+    parser.add_argument(
+        '--gcp_bucket',
+        action=EnvDefault,
+        envvar='GCP_BUCKET',
+        help='Google Storage bucket where bundles errors can be logged',
+        required=True
+    )
+
+    parser.add_argument(
+        '--gcp_dataset',
+        action=EnvDefault,
+        envvar='GCP_DATASET',
+        help='Google Heatlhcare API dataset',
+        required=True
+    )
+
+    parser.add_argument(
+        '--gcp_fhirstore',
+        action=EnvDefault,
+        envvar='GCP_FHIRSTORE',
+        help='Google Heatlhcare API FHIR store',
+        required=True
+    )
+
+    parser.add_argument(
+        '--gcp_export_folder',
+        action=EnvDefault,
+        envvar='GCP_EXPORT_FOLDER',
+        help='Google Cloud Storage folder to export resources to',
+        required=True
+    )
+
+    parser.add_argument(
+        '--validator',
+        action=EnvDefault,
+        envvar='FHIR_VALIDATOR',
+        help='FHIR Validator being used. One of HAPI, GCP, or JAVA',
+        required=True
+    )
+
     # Create subparsers for validation, export, and terminology
     subparsers = parser.add_subparsers(dest="actions", title="actions")
     subparsers.required = True
@@ -154,62 +219,6 @@ def parse_arguments(arguments=None):
         help='Number of cores to use when validating'
     )
 
-    arg_validate.add_argument(
-        '--gcp_project',
-        action=EnvDefault,
-        envvar='GCP_PROJECT',
-        help='Google Cloud project name',
-        required=True
-    )
-
-    arg_validate.add_argument(
-        '--gcp_topic',
-        action=EnvDefault,
-        envvar='GCP_TOPIC',
-        help='Google Cloud topic name to submit bundles to',
-        required=True
-    )
-
-    arg_validate.add_argument(
-        '--gcp_location',
-        action=EnvDefault,
-        envvar='GCP_LOCATION',
-        help='Google Cloud location of services',
-        required=True
-    )
-
-    arg_validate.add_argument(
-        '--gcp_bucket',
-        action=EnvDefault,
-        envvar='GCP_BUCKET',
-        help='Google Storage bucket where bundles errors can be logged',
-        required=True
-    )
-
-    arg_validate.add_argument(
-        '--gcp_dataset',
-        action=EnvDefault,
-        envvar='GCP_DATASET',
-        help='Google Heatlhcare API dataset',
-        required=True
-    )
-
-    arg_validate.add_argument(
-        '--gcp_fhirstore',
-        action=EnvDefault,
-        envvar='GCP_FHIRSTORE',
-        help='Google Heatlhcare API FHIR store',
-        required=True
-    )
-
-    arg_validate.add_argument(
-        '--validator',
-        action=EnvDefault,
-        envvar='FHIR_VALIDATOR',
-        help='FHIR Validator being used. One of HAPI, GCP, or JAVA',
-        required=True
-    )
-
     # Export - can be run separate from validation
     arg_export = subparsers.add_parser(
         "export", help=("Export options for mimic-fhir data")
@@ -220,6 +229,45 @@ def parse_arguments(arguments=None):
         type=float,
         default=10000,
         help='Export Limit, 1 is ~ 1000 resources'
+    )
+
+    arg_export.add_argument(
+        '--patient_bundle',
+        required=False,
+        action='store_true',
+        help='Flag to export patient-everything bundles'
+    )
+
+    arg_export.add_argument(
+        '--num_patients',
+        required=False,
+        type=int,
+        default=1,
+        help='Number of patients to export patient-everything bundles'
+    )
+
+    arg_export.add_argument(
+        '--count',
+        required=False,
+        type=int,
+        default=100,
+        help='Number of resources allowed per page, max 1000'
+    )
+
+    arg_export.add_argument(
+        '--resource_types',
+        required=False,
+        type=str,
+        default='Patient,Encounter,Condition,Procedure',
+        help='Resource types to be included in patient-everything bundles'
+    )
+
+    arg_export.add_argument(
+        '--pe_topic',
+        required=True,
+        action=EnvDefault,
+        envvar='GCP_TOPIC_PATIENT_EVERYTHING',
+        help='Google PubSub Topic for patient-everything'
     )
 
     # Terminology
@@ -272,12 +320,8 @@ def parse_arguments(arguments=None):
 
 
 # Validate all resources for user specified number of patients
-def validate(args):
+def validate(args, gcp_args):
     margs = MimicArgs(args.fhir_server, args.err_path, args.validator)
-    gcp_args = GoogleArgs(
-        args.gcp_project, args.gcp_topic, args.gcp_location, args.gcp_bucket,
-        args.gcp_dataset, args.gcp_fhirstore
-    )
     if args.rerun:
         validation_result = revalidate_bad_bundles(args, margs)
     elif args.cores > 1:
@@ -298,8 +342,18 @@ def validate(args):
 
 
 # Export all resources from FHIR Server and write to NDJSON
-def export(args):
-    export_all_resources(args.fhir_server, args.output_path, args.export_limit)
+def export(args, gcp_args):
+    db_conn = connect_db(
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+    )
+    pe_args = PatientEverythingArgs(
+        args.patient_bundle, args.num_patients, args.resource_types,
+        args.pe_topic, args.count
+    )
+    export_all_resources(
+        args.fhir_server, args.output_path, gcp_args, pe_args, args.validator,
+        db_conn, args.export_limit
+    )
 
 
 # Generate mimic-fhir terminology systems and write out to file
@@ -335,11 +389,16 @@ def main(argv=sys.argv):
     """Entry point for package."""
 
     args = parse_arguments(argv[1:])
+    print(args)
+    gcp_args = GoogleArgs(
+        args.gcp_project, args.gcp_topic, args.gcp_location, args.gcp_bucket,
+        args.gcp_dataset, args.gcp_fhirstore, args.gcp_export_folder
+    )
     set_logger(args.log_path)
     if args.actions == 'validate':
-        validate(args)
+        validate(args, gcp_args)
     elif args.actions == 'export':
-        export(args)
+        export(args, gcp_args)
     elif args.actions == 'terminology':
         terminology(args)
     else:
