@@ -28,7 +28,7 @@ def multiprocess_validate(args, margs, gcp_args):
     logger.info(f'num workers: {num_workers}')
 
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
     )
 
     if args.init:
@@ -63,7 +63,8 @@ def validation_worker(patient_id, args, margs, gcp_args):
         response_list = [False]
 
         db_conn = connect_db(
-            args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+            args.sqluser, args.sqlpass, args.dbname_mimic, args.host,
+            args.db_mode
         )
         response_list = validate_all_bundles(
             patient_id, db_conn, margs, gcp_args
@@ -81,7 +82,7 @@ def validation_worker(patient_id, args, margs, gcp_args):
 def validate_n_patients(args, margs, gcp_args):
     # initialize db connection
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
     )
 
     if args.init:
@@ -160,7 +161,7 @@ def revalidate_bad_bundles(args, margs):
     day_of_week = datetime.now().strftime('%A').lower()
     err_filename = f'err-bundles-{day_of_week}.json'
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
     )
 
     response_list = revalidate_bundle_from_file(err_filename, db_conn, margs)

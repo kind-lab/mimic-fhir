@@ -162,6 +162,14 @@ def parse_arguments(arguments=None):
         required=True
     )
 
+    parser.add_argument(
+        '--db_mode',
+        action=EnvDefault,
+        envvar='DB_MODE',
+        help='Database mode, either Postgres or BigQuery',
+        required=True
+    )
+
     # Create subparsers for validation, export, and terminology
     subparsers = parser.add_subparsers(dest="actions", title="actions")
     subparsers.required = True
@@ -344,7 +352,7 @@ def validate(args, gcp_args):
 # Export all resources from FHIR Server and write to NDJSON
 def export(args, gcp_args):
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
     )
     pe_args = PatientEverythingArgs(
         args.patient_bundle, args.num_patients, args.resource_types,

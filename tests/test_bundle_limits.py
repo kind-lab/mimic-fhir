@@ -5,7 +5,7 @@ import pandas as pd
 from google.cloud import pubsub_v1
 
 from py_mimic_fhir.bundle import Bundle
-from py_mimic_fhir.db import get_n_patient_id, get_n_resources
+from py_mimic_fhir.db import get_n_patient_id, get_n_resources, db_read_query
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file
 
@@ -62,7 +62,7 @@ def test_post_100_resources(db_conn, margs, gcp_args):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 100000
     """
-    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    pd_resources = db_read_query(q_resource, db_conn)
     resources = pd_resources.fhir.to_list()
     split_flag = True  # Divide up bundles into smaller chunks
 

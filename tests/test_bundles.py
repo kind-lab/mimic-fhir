@@ -25,7 +25,7 @@ from google.cloud import pubsub_v1
 
 #from fhir.resources.bundle import Bundle
 from py_mimic_fhir.bundle import Bundle
-from py_mimic_fhir.db import get_n_patient_id, get_pat_id_with_links
+from py_mimic_fhir.db import get_n_patient_id, get_pat_id_with_links, db_read_query
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 from py_mimic_fhir.validate import validate_bundle
 
@@ -35,7 +35,7 @@ def test_bad_bundle(db_conn, margs):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.patient LIMIT 1
     """
-    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    pd_resources = db_read_query(q_resource, db_conn)
     resource = pd_resources.fhir[0]
     resource['gender'] = 'FAKE CODE'  # Will cause bundle to fail
 
@@ -49,7 +49,7 @@ def test_bad_bundle_gcp(db_conn, margs, gcp_args):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.patient LIMIT 1
     """
-    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    pd_resources = db_read_query(q_resource, db_conn)
     resource = pd_resources.fhir[0]
     resource['gender'] = 'FAKE CODE'  # Will cause bundle to fail
 
@@ -64,7 +64,7 @@ def test_bad_ref_bundle_gcp(db_conn, margs, gcp_args):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.encounter LIMIT 1
     """
-    pd_resources = pd.read_sql_query(q_resource, db_conn)
+    pd_resources = db_read_query(q_resource, db_conn)
     resource = pd_resources.fhir[0]
     resource['subject'] = {"reference": "Patient/DOES_NOT_EXISSSSST"}
 
