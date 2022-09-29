@@ -14,8 +14,13 @@ dependencies:
   - requests
   - tqdm
   - yapf
+  - google-cloud-storage
   - pip
   - pip:
     - python-dotenv
-    - pytest-order
     - fhir.resources
+    - google-cloud-bigquery
+    - google-cloud-pubsub
+    - google-api-python-client
+    - pandas-gbq
+    - google-auth

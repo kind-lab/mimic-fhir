@@ -7,7 +7,7 @@ import os
 import tkinter as tk
 import pytest
 
-from py_mimic_fhir.db import get_n_resources, connect_db
+from py_mimic_fhir.db import get_n_resources, connect_db, db_read_query
 import py_mimic_fhir.terminology as trm
 from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
 
@@ -18,6 +18,7 @@ SQLUSER = os.getenv('SQLUSER')
 SQLPASS = os.getenv('SQLPASS')
 DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
 DBNAME_HAPI = os.getenv('DBNAME_HAPI')
+DB_MODE = os.getenv('DB_MODE')
 HOST = os.getenv('DBHOST')
 TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 FHIR_SERVER = os.getenv('FHIR_SERVER')
@@ -86,7 +87,7 @@ def validator():
 # Initialize database connection to mimic
 @pytest.fixture(scope="session")
 def db_conn():
-    conn = connect_db(SQLUSER, SQLPASS, DBNAME_MIMIC, HOST)
+    conn = connect_db(SQLUSER, SQLPASS, DBNAME_MIMIC, HOST, DB_MODE)
     return conn
 
 
@@ -158,7 +159,7 @@ def initialize_single_resource(validator, db_conn, table_name):
 # Generic function to get single resource from the DB
 def get_single_resource(db_conn, table_name):
     q_resource = f"SELECT * FROM mimic_fhir.{table_name} LIMIT 1"
-    resource = pd.read_sql_query(q_resource, db_conn)
+    resource = db_read_query(q_resource, db_conn)
 
     return resource.fhir[0]
 

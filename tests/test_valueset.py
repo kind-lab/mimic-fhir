@@ -9,6 +9,7 @@ import logging
 import pandas as pd
 import subprocess
 import os
+from py_mimic_fhir.db import db_read_query
 
 MIMIC_TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
@@ -54,7 +55,7 @@ def assert_expanded_and_count(db_conn_hapi, valueset, vs_count):
     q_valueset = f"SELECT expansion_status, total_concepts \
                    FROM trm_valueset WHERE vsname = '{valueset}'"
 
-    result = pd.read_sql_query(q_valueset, db_conn_hapi)
+    result = db_read_query(q_valueset, db_conn_hapi)
     if result.expansion_status[0] == 'EXPANDED' and \
        result.total_concepts[0] == vs_count:
         result = True
