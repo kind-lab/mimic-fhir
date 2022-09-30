@@ -129,18 +129,19 @@ class Bundle():
                     patient_id=self.patient_id
                 )
                 bundle.add_entry(resources)
-                output_temp = bundle.publish(gcp_args, split_flag=False)
+                output_temp = bundle.publish(
+                    gcp_args,
+                    split_flag=False,
+                )
 
                 if output_temp == False:
                     output = False
         else:
             # Post full bundle, no restriction on bundle size
             bundle_to_send = json.dumps(self.json()).encode('utf-8')
-            publisher = pubsub_v1.PublisherClient()
-            topic_path = publisher.topic_path(gcp_args.project, gcp_args.topic)
             pub_response = publisher.publish(
-                topic_path,
-                bundle_to_send,
+                gcp_args.topic_path,
+                gcp_args.bundle_to_send,
                 patient_id=self.patient_id,
                 blob_dir=gcp_args.blob_dir,
                 bundle_group=self.bundle_name,

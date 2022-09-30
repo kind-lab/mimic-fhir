@@ -1,4 +1,5 @@
 import time
+from google.cloud import pubsub_v1
 
 
 class MimicArgs():
@@ -22,8 +23,15 @@ class PatientEverythingArgs():
 
 class GoogleArgs():
     def __init__(
-        self, project, topic, location, bucket, dataset, fhirstore,
-        export_folder
+        self,
+        project,
+        topic,
+        location,
+        bucket,
+        dataset,
+        fhirstore,
+        export_folder,
+        blob_dir=None
     ):
         self.project = project
         self.topic = topic
@@ -32,7 +40,12 @@ class GoogleArgs():
         self.dataset = dataset
         self.fhirstore = fhirstore
         self.export_folder = export_folder
-        self.blob_dir = f'bundle-loading/bundles-{time.strftime("%Y%m%d-%H%M%S")}'
+        if blob_dir is None:
+            self.blob_dir = f'bundle-loading/bundles-{time.strftime("%Y%m%d-%H%M%S")}'
+        else:
+            self.blob_dir = blob_dir
+        self.publisher = pubsub_v1.PublisherClient()
+        self.topic_path = self.publisher.topic_path(project, topic)
 
 
 class ResultList():

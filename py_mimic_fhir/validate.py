@@ -27,10 +27,6 @@ def multiprocess_validate(args, margs, gcp_args):
     logger.info('in multiproces validate!')
     logger.info(f'num workers: {num_workers}')
 
-    db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
-    )
-
     if args.init:
         init_data_bundles(
             db_conn, margs.fhir_server, margs.err_path, gcp_args,
@@ -43,7 +39,7 @@ def multiprocess_validate(args, margs, gcp_args):
     for patient_id in patient_ids:
         pool.apply_async(
             validation_worker,
-            args=(patient_id, args, margs, gcp_args),
+            args=(patient_id, args, margs),
             callback=result_list.update
         )
 
@@ -58,7 +54,11 @@ def multiprocess_validate(args, margs, gcp_args):
     return result
 
 
-def validation_worker(patient_id, args, margs, gcp_args):
+def validation_worker(patient_id, args, margs):
+    gcp_args = GoogleArgs(
+        args.gcp_project, args.gcp_topic, args.gcp_location, args.gcp_bucket,
+        args.gcp_dataset, args.gcp_fhirstore, args.gcp_export_folder
+    )
     try:
         response_list = [False]
 
@@ -75,7 +75,7 @@ def validation_worker(patient_id, args, margs, gcp_args):
         return result
     except Exception as e:
         logger.error(e)
-        return False
+        return e
 
 
 # Validate n patients and all their associated resources
