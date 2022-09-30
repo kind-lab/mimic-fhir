@@ -1,12 +1,7 @@
 -- Purpose: Generate FHIR MedicationAdministration resource for each row in inputevents
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.medication_administration_icu;
-CREATE TABLE mimic_fhir.medication_administration_icu(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('medication_administration_icu');
 
 WITH fhir_medication_administration_icu AS (
     SELECT

@@ -1,9 +1,4 @@
-DROP TABLE IF EXISTS mimic_fhir.specimen_lab;
-CREATE TABLE mimic_fhir.specimen_lab(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('specimen_lab');
 
 -- Lab specimen
 WITH lab AS (

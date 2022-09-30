@@ -1,9 +1,4 @@
-DROP TABLE IF EXISTS mimic_fhir.observation_micro_susc;
-CREATE TABLE mimic_fhir.observation_micro_susc(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('observation_micro_susc');
 
 WITH fhir_observation_micro_susc AS (
     SELECT

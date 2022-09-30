@@ -1,12 +1,7 @@
 -- Purpose: Generate a FHIR Observation resource for each row in vitalsign
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.observation_vital_signs;
-CREATE TABLE mimic_fhir.observation_vital_signs(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('observation_vital_signs');
 
 --unnest vitalsigns, since each stored as individual fhir resource
 WITH vital_signs AS (

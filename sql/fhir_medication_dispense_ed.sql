@@ -3,12 +3,7 @@
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
 
-DROP TABLE IF EXISTS mimic_fhir.medication_dispense_ed;
-CREATE TABLE mimic_fhir.medication_dispense_ed(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('medication_dispense_ed');
 
 
 WITH fhir_medication_dispense_ed AS (

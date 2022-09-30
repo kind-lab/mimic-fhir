@@ -1,9 +1,4 @@
-DROP TABLE IF EXISTS mimic_fhir.specimen;
-CREATE TABLE mimic_fhir.specimen(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('specimen');
 
 -- Generate the microbiology specimen, just maps to base fhir Specimen resource
 -- There are overlapping ids used in micro and labs but hold different info (ie with different subjects)
