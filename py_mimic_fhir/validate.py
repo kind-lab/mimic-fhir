@@ -64,7 +64,7 @@ def validation_worker(patient_id, args, margs):
 
         db_conn = connect_db(
             args.sqluser, args.sqlpass, args.dbname_mimic, args.host,
-            args.db_mode
+            args.db_mode, args.port
         )
         response_list = validate_all_bundles(
             patient_id, db_conn, margs, gcp_args
@@ -82,7 +82,8 @@ def validation_worker(patient_id, args, margs):
 def validate_n_patients(args, margs, gcp_args):
     # initialize db connection
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
     )
 
     if args.init:
@@ -161,7 +162,8 @@ def revalidate_bad_bundles(args, margs):
     day_of_week = datetime.now().strftime('%A').lower()
     err_filename = f'err-bundles-{day_of_week}.json'
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
     )
 
     response_list = revalidate_bundle_from_file(err_filename, db_conn, margs)

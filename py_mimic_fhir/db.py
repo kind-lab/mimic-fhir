@@ -7,10 +7,10 @@ import google.auth
 
 
 # database connection
-def connect_db(sqluser, sqlpass, dbname, host, db_mode):
+def connect_db(sqluser, sqlpass, dbname, host, db_mode, port=5432):
     if db_mode == 'POSTGRES':
         connection = psycopg2.connect(
-            dbname=dbname, user=sqluser, password=sqlpass, host=host
+            dbname=dbname, user=sqluser, password=sqlpass, host=host, port=port
         )
     elif db_mode == 'BIGQUERY':
         credentials, project = google.auth.default()

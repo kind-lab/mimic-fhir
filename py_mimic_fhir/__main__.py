@@ -70,6 +70,14 @@ def parse_arguments(arguments=None):
         required=True
     )
     parser.add_argument(
+        '--port',
+        action=EnvDefault,
+        envvar='PGPORT',
+        help='Database Port',
+        required=True
+    )
+
+    parser.add_argument(
         '--fhir_server',
         action=EnvDefault,
         envvar='FHIR_SERVER',
@@ -352,7 +360,8 @@ def validate(args, gcp_args):
 # Export all resources from FHIR Server and write to NDJSON
 def export(args, gcp_args):
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
     )
     pe_args = PatientEverythingArgs(
         args.patient_bundle, args.num_patients, args.resource_types,
