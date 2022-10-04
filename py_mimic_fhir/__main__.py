@@ -286,6 +286,13 @@ def parse_arguments(arguments=None):
         help='Google PubSub Topic for patient-everything'
     )
 
+    arg_export.add_argument(
+        '--ndjson_by_patient',
+        required=False,
+        action='store_true',
+        help='Flag to export ndjson by patient from postgres'
+    )
+
     # Terminology
     arg_terminology = subparsers.add_parser(
         "terminology",
@@ -351,10 +358,11 @@ def validate(args, gcp_args):
         logger.error('Validation failed')
 
     # Only export if validation is successful
-    if args.export == True:
-        export_all_resources(
-            args.fhir_server, args.output_path, args.export_limit
-        )
+    ## DEPRECATED, NEED TO THINK IF THIS SHOULD BE ALLOWED ANYMORE
+    # if args.export == True:
+    #     export_all_resources(
+    #         args.fhir_server, args.output_path, args.export_limit
+    #     )
 
 
 # Export all resources from FHIR Server and write to NDJSON
@@ -369,7 +377,7 @@ def export(args, gcp_args):
     )
     export_all_resources(
         args.fhir_server, args.output_path, gcp_args, pe_args, args.validator,
-        db_conn, args.export_limit
+        db_conn, args.ndjson_by_patient, args.export_limit
     )
 
 

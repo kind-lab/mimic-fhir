@@ -147,6 +147,23 @@ MIMIC_BUNDLE_TABLE_LIST = {
     'ed-medication': ['medication_statement_ed', 'medication_dispense_ed']
 }
 
+# MIMIC_PATIENT_TABLE_LIST = ['encounter', 'condition']
+# Note that this excludes patient, since it is used in a loop with patient_ids
+MIMIC_PATIENT_TABLE_LIST = [
+    'condition', 'condition_ed', 'encounter', 'encounter_ed', 'encounter_icu',
+    'medication_administration', 'medication_administration_icu',
+    'medication_dispense', 'medication_dispense_ed', 'medication_request',
+    'medication_statement_ed', 'observation_chartevents',
+    'observation_datetimeevents', 'observation_ed', 'observation_labevents',
+    'observation_micro_org', 'observation_micro_susc', 'observation_micro_test',
+    'observation_vital_signs', 'observation_outputevents', 'procedure',
+    'procedure_ed', 'procedure_icu', 'specimen', 'specimen_lab'
+]
+
+MIMIC_DATA_TABLE_LIST = [
+    'organization', 'location', 'medication', 'medication_mix'
+]
+
 MIMIC_DATA_BUNDLE_LIST = [
     'organization', 'location', 'medication', 'medication_mix'
 ]
