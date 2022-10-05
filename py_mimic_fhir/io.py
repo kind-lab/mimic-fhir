@@ -13,8 +13,7 @@ from googleapiclient import discovery
 from google.cloud import pubsub_v1
 
 from py_mimic_fhir.lookup import (
-    MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES,
-    MIMIC_DATA_TABLE_LIST, MIMIC_PATIENT_TABLE_LIST
+    MIMIC_FHIR_PROFILES, MIMIC_DATA_TABLE_LIST, MIMIC_PATIENT_TABLE_LIST
 )
 from py_mimic_fhir.db import get_n_patient_id, get_resources_by_pat, db_read_query
 
@@ -51,7 +50,7 @@ def export_all_resources_hapi(fhir_server, output_path, limit=10000):
     result_dict = {}
 
     # Export each resource based on its profile name
-    for profile in MIMIC_FHIR_PROFILE_NAMES:
+    for profile in MIMIC_FHIR_PROFILES:
         logger.info(f'Export {profile}')
         result = export_resource(profile, fhir_server, output_path, limit)
         result_dict[profile] = result
@@ -71,8 +70,8 @@ def export_all_resources_hapi(fhir_server, output_path, limit=10000):
 #   3. Download from HAPI download location
 #   4. Write the downloaded resources to file
 def export_resource(profile, fhir_server, output_path, limit=10000):
-    resource = MIMIC_FHIR_RESOURCES[profile]
-    profile_url = MIMIC_FHIR_PROFILE_URL[profile]
+    resource = MIMIC_FHIR_PROFILES[profile]['resource']
+    profile_url = MIMIC_FHIR_PROFILES[profile]['url']
     resp_export = send_export_resource_request(
         resource, profile_url, fhir_server
     )
@@ -252,7 +251,7 @@ def put_resource(resource, fhir_data, fhir_server):
 
 
 def sort_resources(output_path):
-    profiles = ' '.join(MIMIC_FHIR_PROFILE_NAMES)
+    profiles = ' '.join(MIMIC_FHIR_PROFILES)
 
     # Sorting done with a shell script since pandas sorting crashes with large file sizes
     process = subprocess.run(

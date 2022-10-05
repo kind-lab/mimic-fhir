@@ -1,4 +1,181 @@
 # Constant lookups that are used throughout the package
+MIMIC_FHIR_PROFILES = {
+    'MimicCondition':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-condition',
+            'resource':
+                'Condition'
+        },
+    'MimicEncounter':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-encounter',
+            'resource':
+                'Encounter'
+        },
+    'MimicLocation':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-location',
+            'resource':
+                'Location'
+        },
+    'MimicMedication':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication',
+            'resource':
+                'Medication'
+        },
+    'MimicMedicationAdministration':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-administration',
+            'resource':
+                'MedicationAdministration'
+        },
+    'MimicMedicationAdministrationICU':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-administration-icu',
+            'resource':
+                'MedicationAdministration'
+        },
+    'MimicMedicationDispense':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-dispense',
+            'resource':
+                'MedicationDispense'
+        },
+    'MimicMedicationDispenseED':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-dispense-ed',
+            'resource':
+                'MedicationDispense'
+        },
+    'MimicMedicationRequest':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-request',
+            'resource':
+                'MedicationRequest'
+        },
+    'MimicMedicationStatementED':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication-statement-ed',
+            'resource':
+                'MedicationStatement'
+        },
+    'MimicObservationChartevents':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-chartevents',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationDatetimeevents':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-datetimeevents',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationED':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-ed',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationLabevents':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-labevents',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationMicroTest':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-test',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationMicroOrg':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-org',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationMicroSusc':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-micro-susc',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationOutputevents':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-outputevents',
+            'resource':
+                'Observation'
+        },
+    'MimicObservationVitalSigns':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-vital-signs',
+            'resource':
+                'Observation'
+        },
+    'MimicOrganization':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-organization',
+            'resource':
+                'Organization'
+        },
+    'MimicPatient':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-patient',
+            'resource':
+                'Patient'
+        },
+    'MimicProcedure':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-procedure',
+            'resource':
+                'Procedure'
+        },
+    'MimicProcedureED':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-procedure-ed',
+            'resource':
+                'Procedure'
+        },
+    'MimicProcedureICU':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-procedure-icu',
+            'resource':
+                'Procedure'
+        },
+    'MimicSpecimen':
+        {
+            'url':
+                'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-specimen',
+            'resource':
+                'Specimen'
+        }
+}
 
 MIMIC_FHIR_PROFILE_URL = {
     'Condition':
@@ -10,7 +187,7 @@ MIMIC_FHIR_PROFILE_URL = {
     'EncounterICU':
         'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-encounter-icu',
     'Location':
-        '',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-location',
     'Medication':
         'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-medication',
     'MedicationAdministration':
@@ -36,7 +213,7 @@ MIMIC_FHIR_PROFILE_URL = {
     'ObservationOutputevents':
         'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-observation-outputevents',
     'Organization':
-        '',
+        'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-organization',
     'Patient':
         'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-patient',
     'Procedure':
