@@ -273,6 +273,7 @@ def export_patient_related_ndjson(db_conn, output_path):
         os.mkdir(patient_output_path)
     for patient_id in patient_list:
         patient_folder = f'{patient_output_path}/{patient_id}'
+        logger.info(f'Exporting {patient_id} resources')
         if not os.path.exists(patient_folder):
             os.mkdir(patient_folder)
         resource_list = get_resources_by_pat(db_conn, 'patient', patient_id)
@@ -286,9 +287,9 @@ def export_patient_related_ndjson(db_conn, output_path):
             resource_list = get_resources_by_pat(db_conn, table, patient_id)
             output = [json.dumps(resource) for resource in resource_list]
             output_ndjson = '\n'.join(output)
-
-            with open(f'{patient_folder}/{table}.njdson', 'w') as f:
-                f.write(output_ndjson)
+            if len(output_ndjson) != 0:
+                with open(f'{patient_folder}/{table}.njdson', 'w') as f:
+                    f.write(output_ndjson)
 
 
 def export_data_related_ndjson(db_conn, output_path):
