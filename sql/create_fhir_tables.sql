@@ -55,8 +55,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo fn_med_statement
 \i fn/fn_med_statement.sql
 
-\echo fn_partition_builder
-\i fn/fn_partition_builder.sql
 
 \echo fn_create_table_patient_dependent
 \i fn/fn_create_table_patient_dependent.sql
@@ -158,6 +156,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 \echo fhir_procedure_ed
 \i fhir_procedure_ed.sql
+
+-- cluster mimic_fhir tables
+\echo cluster mimic_fhir tables
+\i create_table_clusters.sql
 
 -- fhir terminology tables
 \echo create_fhir_terminology
