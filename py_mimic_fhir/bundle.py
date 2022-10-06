@@ -139,7 +139,7 @@ class Bundle():
         else:
             # Post full bundle, no restriction on bundle size
             bundle_to_send = json.dumps(self.json()).encode('utf-8')
-            pub_response = gcp_args.publisher.publish(
+            gcp_args.publisher.publish(
                 gcp_args.topic_path,
                 bundle_to_send,
                 patient_id=self.patient_id,
@@ -151,8 +151,8 @@ class Bundle():
                 gcp_dataset=gcp_args.dataset,
                 gcp_fhirstore=gcp_args.fhirstore
             )
-            # submitted properly if 16 digit id returned
-            output = len(pub_response.result()) == 16
+            # getting the response from the publisher does not tell us much but takes a lot of time to wait
+            output = True  # len(pub_response.result()) == 16
         return output
 
     # Send request out to HAPI server, validates on the server
