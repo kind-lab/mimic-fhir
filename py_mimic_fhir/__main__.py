@@ -142,7 +142,7 @@ def parse_arguments(arguments=None):
         '--gcp_dataset',
         action=EnvDefault,
         envvar='GCP_DATASET',
-        help='Google Heatlhcare API dataset',
+        help='Google Healthcare API dataset',
         required=True
     )
 
@@ -150,7 +150,7 @@ def parse_arguments(arguments=None):
         '--gcp_fhirstore',
         action=EnvDefault,
         envvar='GCP_FHIRSTORE',
-        help='Google Heatlhcare API FHIR store',
+        help='Google Healthcare API FHIR store',
         required=True
     )
 

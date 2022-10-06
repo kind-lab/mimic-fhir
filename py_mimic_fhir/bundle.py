@@ -139,9 +139,9 @@ class Bundle():
         else:
             # Post full bundle, no restriction on bundle size
             bundle_to_send = json.dumps(self.json()).encode('utf-8')
-            pub_response = publisher.publish(
+            pub_response = gcp_args.publisher.publish(
                 gcp_args.topic_path,
-                gcp_args.bundle_to_send,
+                bundle_to_send,
                 patient_id=self.patient_id,
                 blob_dir=gcp_args.blob_dir,
                 bundle_group=self.bundle_name,

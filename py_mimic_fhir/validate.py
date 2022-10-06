@@ -33,6 +33,10 @@ def multiprocess_validate(args, margs, gcp_args):
             margs.validator
         )
 
+    db_conn = connect_db(
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
+    )
     patient_ids = get_n_patient_id(db_conn, args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
     result_list = ResultList()
