@@ -267,44 +267,40 @@ def export_patient_related_ndjson(db_conn, output_path):
     patient_list = get_n_patient_id(db_conn)
     patient_output_path = f'{output_path}/patients'
 
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
-    if not os.path.exists(patient_output_path):
-        os.mkdir(patient_output_path)
+    create_folder_if_not_exists(output_path)
+    create_folder_if_not_exists(patient_output_path)
     for patient_id in patient_list:
+        logger.info(f'Exporting resources from patient: {patient_id}')
         patient_folder = f'{patient_output_path}/{patient_id}'
-        logger.info(f'Exporting {patient_id} resources')
-        if not os.path.exists(patient_folder):
-            os.mkdir(patient_folder)
+        create_folder_if_not_exists(patient_folder)
+
         resource_list = get_resources_by_pat(db_conn, 'patient', patient_id)
-        output = [json.dumps(resource) for resource in resource_list]
-        output_ndjson = '\n'.join(output)
-
-        with open(f'{patient_folder}/patient.njdson', 'w') as f:
-            f.write(output_ndjson)
-
+        write_ndjson_by_table_name('patient', patient_folder, resource_list)
         for table in MIMIC_PATIENT_TABLE_LIST:
             resource_list = get_resources_by_pat(db_conn, table, patient_id)
-            output = [json.dumps(resource) for resource in resource_list]
-            output_ndjson = '\n'.join(output)
-            if len(output_ndjson) != 0:
-                with open(f'{patient_folder}/{table}.njdson', 'w') as f:
-                    f.write(output_ndjson)
+            write_ndjson_by_table_name(table, patient_folder, resource_list)
 
 
 def export_data_related_ndjson(db_conn, output_path):
     data_output_path = f'{output_path}/data'
-
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
-    if not os.path.exists(data_output_path):
-        os.mkdir(data_output_path)
+    create_folder_if_not_exists(output_path)
+    create_folder_if_not_exists(data_output_path)
 
     for table in MIMIC_DATA_TABLE_LIST:
         query_table = f"SELECT fhir FROM mimic_fhir.{table}"
         resource_list = db_read_query(query_table, db_conn)
-        output = [json.dumps(resource) for resource in resource_list.fhir]
-        output_ndjson = '\n'.join(output)
+        write_ndjson_by_table_name(table, data_output_path, resource_list)
 
-        with open(f'{data_output_path}/{table}.njdson', 'w') as f:
+
+def create_folder_if_not_exists(folder_name):
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+
+
+def write_ndjson_by_table_name(table, output_folder, resource_list):
+    output = [json.dumps(resource) for resource in resource_list]
+    output_ndjson = '\n'.join(output)
+
+    if len(output_ndjson) != 0:
+        with open(f'{output_folder}/{table}.njdson', 'w') as f:
             f.write(output_ndjson)
