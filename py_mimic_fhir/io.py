@@ -38,9 +38,9 @@ def export_all_resources(
     if validator == 'HAPI':
         result_dict = export_all_resources_hapi(fhir_server, output_path, limit)
         result = False not in result_dict.values()
-    elif validator == 'GCP' and pe_args.patient_bundle:
+    elif validator == 'GCP' and pe_args.patient_everything:
         result = export_patient_everything_gcp(gcp_args, pe_args, db_conn)
-    elif validator == 'GCP' and not pe_args.patient_bundle:
+    elif validator == 'GCP' and not pe_args.patient_everything:
         result = export_all_resources_gcp(gcp_args)
 
     return result

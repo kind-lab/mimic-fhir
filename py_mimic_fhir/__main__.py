@@ -248,7 +248,7 @@ def parse_arguments(arguments=None):
     )
 
     arg_export.add_argument(
-        '--patient_bundle',
+        '--patient_everything',
         required=False,
         action='store_true',
         help='Flag to export patient-everything bundles'
@@ -372,7 +372,7 @@ def export(args, gcp_args):
         args.port
     )
     pe_args = PatientEverythingArgs(
-        args.patient_bundle, args.num_patients, args.resource_types,
+        args.patient_everything, args.num_patients, args.resource_types,
         args.pe_topic, args.count
     )
     export_all_resources(
