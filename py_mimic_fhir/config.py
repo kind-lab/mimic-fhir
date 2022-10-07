@@ -31,7 +31,7 @@ class GoogleArgs():
         dataset,
         fhirstore,
         export_folder,
-        blob_dir=None
+        bundle_run=None
     ):
         self.project = project
         self.topic = topic
@@ -40,10 +40,10 @@ class GoogleArgs():
         self.dataset = dataset
         self.fhirstore = fhirstore
         self.export_folder = export_folder
-        if blob_dir is None:
-            self.blob_dir = f'bundle-loading/bundles-{time.strftime("%Y%m%d-%H%M%S")}'
+        if bundle_run is None:
+            self.bundle_run = f'bundles-{time.strftime("%Y%m%d-%H%M%S")}'
         else:
-            self.blob_dir = blob_dir
+            self.bundle_run = bundle_run
         self.publisher = pubsub_v1.PublisherClient()
         self.topic_path = self.publisher.topic_path(project, topic)
 

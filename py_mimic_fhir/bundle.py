@@ -14,6 +14,7 @@ import numpy as np
 from datetime import datetime
 from uuid import uuid4
 from google.cloud import pubsub_v1
+from typing import Callable
 
 from py_mimic_fhir.db import (
     get_resources_by_pat, get_patient_resource, get_resource_by_id,
@@ -139,11 +140,11 @@ class Bundle():
         else:
             # Post full bundle, no restriction on bundle size
             bundle_to_send = json.dumps(self.json()).encode('utf-8')
-            gcp_args.publisher.publish(
+            pub_response = gcp_args.publisher.publish(
                 gcp_args.topic_path,
                 bundle_to_send,
                 patient_id=self.patient_id,
-                blob_dir=gcp_args.blob_dir,
+                bundle_run=gcp_args.bundle_run,
                 bundle_group=self.bundle_name,
                 gcp_project=gcp_args.project,
                 gcp_location=gcp_args.location,
@@ -152,7 +153,7 @@ class Bundle():
                 gcp_fhirstore=gcp_args.fhirstore
             )
             # getting the response from the publisher does not tell us much but takes a lot of time to wait
-            output = True  # len(pub_response.result()) == 16
+            output = len(pub_response.result()) == 16
         return output
 
     # Send request out to HAPI server, validates on the server
