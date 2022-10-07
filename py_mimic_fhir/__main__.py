@@ -10,7 +10,7 @@ from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, r
 from py_mimic_fhir.io import export_all_resources
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
 from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
-from py_mimic_fhir.db import connect_db
+from py_mimic_fhir.db import MFDatabaseConnection
 
 logger = logging.getLogger(__name__)
 
@@ -221,18 +221,24 @@ def parse_arguments(arguments=None):
         action='store_true',
         help='Initialize hapi fhir with data bundles'
     )
-    arg_validate.add_argument(
-        '--rerun',
-        required=False,
-        action='store_true',
-        help='Rerun any failed bundles'
-    )
 
     arg_validate.add_argument(
         '--cores',
         type=int,
         default=1,
         help='Number of cores to use when validating'
+    )
+
+    # Validation
+    arg_revalidate = subparsers.add_parser(
+        "revalidate", help=("Revalidation options for failed bundles")
+    )
+
+    arg_validate.add_argument(
+        '--bundle_run',
+        type=int,
+        default=1,
+        help='The bundle run that had failed bundles'
     )
 
     # Export - can be run separate from validation
@@ -345,9 +351,7 @@ def parse_arguments(arguments=None):
 # Validate all resources for user specified number of patients
 def validate(args, gcp_args):
     margs = MimicArgs(args.fhir_server, args.err_path, args.validator)
-    if args.rerun:
-        validation_result = revalidate_bad_bundles(args, margs)
-    elif args.cores > 1:
+    if args.cores > 1:
         validation_result = multiprocess_validate(args, margs, gcp_args)
     else:
         validation_result = validate_n_patients(args, margs, gcp_args)
@@ -365,9 +369,14 @@ def validate(args, gcp_args):
     #     )
 
 
+def revalidate(args, gcp_args):
+    margs = MimicArgs(args.fhir_server, args.err_path, args.validator)
+    validation_result = revalidate_bad_bundles(args, margs, gcp_args)
+
+
 # Export all resources from FHIR Server and write to NDJSON
 def export(args, gcp_args):
-    db_conn = connect_db(
+    db_conn = MFDatabaseConnection(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
         args.port
     )
@@ -422,6 +431,8 @@ def main(argv=sys.argv):
     set_logger(args.log_path)
     if args.actions == 'validate':
         validate(args, gcp_args)
+    elif args.actions == 'revalidate':
+        revalidate(args, gcp_args)
     elif args.actions == 'export':
         export(args, gcp_args)
     elif args.actions == 'terminology':

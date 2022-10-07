@@ -25,7 +25,6 @@ from google.cloud import pubsub_v1
 
 #from fhir.resources.bundle import Bundle
 from py_mimic_fhir.bundle import Bundle
-from py_mimic_fhir.db import get_n_patient_id, get_pat_id_with_links, db_read_query
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
 from py_mimic_fhir.validate import validate_bundle
 
@@ -35,7 +34,7 @@ def test_bad_bundle(db_conn, margs):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.patient LIMIT 1
     """
-    pd_resources = db_read_query(q_resource, db_conn)
+    pd_resources = db_conn.read_query(q_resource)
     resource = pd_resources.fhir[0]
     resource['gender'] = 'FAKE CODE'  # Will cause bundle to fail
 
@@ -49,7 +48,7 @@ def test_bad_bundle_gcp(db_conn, margs, gcp_args):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.patient LIMIT 1
     """
-    pd_resources = db_read_query(q_resource, db_conn)
+    pd_resources = db_conn.read_query(q_resource)
     resource = pd_resources.fhir[0]
     resource['gender'] = 'FAKE CODE'  # Will cause bundle to fail
 
@@ -64,7 +63,7 @@ def test_bad_ref_bundle_gcp(db_conn, margs, gcp_args):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.encounter LIMIT 1
     """
-    pd_resources = db_read_query(q_resource, db_conn)
+    pd_resources = db_conn.read_query(q_resource)
     resource = pd_resources.fhir[0]
     resource['subject'] = {"reference": "Patient/DOES_NOT_EXISSSSST"}
 
@@ -91,7 +90,7 @@ def test_organization_bundle(organization_bundle_resources, margs, gcp_args):
 def test_patient_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     resource_list = ['encounter']  # omit patient table for this search
-    patient_id = get_pat_id_with_links(db_conn, resource_list)
+    patient_id = db_conn.get_pat_id_with_links(resource_list)
 
     # Create bundle and post it
     response = validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -102,7 +101,7 @@ def test_condition_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'condition'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -129,7 +128,7 @@ def test_procedure_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'procedure'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -144,7 +143,7 @@ def test_specimen_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'specimen'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -158,7 +157,7 @@ def test_microbiology_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'microbiology'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient and specimen bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -173,7 +172,7 @@ def test_lab_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'lab'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient and spcimen bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -219,7 +218,7 @@ def test_med_workflow_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'medication-workflow'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -233,7 +232,7 @@ def test_med_prep_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'medication-preparation'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -247,7 +246,7 @@ def test_med_admin_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'medication-administration'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -264,7 +263,7 @@ def test_icu_medication_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-medication'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -279,7 +278,7 @@ def test_icu_encounter_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-encounter'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient bundle, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -293,7 +292,7 @@ def test_icu_procedure_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-procedure'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     # Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -305,7 +304,7 @@ def test_icu_procedure_bundle(db_conn, margs, gcp_args):
 
 
 def test_med_bundle_n_patients(db_conn, margs):
-    patient_ids = get_n_patient_id(db_conn, 1)
+    patient_ids = db_conn.get_n_patient_id(1)
 
     # Create bundle and post it
     result = True
@@ -331,7 +330,7 @@ def test_icu_observation_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'icu-observation'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -354,7 +353,7 @@ def test_ed_base_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'ed-base'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -370,7 +369,7 @@ def test_ed_observation_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'ed-observation'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)
@@ -387,7 +386,7 @@ def test_ed_medication_bundle(db_conn, margs, gcp_args):
     # Get patient_id that has resources from the resource_list
     bundle_name = 'ed-medication'
     table_list = MIMIC_BUNDLE_TABLE_LIST[bundle_name]
-    patient_id = get_pat_id_with_links(db_conn, table_list)
+    patient_id = db_conn.get_pat_id_with_links(table_list)
 
     #Generate and post patient and icu_encounter bundles, must do first to avoid referencing issues
     validate_bundle('patient', patient_id, db_conn, margs, gcp_args)

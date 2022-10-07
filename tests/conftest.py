@@ -7,7 +7,7 @@ import os
 import tkinter as tk
 import pytest
 
-from py_mimic_fhir.db import get_n_resources, connect_db, db_read_query
+from py_mimic_fhir.db import MFDatabaseConnection
 import py_mimic_fhir.terminology as trm
 from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
 
@@ -20,6 +20,7 @@ DBNAME_MIMIC = os.getenv('DBNAME_MIMIC')
 DBNAME_HAPI = os.getenv('DBNAME_HAPI')
 DB_MODE = os.getenv('DB_MODE')
 HOST = os.getenv('DBHOST')
+PORT = os.getenv('PGPORT')
 TERMINOLOGY_PATH = os.getenv('MIMIC_TERMINOLOGY_PATH')
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 FHIR_BUNDLE_ERROR_PATH = os.getenv('FHIR_BUNDLE_ERROR_PATH')
@@ -87,7 +88,9 @@ def validator():
 # Initialize database connection to mimic
 @pytest.fixture(scope="session")
 def db_conn():
-    conn = connect_db(SQLUSER, SQLPASS, DBNAME_MIMIC, HOST, DB_MODE)
+    conn = MFDatabaseConnection(
+        SQLUSER, SQLPASS, DBNAME_MIMIC, HOST, DB_MODE, PORT
+    )
     return conn
 
 
@@ -105,8 +108,12 @@ def db_conn_hapi():
     dbname = DBNAME_HAPI
     host = HOST
 
-    conn = psycopg2.connect(
-        dbname=dbname, user=sqluser, password=sqlpass, host=host
+    conn = MFDatabaseConnection(
+        dbname=dbname,
+        user=sqluser,
+        password=sqlpass,
+        host=host,
+        db_mode='POSTGRES'
     )
     return conn
 
@@ -143,7 +150,7 @@ def pe_args():
 
 # Generic function to initialize resources based on VALIDATOR
 def initialize_single_resource(validator, db_conn, table_name):
-    resource = get_single_resource(db_conn, table_name)
+    resource = db_conn.get_single_resource(table_name)
 
     # Write out resource to json, so java validator can find it later
     if validator == 'JAVA':
@@ -159,7 +166,7 @@ def initialize_single_resource(validator, db_conn, table_name):
 # Generic function to get single resource from the DB
 def get_single_resource(db_conn, table_name):
     q_resource = f"SELECT * FROM mimic_fhir.{table_name} LIMIT 1"
-    resource = db_read_query(q_resource, db_conn)
+    resource = db_conn.read_query(q_resource)
 
     return resource.fhir[0]
 
@@ -375,25 +382,25 @@ def procedure_ed_resource(validator, db_conn):
 # Grab a handful of medication data resoruces to send to the server
 @pytest.fixture(scope="session")
 def med_data_bundle_resources(db_conn):
-    resources = get_n_resources(db_conn, 'medication')
+    resources = db_conn.get_n_resources('medication')
     return resources
 
 
 @pytest.fixture(scope="session")
 def med_mix_data_bundle_resources(db_conn):
-    resources = get_n_resources(db_conn, 'medication_mix')
+    resources = db_conn.get_n_resources('medication_mix')
     return resources
 
 
 @pytest.fixture(scope="session")
 def organization_bundle_resources(db_conn):
-    resources = get_n_resources(db_conn, 'organization')
+    resources = db_conn.get_n_resources('organization')
     return resources
 
 
 @pytest.fixture(scope="session")
 def location_bundle_resources(db_conn):
-    resources = get_n_resources(db_conn, 'location')
+    resources = db_conn.get_n_resources('location')
     return resources
 
 

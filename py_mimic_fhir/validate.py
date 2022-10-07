@@ -8,7 +8,7 @@ import multiprocessing as mp
 from datetime import datetime
 from google.cloud import pubsub_v1
 
-from py_mimic_fhir.db import connect_db, get_n_patient_id, get_resource_by_id, get_n_resources
+from py_mimic_fhir.db import MFDatabaseConnection
 from py_mimic_fhir.bundle import Bundle
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST, MIMIC_DATA_BUNDLE_LIST
 from py_mimic_fhir.config import ResultList, GoogleArgs
@@ -33,11 +33,11 @@ def multiprocess_validate(args, margs, gcp_args):
             margs.validator
         )
 
-    db_conn = connect_db(
+    db_conn = MFDatabaseConnection(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
         args.port
     )
-    patient_ids = get_n_patient_id(db_conn, args.num_patients)
+    patient_ids = db_conn.get_n_patient_id(args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
     result_list = ResultList()
     for patient_id in patient_ids:
@@ -66,7 +66,7 @@ def validation_worker(patient_id, args, margs):
     try:
         response_list = [False]
 
-        db_conn = connect_db(
+        db_conn = MFDatabaseConnection(
             args.sqluser, args.sqlpass, args.dbname_mimic, args.host,
             args.db_mode, args.port
         )
@@ -85,7 +85,7 @@ def validation_worker(patient_id, args, margs):
 # Validate n patients and all their associated resources
 def validate_n_patients(args, margs, gcp_args):
     # initialize db connection
-    db_conn = connect_db(
+    db_conn = MFDatabaseConnection(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
         args.port
     )
@@ -98,7 +98,7 @@ def validate_n_patients(args, margs, gcp_args):
 
     logger.info('---------- Validating patients -----------------')
     logger.info(f'patient num: {args.num_patients}')
-    patient_ids = get_n_patient_id(db_conn, args.num_patients)
+    patient_ids = db_conn.get_n_patient_id(args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
     split_flag = True  # Flag to subdivide bundles to speed up posting
 
@@ -144,7 +144,7 @@ def init_data_bundles(db_conn, fhir_server, err_path, gcp_args, validator):
 
     for table in data_tables:
         logger.info(f'{table} data being uploaded to {validator}')
-        resources = get_n_resources(db_conn, table)
+        resources = db_conn.get_n_resources(table)
         init_data_bundle(
             table, resources, fhir_server, err_path, gcp_args, validator
         )
@@ -162,19 +162,24 @@ def init_data_bundle(
 
 
 #----------------- Revalidate bad bundles ----------------------------
-def revalidate_bad_bundles(args, margs):
-    day_of_week = datetime.now().strftime('%A').lower()
-    err_filename = f'err-bundles-{day_of_week}.json'
-    db_conn = connect_db(
+def revalidate_bad_bundles(args, margs, gcp_args):
+
+    db_conn = MFDatabaseConnection(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
         args.port
     )
-
-    response_list = revalidate_bundle_from_file(err_filename, db_conn, margs)
-    if False in response_list:
-        validation_result = False
+    if args.validator == 'GCP':
+        revalidate_from_gcp(gcp_args, args.bundle_run)
     else:
-        validation_result = True
+        day_of_week = datetime.now().strftime('%A').lower()
+        err_filename = f'err-bundles-{day_of_week}.json'
+        response_list = revalidate_bundle_from_file(
+            err_filename, db_conn, margs
+        )
+        if False in response_list:
+            validation_result = False
+        else:
+            validation_result = True
     return validation_result
 
 
@@ -206,7 +211,7 @@ def revalidate_bundle_from_file(err_filename, db_conn, margs):
                     #drop mimic prefix from profile to get mimic table name
                     profile = entry['fhir_profile'].replace('-', '_')[6:]
                     fhir_id = entry['id']
-                    resource = get_resource_by_id(db_conn, profile, fhir_id)
+                    resource = db_conn.get_resource_by_id(profile, fhir_id)
                     resources.append(resource)
                 bundle = Bundle(bundle_name)
                 bundle.add_entry(resources)
@@ -214,3 +219,8 @@ def revalidate_bundle_from_file(err_filename, db_conn, margs):
             bundle_result.append(response)
         #os.remove(new_err_filename) # delete rerun file after done, leave for debugging right now
     return bundle_result
+
+
+def revalidate_from_gcp(gcp_args, bundle_run):
+    i = 5
+    # access gcp to get all the patient_ids and bundle groups to rerun

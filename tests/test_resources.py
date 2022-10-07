@@ -4,7 +4,6 @@ import logging
 import os
 import subprocess
 import pytest
-from py_mimic_fhir.db import get_resource_by_id
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 JAVA_VALIDATOR = os.getenv('JAVA_VALIDATOR')
@@ -45,7 +44,7 @@ def validate_reference_resource(
         resource_id = resource[ref][0]['reference'].split('/')[1]
     else:
         resource_id = resource[ref]['reference'].split('/')[1]
-    resource = get_resource_by_id(db_conn, table, resource_id)
+    resource = db_conn.get_resource_by_id(table, resource_id)
     validate_resource('HAPI', resource)
 
 
@@ -182,8 +181,8 @@ def test_observation_datetimeevents_validation(
 
     ref_encounter_id = observation_datetimeevents_resource['encounter'][
         'reference'].split('/')[1]
-    ref_encounter = get_resource_by_id(
-        db_conn, 'encounter_icu', ref_encounter_id
+    ref_encounter = db_conn.get_resource_by_id(
+        'encounter_icu', ref_encounter_id
     )
     validate_reference_resource(db_conn, ref_encounter, 'encounter', 'partOf')
     print(f"ENCOUNTER ID: {observation_datetimeevents_resource['encounter']}")
@@ -198,8 +197,8 @@ def test_observation_labevents_validation(
     resource = observation_labevents_resource
     if validator == 'HAPI':
         specimen_id = resource['specimen']['reference'].split('/')[1]
-        specimen_resource = get_resource_by_id(
-            db_conn, 'specimen_lab', specimen_id
+        specimen_resource = db_conn.get_resource_by_id(
+            'specimen_lab', specimen_id
         )
         validate_resource(validator, specimen_resource)
     result = validate_resource(validator, observation_labevents_resource)
@@ -255,8 +254,8 @@ def test_procedure_icu_validation(db_conn, validator, procedure_icu_resource):
     ref_encounter_id = procedure_icu_resource['encounter']['reference'].split(
         '/'
     )[1]
-    ref_encounter = get_resource_by_id(
-        db_conn, 'encounter_icu', ref_encounter_id
+    ref_encounter = db_conn.get_resource_by_id(
+        'encounter_icu', ref_encounter_id
     )
     validate_reference_resource(db_conn, ref_encounter, 'encounter', 'partOf')
     result = validate_resource(validator, procedure_icu_resource)
@@ -315,9 +314,7 @@ def test_medication_statement_ed_validation(
     ref_encounter_id = medication_statement_ed_resource['context'][
         'reference'].split('/')[1]
     print(f'RESOURCE ID: {ref_encounter_id}')
-    ref_encounter = get_resource_by_id(
-        db_conn, 'encounter_ed', ref_encounter_id
-    )
+    ref_encounter = db_conn.get_resource_by_id('encounter_ed', ref_encounter_id)
     validate_reference_resource(db_conn, ref_encounter, 'encounter', 'partOf')
 
     # validate encounter resource first so that encounter is on the server

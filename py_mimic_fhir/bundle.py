@@ -14,12 +14,7 @@ import numpy as np
 from datetime import datetime
 from uuid import uuid4
 from google.cloud import pubsub_v1
-from typing import Callable
 
-from py_mimic_fhir.db import (
-    get_resources_by_pat, get_patient_resource, get_resource_by_id,
-    get_n_patient_id, get_n_resources
-)
 from py_mimic_fhir.lookup import MIMIC_BUNDLES_NO_SPLIT_LIST
 
 logger = logging.getLogger(__name__)
@@ -97,7 +92,7 @@ class Bundle():
     def generate(self, patient_id, db_conn):
         self.patient_id = patient_id
         for table_name in self.table_list:
-            resources = get_resources_by_pat(db_conn, table_name, patient_id)
+            resources = db_conn.get_resources_by_pat(table_name, patient_id)
             self.add_entry(resources)
 
     def json(self):

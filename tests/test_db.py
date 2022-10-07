@@ -1,7 +1,6 @@
 import pytest
 import pandas as pd
 import os
-from py_mimic_fhir.db import db_read_query
 
 
 def test_mimic_fhir_row_count(db_conn, dbname):
@@ -16,7 +15,7 @@ def test_mimic_fhir_row_count(db_conn, dbname):
     with open(test_filename) as f:
         sql_statement = f.read()
 
-    results = db_read_query(sql_statement, db_conn)
+    results = db_conn.read_query(sql_statement)
     print(results)
     db_conn.commit()
     assert 'FAIL' not in results['test_status'].values
@@ -34,6 +33,6 @@ def test_mimic_fhir_row_count_approximate(db_conn, dbname):
     with open(test_filename) as f:
         sql_statement = f.read()
 
-    results = db_read_query(sql_statement, db_conn)
+    results = db_conn.read_query(sql_statement)
     print(results)
     assert 'FAIL' not in results['test_status'].values
