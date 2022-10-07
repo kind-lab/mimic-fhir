@@ -27,23 +27,23 @@ def multiprocess_validate(args, margs, gcp_args):
     logger.info('in multiproces validate!')
     logger.info(f'num workers: {num_workers}')
 
-    db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
-    )
-
     if args.init:
         init_data_bundles(
             db_conn, margs.fhir_server, margs.err_path, gcp_args,
             margs.validator
         )
 
+    db_conn = connect_db(
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
+    )
     patient_ids = get_n_patient_id(db_conn, args.num_patients)
     logger.info(f'Patient ids: {patient_ids}')
     result_list = ResultList()
     for patient_id in patient_ids:
         pool.apply_async(
             validation_worker,
-            args=(patient_id, args, margs, gcp_args),
+            args=(patient_id, args, margs),
             callback=result_list.update
         )
 
@@ -58,13 +58,17 @@ def multiprocess_validate(args, margs, gcp_args):
     return result
 
 
-def validation_worker(patient_id, args, margs, gcp_args):
+def validation_worker(patient_id, args, margs):
+    gcp_args = GoogleArgs(
+        args.gcp_project, args.gcp_topic, args.gcp_location, args.gcp_bucket,
+        args.gcp_dataset, args.gcp_fhirstore, args.gcp_export_folder
+    )
     try:
         response_list = [False]
 
         db_conn = connect_db(
             args.sqluser, args.sqlpass, args.dbname_mimic, args.host,
-            args.db_mode
+            args.db_mode, args.port
         )
         response_list = validate_all_bundles(
             patient_id, db_conn, margs, gcp_args
@@ -75,14 +79,15 @@ def validation_worker(patient_id, args, margs, gcp_args):
         return result
     except Exception as e:
         logger.error(e)
-        return False
+        return e
 
 
 # Validate n patients and all their associated resources
 def validate_n_patients(args, margs, gcp_args):
     # initialize db connection
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
     )
 
     if args.init:
@@ -161,7 +166,8 @@ def revalidate_bad_bundles(args, margs):
     day_of_week = datetime.now().strftime('%A').lower()
     err_filename = f'err-bundles-{day_of_week}.json'
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
     )
 
     response_list = revalidate_bundle_from_file(err_filename, db_conn, margs)

@@ -1,12 +1,7 @@
 -- Purpose: Generate a FHIR Observation resource for each row in triage
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.observation_ed;
-CREATE TABLE mimic_fhir.observation_ed(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('observation_ed');
 
 -- Extra observations coming from vitalsigns (rhythm and pain)
 WITH observation_ed AS (

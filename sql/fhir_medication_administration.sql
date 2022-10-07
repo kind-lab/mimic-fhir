@@ -1,12 +1,7 @@
 -- Purpose: Generate a FHIR MedicatioAdministration resource for each row in emar
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.medication_administration;
-CREATE TABLE mimic_fhir.medication_administration(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('medication_administration');
 
 
 -- Generate the drug code for all prescriptions

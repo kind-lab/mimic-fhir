@@ -16,7 +16,7 @@ import pytest
 import numpy as np
 import time
 from py_mimic_fhir import io
-from py_mimic_fhir.lookup import MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES
+from py_mimic_fhir.lookup import MIMIC_FHIR_PROFILES
 
 FHIR_SERVER = os.getenv('FHIR_SERVER')
 MIMIC_JSON_PATH = os.getenv('MIMIC_JSON_PATH')
@@ -37,8 +37,8 @@ def test_export_all_resources(gcp_args, pe_args, validator, db_conn):
 
 def test_send_export_resource_request():
     profile = 'Patient'
-    profile_url = MIMIC_FHIR_PROFILE_URL[profile]
-    resource = MIMIC_FHIR_RESOURCES[profile]
+    profile_url = MIMIC_FHIR_PROFILES[profile]['url']
+    resource = MIMIC_FHIR_PROFILES[profile]['resource']
     resp = io.send_export_resource_request(resource, profile_url, FHIR_SERVER)
     logging.error(resp.text)
     assert resp.status_code == 202
@@ -48,8 +48,8 @@ def test_get_exported_resource_timeout():
     time_max = 5
     timeout = time.time() + time_max
     profile = 'Patient'
-    profile_url = MIMIC_FHIR_PROFILE_URL[profile]
-    resource = MIMIC_FHIR_RESOURCES[profile]
+    profile_url = MIMIC_FHIR_PROFILES[profile]['url']
+    resource = MIMIC_FHIR_PROFILES[profile]['resource']
     resp_export = io.send_export_resource_request(
         resource, profile_url, FHIR_SERVER
     )
@@ -64,8 +64,8 @@ def test_get_exported_resource_timeout():
 
 def test_get_exported_resource():
     profile = 'Patient'
-    profile_url = MIMIC_FHIR_PROFILE_URL[profile]
-    resource = MIMIC_FHIR_RESOURCES[profile]
+    profile_url = MIMIC_FHIR_PROFILES[profile]['url']
+    resource = MIMIC_FHIR_PROFILES[profile]['resource']
     resp_export = io.send_export_resource_request(
         resource, profile_url, FHIR_SERVER
     )
@@ -76,8 +76,8 @@ def test_get_exported_resource():
 
 def test_write_exported_resource_to_ndjson():
     profile = 'Patient'
-    profile_url = MIMIC_FHIR_PROFILE_URL[profile]
-    resource = MIMIC_FHIR_RESOURCES[profile]
+    profile_url = MIMIC_FHIR_PROFILES[profile]['url']
+    resource = MIMIC_FHIR_PROFILES[profile]['resource']
 
     resp_export = io.send_export_resource_request(
         resource, profile_url, FHIR_SERVER

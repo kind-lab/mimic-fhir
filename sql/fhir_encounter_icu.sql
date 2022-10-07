@@ -1,12 +1,7 @@
 -- Purpose: Generate a FHIR Encounter reosurce for each row in icustays
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.encounter_icu;
-CREATE TABLE mimic_fhir.encounter_icu(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('encounter_icu');
 
 WITH transfer_location AS (
     SELECT 

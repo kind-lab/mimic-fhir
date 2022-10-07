@@ -1,12 +1,7 @@
 -- Purpose: Generate an FHIR Encounter resource for each row in edstays
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.encounter_ed;
-CREATE TABLE mimic_fhir.encounter_ed(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('encounter_ed');
 
 -- Store the careunit transfer history
 WITH fhir_encounter_ed AS (

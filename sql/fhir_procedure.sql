@@ -1,12 +1,7 @@
 -- Purpose: Generate a FHIR Procedure resource for each procedures_icd row
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.procedure;
-CREATE TABLE mimic_fhir.procedure(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('procedure');
 
 WITH fhir_procedure AS (
     SELECT

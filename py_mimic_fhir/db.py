@@ -7,10 +7,10 @@ import google.auth
 
 
 # database connection
-def connect_db(sqluser, sqlpass, dbname, host, db_mode):
+def connect_db(sqluser, sqlpass, dbname, host, db_mode, port=5432):
     if db_mode == 'POSTGRES':
         connection = psycopg2.connect(
-            dbname=dbname, user=sqluser, password=sqlpass, host=host
+            dbname=dbname, user=sqluser, password=sqlpass, host=host, port=port
         )
     elif db_mode == 'BIGQUERY':
         credentials, project = google.auth.default()
@@ -77,8 +77,11 @@ def get_resource_by_id(db_conn, profile, profile_id):
     return resource.fhir[0]
 
 
-def get_n_patient_id(db_conn, n_patient):
-    q_resource = f"SELECT * FROM mimic_fhir.patient LIMIT {n_patient}"
+def get_n_patient_id(db_conn, n_patient=0):
+    if n_patient == 0:
+        q_resource = f"SELECT * FROM mimic_fhir.patient"
+    else:
+        q_resource = f"SELECT * FROM mimic_fhir.patient LIMIT {n_patient}"
     resource = db_read_query(q_resource, db_conn)
     patient_ids = [fhir['id'] for fhir in resource.fhir]
 

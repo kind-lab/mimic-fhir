@@ -1,12 +1,7 @@
 -- Purpose: Generate a FHIR Observation resource for each row in outputevents
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.observation_outputevents;
-CREATE TABLE mimic_fhir.observation_outputevents(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('observation_outputevents');
 
 WITH fhir_observation_oe AS (
     SELECT

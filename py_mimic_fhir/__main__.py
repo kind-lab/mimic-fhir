@@ -70,6 +70,14 @@ def parse_arguments(arguments=None):
         required=True
     )
     parser.add_argument(
+        '--port',
+        action=EnvDefault,
+        envvar='PGPORT',
+        help='Database Port',
+        required=True
+    )
+
+    parser.add_argument(
         '--fhir_server',
         action=EnvDefault,
         envvar='FHIR_SERVER',
@@ -134,7 +142,7 @@ def parse_arguments(arguments=None):
         '--gcp_dataset',
         action=EnvDefault,
         envvar='GCP_DATASET',
-        help='Google Heatlhcare API dataset',
+        help='Google Healthcare API dataset',
         required=True
     )
 
@@ -142,7 +150,7 @@ def parse_arguments(arguments=None):
         '--gcp_fhirstore',
         action=EnvDefault,
         envvar='GCP_FHIRSTORE',
-        help='Google Heatlhcare API FHIR store',
+        help='Google Healthcare API FHIR store',
         required=True
     )
 
@@ -240,7 +248,7 @@ def parse_arguments(arguments=None):
     )
 
     arg_export.add_argument(
-        '--patient_bundle',
+        '--patient_everything',
         required=False,
         action='store_true',
         help='Flag to export patient-everything bundles'
@@ -276,6 +284,13 @@ def parse_arguments(arguments=None):
         action=EnvDefault,
         envvar='GCP_TOPIC_PATIENT_EVERYTHING',
         help='Google PubSub Topic for patient-everything'
+    )
+
+    arg_export.add_argument(
+        '--ndjson_by_patient',
+        required=False,
+        action='store_true',
+        help='Flag to export ndjson by patient from postgres'
     )
 
     # Terminology
@@ -343,24 +358,26 @@ def validate(args, gcp_args):
         logger.error('Validation failed')
 
     # Only export if validation is successful
-    if args.export == True:
-        export_all_resources(
-            args.fhir_server, args.output_path, args.export_limit
-        )
+    ## DEPRECATED, NEED TO THINK IF THIS SHOULD BE ALLOWED ANYMORE
+    # if args.export == True:
+    #     export_all_resources(
+    #         args.fhir_server, args.output_path, args.export_limit
+    #     )
 
 
 # Export all resources from FHIR Server and write to NDJSON
 def export(args, gcp_args):
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
     )
     pe_args = PatientEverythingArgs(
-        args.patient_bundle, args.num_patients, args.resource_types,
+        args.patient_everything, args.num_patients, args.resource_types,
         args.pe_topic, args.count
     )
     export_all_resources(
         args.fhir_server, args.output_path, gcp_args, pe_args, args.validator,
-        db_conn, args.export_limit
+        db_conn, args.ndjson_by_patient, args.export_limit
     )
 
 

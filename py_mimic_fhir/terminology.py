@@ -40,7 +40,8 @@ class TerminologyMetaData():
 # Master terminology function. Creates all CodeSystems and ValueSets
 def generate_all_terminology(args):
     db_conn = connect_db(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args_db_mode
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args_db_mode,
+        args.port
     )
     meta = TerminologyMetaData(db_conn, args.version, args.status)
     generate_codesystems(db_conn, meta, args.terminology_path)

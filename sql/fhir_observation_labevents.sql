@@ -5,12 +5,7 @@
 -- SET from_collapse_limit = 24; 
 -- SET join_collapse_limit = 24;
 
-DROP TABLE IF EXISTS mimic_fhir.observation_labevents;
-CREATE TABLE mimic_fhir.observation_labevents(
-    id          uuid PRIMARY KEY,
-    patient_id  uuid NOT NULL,
-    fhir        jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('observation_labevents');
 
 WITH fhir_observation_labevents AS (
     SELECT

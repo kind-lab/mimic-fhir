@@ -13,9 +13,9 @@ from googleapiclient import discovery
 from google.cloud import pubsub_v1
 
 from py_mimic_fhir.lookup import (
-    MIMIC_FHIR_PROFILE_URL, MIMIC_FHIR_RESOURCES, MIMIC_FHIR_PROFILE_NAMES
+    MIMIC_FHIR_PROFILES, MIMIC_DATA_TABLE_LIST, MIMIC_PATIENT_TABLE_LIST
 )
-from py_mimic_fhir.db import get_n_patient_id
+from py_mimic_fhir.db import get_n_patient_id, get_resources_by_pat, db_read_query
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +28,19 @@ def export_all_resources(
     pe_args,
     validator,
     db_conn,
+    export_ndjson_by_patient,
     limit=10000
 ):
+
+    if export_ndjson_by_patient:
+        export_data_related_ndjson(db_conn, output_path)
+        export_patient_related_ndjson(db_conn, output_path)
     if validator == 'HAPI':
         result_dict = export_all_resources_hapi(fhir_server, output_path, limit)
         result = False not in result_dict.values()
-    elif validator == 'GCP' and pe_args.patient_bundle:
+    elif validator == 'GCP' and pe_args.patient_everything:
         result = export_patient_everything_gcp(gcp_args, pe_args, db_conn)
-    elif validator == 'GCP' and not pe_args.patient_bundle:
+    elif validator == 'GCP' and not pe_args.patient_everything:
         result = export_all_resources_gcp(gcp_args)
 
     return result
@@ -45,7 +50,7 @@ def export_all_resources_hapi(fhir_server, output_path, limit=10000):
     result_dict = {}
 
     # Export each resource based on its profile name
-    for profile in MIMIC_FHIR_PROFILE_NAMES:
+    for profile in MIMIC_FHIR_PROFILES:
         logger.info(f'Export {profile}')
         result = export_resource(profile, fhir_server, output_path, limit)
         result_dict[profile] = result
@@ -65,8 +70,8 @@ def export_all_resources_hapi(fhir_server, output_path, limit=10000):
 #   3. Download from HAPI download location
 #   4. Write the downloaded resources to file
 def export_resource(profile, fhir_server, output_path, limit=10000):
-    resource = MIMIC_FHIR_RESOURCES[profile]
-    profile_url = MIMIC_FHIR_PROFILE_URL[profile]
+    resource = MIMIC_FHIR_PROFILES[profile]['resource']
+    profile_url = MIMIC_FHIR_PROFILES[profile]['url']
     resp_export = send_export_resource_request(
         resource, profile_url, fhir_server
     )
@@ -246,7 +251,7 @@ def put_resource(resource, fhir_data, fhir_server):
 
 
 def sort_resources(output_path):
-    profiles = ' '.join(MIMIC_FHIR_PROFILE_NAMES)
+    profiles = ' '.join(MIMIC_FHIR_PROFILES)
 
     # Sorting done with a shell script since pandas sorting crashes with large file sizes
     process = subprocess.run(
@@ -256,3 +261,46 @@ def sort_resources(output_path):
     )
     assert len(process.stderr) == 0
     return process
+
+
+def export_patient_related_ndjson(db_conn, output_path):
+    patient_list = get_n_patient_id(db_conn)
+    patient_output_path = f'{output_path}/patients'
+
+    create_folder_if_not_exists(output_path)
+    create_folder_if_not_exists(patient_output_path)
+    for patient_id in patient_list:
+        logger.info(f'Exporting resources from patient: {patient_id}')
+        patient_folder = f'{patient_output_path}/{patient_id}'
+        create_folder_if_not_exists(patient_folder)
+
+        resource_list = get_resources_by_pat(db_conn, 'patient', patient_id)
+        write_ndjson_by_table_name('patient', patient_folder, resource_list)
+        for table in MIMIC_PATIENT_TABLE_LIST:
+            resource_list = get_resources_by_pat(db_conn, table, patient_id)
+            write_ndjson_by_table_name(table, patient_folder, resource_list)
+
+
+def export_data_related_ndjson(db_conn, output_path):
+    data_output_path = f'{output_path}/data'
+    create_folder_if_not_exists(output_path)
+    create_folder_if_not_exists(data_output_path)
+
+    for table in MIMIC_DATA_TABLE_LIST:
+        query_table = f"SELECT fhir FROM mimic_fhir.{table}"
+        resource_list = db_read_query(query_table, db_conn)
+        write_ndjson_by_table_name(table, data_output_path, resource_list)
+
+
+def create_folder_if_not_exists(folder_name):
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+
+
+def write_ndjson_by_table_name(table, output_folder, resource_list):
+    output = [json.dumps(resource) for resource in resource_list]
+    output_ndjson = '\n'.join(output)
+
+    if len(output_ndjson) != 0:
+        with open(f'{output_folder}/{table}.njdson', 'w') as f:
+            f.write(output_ndjson)

@@ -2,12 +2,7 @@
 --          Add in the prescription requests that are not found in pharmacy too.
 -- Methods: uuid_generate_v5 --> requires uuid or text input, some inputs cast to text to fit
 
-DROP TABLE IF EXISTS mimic_fhir.medication_request;
-CREATE TABLE mimic_fhir.medication_request(
-    id             uuid PRIMARY KEY,
-    patient_id     uuid NOT NULL,
-    fhir           jsonb NOT NULL 
-);
+SELECT fhir_etl.fn_create_table_patient_dependent('medication_request');
 
 
 -- Create medicationRequest resources from the prescription table 
