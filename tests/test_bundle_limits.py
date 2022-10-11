@@ -6,7 +6,7 @@ from google.cloud import pubsub_v1
 
 from py_mimic_fhir.bundle import Bundle
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
-from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file
+from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file, revalidate_from_gcp
 
 
 def test_bundle_with_lookup(db_conn, margs):
@@ -121,3 +121,9 @@ def test_large_med_bundle(db_conn, margs):
 
     response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
+
+
+def test_revalidate_bundle_gcp(db_conn, gcp_args, margs):
+    bundle_run = 'latest'
+    result = revalidate_from_gcp(db_conn, gcp_args, margs, bundle_run)
+    assert result
