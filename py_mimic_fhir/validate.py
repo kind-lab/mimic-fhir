@@ -169,7 +169,9 @@ def revalidate_bad_bundles(args, margs, gcp_args):
         args.port
     )
     if args.validator == 'GCP':
-        revalidate_from_gcp(gcp_args, args.bundle_run)
+        validation_result = revalidate_from_gcp(
+            db_conn, gcp_args, margs, args.bundle_run
+        )
     else:
         day_of_week = datetime.now().strftime('%A').lower()
         err_filename = f'err-bundles-{day_of_week}.json'
@@ -221,6 +223,30 @@ def revalidate_bundle_from_file(err_filename, db_conn, margs):
     return bundle_result
 
 
-def revalidate_from_gcp(gcp_args, bundle_run):
-    i = 5
+def revalidate_from_gcp(db_conn_pg, gcp_args, margs, bundle_run):
+    db_conn_bq = MFDatabaseConnection('', '', '', '', 'BIGQUERY')
+
+    if bundle_run == 'latest':
+        query_latest = 'SELECT bundle_run FROM mimic_fhir_log.bundle_error GROUP BY bundle_run ORDER BY MAX(logtime) DESC;'
+        df = db_conn_bq.read_query(query_latest)
+        bundle_run = df.iloc[0]['bundle_run']
+
+    query = f"SELECT * FROM mimic_fhir_log.bundle_error WHERE bundle_run = '{bundle_run}'"
+    df = db_conn_bq.read_query(query)
+    response_list = []
+    for row in df.itertuples():
+        logger.info(f"Patient: {row.patient_id}, Bundle: {row.bundle_group}")
+        table_list = MIMIC_BUNDLE_TABLE_LIST[row.bundle_group]
+        bundle_response = validate_bundle(
+            name=row.bundle_group,
+            patient_id=row.patient_id,
+            db_conn=db_conn_pg,
+            margs=margs,
+            gcp_args=gcp_args
+        )
+        response_list.append(bundle_response)
+
+    result = 'False' not in response_list
+    return result
+
     # access gcp to get all the patient_ids and bundle groups to rerun

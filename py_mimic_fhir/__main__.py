@@ -234,10 +234,10 @@ def parse_arguments(arguments=None):
         "revalidate", help=("Revalidation options for failed bundles")
     )
 
-    arg_validate.add_argument(
+    arg_revalidate.add_argument(
         '--bundle_run',
-        type=int,
-        default=1,
+        type=str,
+        default='latest',
         help='The bundle run that had failed bundles'
     )
 
