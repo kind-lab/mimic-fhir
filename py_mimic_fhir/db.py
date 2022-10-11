@@ -7,7 +7,7 @@ import google.auth
 
 
 class MFDatabaseConnection():
-    def __init__(self, sqluser, sqlpass, dbname, host, db_mode, port=5434):
+    def __init__(self, sqluser, sqlpass, dbname, host, db_mode, port=5432):
         self.db_conn = self.connect_db(
             sqluser, sqlpass, dbname, host, db_mode, port
         )
