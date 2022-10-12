@@ -47,6 +47,7 @@ def multiprocess_validate(args, margs, gcp_args):
             callback=result_list.update
         )
 
+    logger.info(f'Result List: {result_list.get()}')
     pool.close()
     pool.join()
 
@@ -76,6 +77,7 @@ def validation_worker(patient_id, args, margs):
         result = True
         if False in response_list:
             result = False
+        logger.info(f'{patient_id} DONE VALIDATION, ABOUT TO RETURN {result}')
         return result
     except Exception as e:
         logger.error(e)
@@ -123,12 +125,13 @@ def validate_all_bundles(patient_id, db_conn, margs, gcp_args):
             name, patient_id, db_conn, margs, gcp_args
         )
         response_list.append(bundle_response)
+    db_conn.close()
     return response_list
 
 
 def validate_bundle(name, patient_id, db_conn, margs, gcp_args):
-    logger.info(f'{name} bundle')
-    bundle = Bundle(name, MIMIC_BUNDLE_TABLE_LIST[name])
+    logger.info(f'{name} bundle for patient: {patient_id}')
+    bundle = Bundle(name, MIMIC_BUNDLE_TABLE_LIST[name], patient_id=patient_id)
     bundle.generate(patient_id, db_conn)
     if margs.validator == 'HAPI':
         response = bundle.request(margs.fhir_server, margs.err_path)

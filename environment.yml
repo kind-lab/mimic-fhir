@@ -20,7 +20,7 @@ dependencies:
     - python-dotenv
     - fhir.resources
     - google-cloud-bigquery
-    - google-cloud-pubsub
+    - google-cloud-pubsub==2.13.9
     - google-api-python-client
     - pandas-gbq
     - google-auth

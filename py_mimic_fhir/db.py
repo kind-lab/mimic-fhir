@@ -11,6 +11,7 @@ class MFDatabaseConnection():
         self.db_conn = self.connect_db(
             sqluser, sqlpass, dbname, host, db_mode, port
         )
+        self.db_mode = db_mode
 
     # database connection
     def connect_db(self, sqluser, sqlpass, dbname, host, db_mode, port=5432):
@@ -22,6 +23,7 @@ class MFDatabaseConnection():
                 host=host,
                 port=port
             )
+            connection.set_session(readonly=True)
         elif db_mode == 'BIGQUERY':
             credentials, project = google.auth.default()
             pdq.context.credentials = credentials
@@ -30,6 +32,10 @@ class MFDatabaseConnection():
         else:
             connection = db_mode
         return connection
+
+    def close(self):
+        if self.db_mode == 'POSTGRES':
+            self.db_conn.close()
 
     def read_query(self, query):
         if self.db_conn == 'BIGQUERY':

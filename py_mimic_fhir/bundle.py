@@ -148,7 +148,10 @@ class Bundle():
                 gcp_fhirstore=gcp_args.fhirstore
             )
             # getting the response from the publisher does not tell us much but takes a lot of time to wait
-            output = len(pub_response.result()) == 16
+            try:
+                output = len(pub_response.result()) == 16
+            except Exception as e:
+                logger.error(e)
         return output
 
     # Send request out to HAPI server, validates on the server
