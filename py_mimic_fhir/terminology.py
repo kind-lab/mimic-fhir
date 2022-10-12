@@ -6,7 +6,7 @@ import pandas as pd
 from pathlib import Path
 import json
 
-from py_mimic_fhir.db import connect_db, get_table
+from py_mimic_fhir.db import MFDatabaseConnection
 from py_mimic_fhir.lookup import (
     MIMIC_CODESYSTEMS, MIMIC_VALUESETS, VALUESETS_COMPLEX
 )
@@ -31,15 +31,15 @@ class TerminologyMetaData():
         self.set_vs_descriptions(db_conn)
 
     def set_cs_descriptions(self, db_conn):
-        self.cs_descriptions = get_table(db_conn, 'fhir_trm', 'cs_descriptions')
+        self.cs_descriptions = db_conn.get_table('fhir_trm', 'cs_descriptions')
 
     def set_vs_descriptions(self, db_conn):
-        self.vs_descriptions = get_table(db_conn, 'fhir_trm', 'vs_descriptions')
+        self.vs_descriptions = db_conn.get_table('fhir_trm', 'vs_descriptions')
 
 
 # Master terminology function. Creates all CodeSystems and ValueSets
 def generate_all_terminology(args):
-    db_conn = connect_db(
+    db_conn = MFDatabaseConnection(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args_db_mode,
         args.port
     )
@@ -77,7 +77,7 @@ def generate_codesystem(mimic_codesystem, db_conn, meta):
     ]['description'].iloc[0]
 
     # Generate code/display combos from the fhir_trm table
-    df_codesystem = get_table(db_conn, 'fhir_trm', f'cs_{mimic_codesystem}')
+    df_codesystem = db_conn.get_table('fhir_trm', f'cs_{mimic_codesystem}')
     concept = generate_concept(df_codesystem)
     codesystem.concept = concept
 
@@ -104,7 +104,7 @@ def generate_valueset(mimic_valueset, db_conn, meta):
 
     if mimic_valueset in VALUESETS_COMPLEX:
         logger.info('complex valueset')
-        df_valueset = get_table(db_conn, 'fhir_trm', f'vs_{mimic_valueset}')
+        df_valueset = db_conn.get_table('fhir_trm', f'vs_{mimic_valueset}')
         include_list = []
         for system in df_valueset.system.unique():
             df_sub_valueset = df_valueset[df_valueset['system'] == system]

@@ -15,10 +15,6 @@ from datetime import datetime
 from uuid import uuid4
 from google.cloud import pubsub_v1
 
-from py_mimic_fhir.db import (
-    get_resources_by_pat, get_patient_resource, get_resource_by_id,
-    get_n_patient_id, get_n_resources
-)
 from py_mimic_fhir.lookup import MIMIC_BUNDLES_NO_SPLIT_LIST
 
 logger = logging.getLogger(__name__)
@@ -96,7 +92,7 @@ class Bundle():
     def generate(self, patient_id, db_conn):
         self.patient_id = patient_id
         for table_name in self.table_list:
-            resources = get_resources_by_pat(db_conn, table_name, patient_id)
+            resources = db_conn.get_resources_by_pat(table_name, patient_id)
             self.add_entry(resources)
 
     def json(self):
@@ -139,11 +135,11 @@ class Bundle():
         else:
             # Post full bundle, no restriction on bundle size
             bundle_to_send = json.dumps(self.json()).encode('utf-8')
-            gcp_args.publisher.publish(
+            pub_response = gcp_args.publisher.publish(
                 gcp_args.topic_path,
                 bundle_to_send,
                 patient_id=self.patient_id,
-                blob_dir=gcp_args.blob_dir,
+                bundle_run=gcp_args.bundle_run,
                 bundle_group=self.bundle_name,
                 gcp_project=gcp_args.project,
                 gcp_location=gcp_args.location,
@@ -152,7 +148,10 @@ class Bundle():
                 gcp_fhirstore=gcp_args.fhirstore
             )
             # getting the response from the publisher does not tell us much but takes a lot of time to wait
-            output = True  # len(pub_response.result()) == 16
+            try:
+                output = len(pub_response.result()) == 16
+            except Exception as e:
+                logger.error(e)
         return output
 
     # Send request out to HAPI server, validates on the server

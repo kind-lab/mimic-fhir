@@ -16,7 +16,7 @@ def bundler(event, context):
     fhir_access_token = get_fhir_access_token()
 
     message = base64.b64decode(event['data']).decode('utf-8')
-    blob_dir = event['attributes']['blob_dir']
+    bundle_run = event['attributes']['bundle_run']
     bundle_group = event['attributes']['bundle_group']
     patient_id = event['attributes']['patient_id']
     gcp_project = event['attributes']['gcp_project']
@@ -38,12 +38,14 @@ def bundler(event, context):
         print(bundle['id'])
         print(bundle)
         store_bad_bundle_in_cloud_storage(
-            resp_fhir, gcp_bucket, bundle, blob_dir, error_key='error'
+            resp_fhir, gcp_bucket, bundle, bundle_run, error_key='error'
         )
         log_error_to_bigquery(
+            gcp_project,
+            patient_id,
             bundle_group,
             bundle['id'],
-            blob_dir,
+            bundle_run,
             resp_fhir['error'],
             err_flg=True
         )
@@ -52,15 +54,15 @@ def bundler(event, context):
         print(bundle['id'])
         print(bundle)
         store_bad_bundle_in_cloud_storage(
-            resp_fhir, gcp_bucket, bundle, blob_dir
+            resp_fhir, gcp_bucket, bundle, bundle_run
         )
         log_error_to_bigquery(
-            gcp_project, bundle_group, bundle['id'], blob_dir,
+            gcp_project, patient_id, bundle_group, bundle['id'], bundle_run,
             resp_fhir['issue'][0]
         )
     else:
         log_pass_to_bigquery(
-            gcp_project, patient_id, bundle_group, bundle['id'], blob_dir,
+            gcp_project, patient_id, bundle_group, bundle['id'], bundle_run,
             starttime, endtime
         )
 
@@ -90,40 +92,49 @@ def send_bundle_to_healthcare_api(
 
 
 def store_bad_bundle_in_cloud_storage(
-    resp_fhir, gcp_bucket, bundle, blob_dir, error_key='issue'
+    resp_fhir, gcp_bucket, bundle, bundle_run, error_key='issue'
 ):
     err_bundle = {"error": resp_fhir[error_key], "bundle": bundle}
 
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(gcp_bucket)
-    blob = bucket.blob(f"{blob_dir}/{bundle['id']}")
+    blob = bucket.blob(f"bundle-loading/{bundle_run}/{bundle['id']}")
     blob.upload_from_string(json.dumps(err_bundle))
 
 
 def log_error_to_bigquery(
-    gcp_project, bundle_group, bundle_id, bundle_dir, error, err_flg=False
+    gcp_project,
+    patient_id,
+    bundle_group,
+    bundle_id,
+    bundle_run,
+    error,
+    err_flg=False
 ):
     now = datetime.now()
     logtime = now.strftime("%Y-%m-%d %H:%M:%S")
     if err_flg:
         error_text = json.dumps(error)
         data = [
-            [logtime, bundle_group, bundle_id, bundle_dir, error_text, "", ""]
+            [
+                logtime, patient_id, bundle_group, bundle_id, bundle_run,
+                error_text, "", ""
+            ]
         ]
     else:
         error_exp = error['expression'][0] if 'expression' in error else ""
         error_diag = error['diagnostics'] if 'diagnostics' in error else ""
         data = [
             [
-                logtime, bundle_group, bundle_id, bundle_dir,
+                logtime, patient_id, bundle_group, bundle_id, bundle_run,
                 error['details']['text'], error_diag, error_exp
             ]
         ]
     df = pd.DataFrame(
         data,
         columns=[
-            'logtime', 'bundle_group', 'bundle_id', 'bundle_dir', 'error_text',
-            'error_diagnostics', 'error_expression'
+            'logtime', 'patient_id', 'bundle_group', 'bundle_id', 'bundle_run',
+            'error_text', 'error_diagnostics', 'error_expression'
         ]
     )
 
@@ -132,21 +143,21 @@ def log_error_to_bigquery(
 
 
 def log_pass_to_bigquery(
-    gcp_project, patient_id, bundle_group, bundle_id, bundle_dir, startime,
+    gcp_project, patient_id, bundle_group, bundle_id, bundle_run, startime,
     endtime
 ):
     now = datetime.now()
     logtime = now.strftime("%Y-%m-%d %H:%M:%S")
     data = [
         [
-            logtime, patient_id, bundle_group, bundle_id, bundle_dir, startime,
+            logtime, patient_id, bundle_group, bundle_id, bundle_run, startime,
             endtime
         ]
     ]
     df = pd.DataFrame(
         data,
         columns=[
-            'logtime', 'patient_id', 'bundle_group', 'bundle_id', 'bundle_dir',
+            'logtime', 'patient_id', 'bundle_group', 'bundle_id', 'bundle_run',
             'starttime', 'endtime'
         ]
     )

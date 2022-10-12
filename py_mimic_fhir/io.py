@@ -15,7 +15,6 @@ from google.cloud import pubsub_v1
 from py_mimic_fhir.lookup import (
     MIMIC_FHIR_PROFILES, MIMIC_DATA_TABLE_LIST, MIMIC_PATIENT_TABLE_LIST
 )
-from py_mimic_fhir.db import get_n_patient_id, get_resources_by_pat, db_read_query
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +213,7 @@ def export_patient_everything_gcp(gcp_args, pe_args, db_conn):
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(gcp_args.project, pe_args.topic)
 
-    patient_list = get_n_patient_id(db_conn, pe_args.num_patients)
+    patient_list = db_conn.get_n_patient_id(pe_args.num_patients)
     result_flag = True
     for patient_id in patient_list:
         data_to_send = patient_id.encode('utf-8')
@@ -264,7 +263,7 @@ def sort_resources(output_path):
 
 
 def export_patient_related_ndjson(db_conn, output_path):
-    patient_list = get_n_patient_id(db_conn)
+    patient_list = db_conn.get_n_patient_id()
     patient_output_path = f'{output_path}/patients'
 
     create_folder_if_not_exists(output_path)
@@ -274,10 +273,10 @@ def export_patient_related_ndjson(db_conn, output_path):
         patient_folder = f'{patient_output_path}/{patient_id}'
         create_folder_if_not_exists(patient_folder)
 
-        resource_list = get_resources_by_pat(db_conn, 'patient', patient_id)
+        resource_list = db_conn.get_resources_by_pat('patient', patient_id)
         write_ndjson_by_table_name('patient', patient_folder, resource_list)
         for table in MIMIC_PATIENT_TABLE_LIST:
-            resource_list = get_resources_by_pat(db_conn, table, patient_id)
+            resource_list = db_conn.get_resources_by_pat(table, patient_id)
             write_ndjson_by_table_name(table, patient_folder, resource_list)
 
 
@@ -288,7 +287,7 @@ def export_data_related_ndjson(db_conn, output_path):
 
     for table in MIMIC_DATA_TABLE_LIST:
         query_table = f"SELECT fhir FROM mimic_fhir.{table}"
-        resource_list = db_read_query(query_table, db_conn)
+        resource_list = db_conn.read_query(query_table)
         write_ndjson_by_table_name(table, data_output_path, resource_list)
 
 

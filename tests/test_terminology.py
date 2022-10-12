@@ -12,7 +12,6 @@ import py_mimic_fhir.terminology as trm
 from fhir.resources.codesystem import CodeSystem, CodeSystemConcept
 from fhir.resources.valueset import ValueSet
 
-from py_mimic_fhir import db
 from py_mimic_fhir.lookup import (MIMIC_CODESYSTEMS, MIMIC_VALUESETS)
 
 
@@ -35,7 +34,7 @@ def test_valueset_descriptions(db_conn, meta):
 
 
 def test_db_get_table(db_conn):
-    df_table = db.get_table(db_conn, 'fhir_trm', 'cs_lab_flags')
+    df_table = db_conn.get_table('fhir_trm', 'cs_lab_flags')
     print(df_table)
 
 

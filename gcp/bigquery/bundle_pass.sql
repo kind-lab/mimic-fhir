@@ -4,7 +4,7 @@ CREATE TABLE mimic_fhir_log.bundle_pass (
   patient_id STRING(36),
   bundle_group STRING(100),
   bundle_id STRING(100),
-  bundle_dir STRING(100),
+  bundle_run STRING(100),
   starttime TIMESTAMP,
   endtime TIMESTAMP
 );

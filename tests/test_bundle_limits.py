@@ -5,14 +5,13 @@ import pandas as pd
 from google.cloud import pubsub_v1
 
 from py_mimic_fhir.bundle import Bundle
-from py_mimic_fhir.db import get_n_patient_id, get_n_resources, db_read_query
 from py_mimic_fhir.lookup import MIMIC_BUNDLE_TABLE_LIST
-from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file
+from py_mimic_fhir.validate import validate_all_bundles, validate_bundle, revalidate_bundle_from_file, revalidate_from_gcp
 
 
 def test_bundle_with_lookup(db_conn, margs):
     response_list = []
-    patient_id = get_n_patient_id(db_conn, 1)[0]
+    patient_id = db_conn.get_n_patient_id(1)[0]
     for name, table_list in MIMIC_BUNDLE_TABLE_LIST.items():
         # Create bundle and post it
         bundle_response = validate_bundle(name, patient_id, db_conn, margs)
@@ -21,7 +20,7 @@ def test_bundle_with_lookup(db_conn, margs):
 
 
 def test_n_patient_bundles(db_conn, margs):
-    patient_ids = get_n_patient_id(db_conn, 1)
+    patient_ids = db_conn.get_n_patient_id(1)
     name = 'patient'
 
     # Create bundle and post it
@@ -36,7 +35,7 @@ def test_n_patient_bundles(db_conn, margs):
 
 def test_n_patient_bundles_all_resources(db_conn, margs):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 1)
+    patient_ids = db_conn.get_n_patient_id(1)
     bundle_name = 'lab'
 
     # Create bundle and post it
@@ -62,7 +61,7 @@ def test_post_100_resources(db_conn, margs, gcp_args):
     q_resource = f"""
         SELECT fhir FROM mimic_fhir.observation_chartevents LIMIT 100000
     """
-    pd_resources = db_read_query(q_resource, db_conn)
+    pd_resources = db_conn.read_query(q_resource)
     resources = pd_resources.fhir.to_list()
     split_flag = True  # Divide up bundles into smaller chunks
 
@@ -77,9 +76,7 @@ def test_post_100_resources(db_conn, margs, gcp_args):
 
 def test_bundle_size(db_conn, margs):
     bundle_size = 50
-    resources = get_n_resources(
-        db_conn, 'observation_chartevents', n_limit=1000
-    )
+    resources = db_conn.get_n_resources('observation_chartevents', n_limit=1000)
     bundle = Bundle('test_1000')
     bundle.add_entry(resources)
     resp = bundle.request(
@@ -93,7 +90,7 @@ def test_bundle_size(db_conn, margs):
 
 def test_bundle_multiple_lab_resources(db_conn, margs):
     # Get n patient ids to then bundle and post
-    patient_ids = get_n_patient_id(db_conn, 1)
+    patient_ids = db_conn.get_n_patient_id(1)
     bundle_name = 'lab'
 
     # Create bundle and post it
@@ -124,3 +121,9 @@ def test_large_med_bundle(db_conn, margs):
 
     response = validate_bundle(bundle_name, patient_id, db_conn, margs)
     assert response
+
+
+def test_revalidate_bundle_gcp(db_conn, gcp_args, margs):
+    bundle_run = 'latest'
+    result = revalidate_from_gcp(db_conn, gcp_args, margs, bundle_run)
+    assert result
