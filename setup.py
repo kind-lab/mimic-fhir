@@ -4,11 +4,11 @@ readme = open('./pyREADME.md', 'r')
 
 setup(
     name='py-mimic-fhir',
-    version='0.9.2',
+    version='1.0.0',
     author='Alex Bennett',
     author_email='alexmbennett2@gmail.com',
     packages=find_packages(exclude=['tests', 'tests.*']),
-    description='A package to help convert MIMIC to FHIR',
+    description='A package to help convert MIMIC-IV to FHIR',
     long_description=readme.read(),
     long_description_content_type="text/markdown",
     url='https://github.com/kind-lab/mimic-fhir',
