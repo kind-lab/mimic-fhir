@@ -1,5 +1,5 @@
 # mimic-fhir
-A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV loaded into your local Postgres or follow this [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) to set it up.
+A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV and MIMIC-IV ED loaded into your local Postgres or follow this [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) to set it up.
 
 ## Quickstart
 1. Clone the repository locally:  

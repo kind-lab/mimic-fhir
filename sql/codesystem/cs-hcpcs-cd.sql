@@ -12,5 +12,5 @@ INSERT INTO fhir_trm.cs_hcpcs_cd
 SELECT DISTINCT  
     hcpcs_cd AS code
     , short_description AS display
-FROM mimic_hosp.hcpcsevents  
+FROM mimiciv_hosp.hcpcsevents  
 WHERE hcpcs_cd IS NOT NULL;

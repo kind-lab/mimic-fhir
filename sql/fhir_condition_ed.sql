@@ -20,7 +20,7 @@ WITH fhir_condition_ed AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(diag.stay_id AS TEXT)) as uuid_STAY_ID
     FROM
         mimic_ed.diagnosis diag
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON diag.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter 
             ON ns_encounter.name = 'EncounterED'

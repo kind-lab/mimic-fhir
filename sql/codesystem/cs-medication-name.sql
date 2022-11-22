@@ -9,21 +9,21 @@ CREATE TABLE fhir_trm.cs_medication_name(
 WITH medication_name AS (
     -- prescription names are fully captured in pharmacy currently, but keeping incase this changes in future
     SELECT DISTINCT TRIM(REGEXP_REPLACE(drug, '\s+', ' ', 'g')) AS code 
-    FROM mimic_hosp.prescriptions 
+    FROM mimiciv_hosp.prescriptions 
     WHERE formulary_drug_cd IS NULL
     
     UNION    
     
     SELECT DISTINCT TRIM(REGEXP_REPLACE(medication, '\s+', ' ', 'g')) AS  code 
-    FROM mimic_hosp.pharmacy
+    FROM mimiciv_hosp.pharmacy
     
     UNION 
     
     SELECT 
         DISTINCT TRIM(REGEXP_REPLACE(medication, '\s+', ' ', 'g')) AS code
     FROM 
-        mimic_hosp.emar_detail emd 
-        LEFT JOIN mimic_hosp.emar em
+        mimiciv_hosp.emar_detail emd 
+        LEFT JOIN mimiciv_hosp.emar em
             ON emd.emar_id = em.emar_id
 )
 

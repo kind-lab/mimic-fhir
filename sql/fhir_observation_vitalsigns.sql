@@ -27,7 +27,7 @@ WITH vital_signs AS (
         , uuid_generate_v5(ns_procedure.uuid, vs.stay_id || '-' || vs.charttime) AS uuid_PROCEDURE
     FROM
         vital_signs vs
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON vs.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_ed
             ON ns_encounter_ed.name = 'EncounterED'
@@ -208,7 +208,7 @@ WITH triage_vital_signs AS (
         , uuid_generate_v5(ns_procedure.uuid, CAST(vs.stay_id AS TEXT)) AS uuid_PROCEDURE
     FROM
         triage_vital_signs vs
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON vs.subject_id = pat.subject_id
         LEFT JOIN mimic_ed.edstays ed 
             ON vs.stay_id = ed.stay_id

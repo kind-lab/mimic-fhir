@@ -9,5 +9,5 @@ CREATE TABLE fhir_trm.cs_medication_poe_iv(
 INSERT INTO fhir_trm.cs_medication_poe_iv
 SELECT 
     DISTINCT order_type
-FROM mimic_hosp.poe
+FROM mimiciv_hosp.poe
 WHERE order_type IN ('TPN', 'IV therapy')

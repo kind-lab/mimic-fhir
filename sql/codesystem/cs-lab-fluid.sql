@@ -8,4 +8,4 @@ CREATE TABLE fhir_trm.cs_lab_fluid(
 
 INSERT INTO fhir_trm.cs_lab_fluid
 SELECT DISTINCT fluid
-FROM mimic_hosp.d_labitems;
+FROM mimiciv_hosp.d_labitems;

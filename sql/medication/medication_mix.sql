@@ -22,7 +22,7 @@ WITH medication_identifier AS (
         , drug
         , drug_type
     FROM 
-        mimic_hosp.prescriptions pr
+        mimiciv_hosp.prescriptions pr
 ), medication_mix AS (
     SELECT DISTINCT 
         -- For prescriptions with multiple drugs prescribed, put the drugs under ingredients
@@ -40,7 +40,7 @@ WITH medication_identifier AS (
         -- Multiple additives are allowed, so these are ordered alphabetically 
         , STRING_AGG(mid.med_id, '_' ORDER BY pr.drug_type DESC, pr.drug ASC) AS medmix_id   
     FROM 
-        mimic_hosp.prescriptions pr
+        mimiciv_hosp.prescriptions pr
         LEFT JOIN medication_identifier mid
             ON pr.pharmacy_id = mid.pharmacy_id
             AND pr.drug = mid.drug

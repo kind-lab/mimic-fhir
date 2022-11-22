@@ -14,5 +14,5 @@ SELECT DISTINCT
     'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-d-items' AS system
     , itemid AS code
     , label AS display
-FROM mimic_icu.d_items 
+FROM mimiciv_icu.d_items 
 WHERE linksto = 'outputevents'

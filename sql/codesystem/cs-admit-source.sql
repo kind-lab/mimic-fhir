@@ -9,7 +9,7 @@ CREATE TABLE fhir_trm.cs_admit_source(
 WITH mimic_admit_source AS (
 
     -- Hospital admission sources
-    SELECT DISTINCT admission_location AS code FROM mimic_hosp.admissions 
+    SELECT DISTINCT admission_location AS code FROM mimiciv_hosp.admissions 
     UNION
     
     -- ED admission sources

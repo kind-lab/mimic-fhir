@@ -8,5 +8,5 @@ CREATE TABLE fhir_trm.cs_medication_frequency(
 
 INSERT INTO fhir_trm.cs_medication_frequency
 SELECT DISTINCT TRIM(REGEXP_REPLACE(frequency, '\s+', ' ', 'g')) AS code 
-FROM mimic_hosp.pharmacy p 
+FROM mimiciv_hosp.pharmacy p 
 WHERE frequency IS NOT NULL;

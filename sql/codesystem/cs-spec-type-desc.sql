@@ -11,5 +11,5 @@ INSERT INTO fhir_trm.cs_spec_type_desc
 SELECT DISTINCT 
     spec_itemid AS code
     , spec_type_desc AS display
-FROM mimic_hosp.microbiologyevents
+FROM mimiciv_hosp.microbiologyevents
 WHERE spec_type_desc != '';

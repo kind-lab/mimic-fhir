@@ -8,8 +8,8 @@ INSERT INTO fhir_etl.subjects(subject_id)
 SELECT   
     pat.subject_id
 FROM  
-    mimic_hosp.patients pat
-    INNER JOIN mimic_icu.icustays ie 
+    mimiciv_hosp.patients pat
+    INNER JOIN mimiciv_icu.icustays ie 
         ON pat.subject_id = ie.subject_id
 WHERE  
     anchor_age > 0

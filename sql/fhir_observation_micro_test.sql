@@ -39,7 +39,7 @@ WITH distinct_org AS (
         END AS valueCodeableConcept
         
     FROM 
-        mimic_hosp.microbiologyevents mi
+        mimiciv_hosp.microbiologyevents mi
     GROUP BY 
         test_itemid
         , micro_specimen_id

@@ -13,7 +13,7 @@ WITH fhir_specimen AS (
         , uuid_generate_v5(ns_specimen.uuid, CAST(mi.micro_specimen_id AS TEXT)) AS uuid_SPECIMEN
         , uuid_generate_v5(ns_patient.uuid, CAST(MAX(mi.subject_id) AS TEXT)) as uuid_SUBJECT_ID
     FROM
-        mimic_hosp.microbiologyevents mi
+        mimiciv_hosp.microbiologyevents mi
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_specimen

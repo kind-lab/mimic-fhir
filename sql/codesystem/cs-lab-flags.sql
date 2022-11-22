@@ -8,5 +8,5 @@ CREATE TABLE fhir_trm.cs_lab_flags(
 
 INSERT INTO fhir_trm.cs_lab_flags
 SELECT DISTINCT flag AS code
-FROM mimic_hosp.labevents  
+FROM mimiciv_hosp.labevents  
 WHERE flag IS NOT NULL 

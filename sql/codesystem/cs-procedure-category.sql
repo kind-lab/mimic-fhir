@@ -9,4 +9,4 @@ CREATE TABLE fhir_trm.cs_procedure_category(
 
 INSERT INTO fhir_trm.cs_procedure_category
 SELECT DISTINCT ordercategoryname 
-FROM mimic_icu.procedureevents p 
+FROM mimiciv_icu.procedureevents p 

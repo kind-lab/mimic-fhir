@@ -13,13 +13,13 @@ WITH transfer_location AS (
         , min(icu.first_careunit) AS first_careunit 
         , min(icu.last_careunit) AS last_careunit
     FROM 
-        mimic_icu.icustays icu
-        LEFT JOIN mimic_hosp.transfers tfr_first
+        mimiciv_icu.icustays icu
+        LEFT JOIN mimiciv_hosp.transfers tfr_first
             ON icu.hadm_id = tfr_first.hadm_id 
             AND icu.first_careunit = tfr_first.careunit 
             AND tfr_first.intime >= icu.intime
             AND tfr_first.outtime <= icu.outtime 
-        LEFT JOIN mimic_hosp.transfers tfr_last
+        LEFT JOIN mimiciv_hosp.transfers tfr_last
             ON icu.hadm_id = tfr_last.hadm_id 
             AND icu.last_careunit = tfr_last.careunit 
             AND tfr_last.intime >=  icu.intime
@@ -46,7 +46,7 @@ WITH transfer_location AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(icu.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         
     FROM 
-        mimic_icu.icustays icu        
+        mimiciv_icu.icustays icu        
         -- join transfers to get timing in each careunit
         LEFT JOIN transfer_location tfr
             ON icu.stay_id = tfr.stay_id

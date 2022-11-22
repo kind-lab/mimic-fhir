@@ -18,8 +18,8 @@ WITH fhir_observation_oe AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(oe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter_icu.uuid, CAST(oe.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM
-        mimic_icu.outputevents oe
-        LEFT JOIN mimic_icu.d_items di
+        mimiciv_icu.outputevents oe
+        LEFT JOIN mimiciv_icu.d_items di
             ON oe.itemid = di.itemid
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_icu
             ON ns_encounter_icu.name = 'EncounterICU'

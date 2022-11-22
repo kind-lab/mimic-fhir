@@ -11,6 +11,6 @@ INSERT INTO fhir_trm.cs_medication_icu
 SELECT 
     itemid AS code
     , LABEL AS display
-FROM mimic_icu.d_items 
+FROM mimiciv_icu.d_items 
 WHERE linksto='inputevents'
 

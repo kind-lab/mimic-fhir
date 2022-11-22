@@ -14,18 +14,18 @@ WITH tb_admissions AS (
         -- Set a birth date based on first hospital time, since MIMIC no longer provides a birth date
         , CAST(CAST(MIN(tfs.intime) AS DATE) - CAST(pat.anchor_age || 'years' AS INTERVAL) AS DATE) AS pat_BIRTH_DATE
         , MIN(adm.marital_status) AS adm_MARITAL_STATUS
-        , MIN(adm.ethnicity) AS adm_ETHNICITY
+        , MIN(adm.race) AS adm_ETHNICITY
         , MIN(adm.language) AS adm_LANGUAGE
     FROM  
-        mimic_hosp.patients pat
-        INNER JOIN mimic_hosp.transfers tfs
+        mimiciv_hosp.patients pat
+        INNER JOIN mimiciv_hosp.transfers tfs
             ON pat.subject_id = tfs.subject_id
         -- Grab latest admittime to get the latest demographic info 
         LEFT JOIN (SELECT subject_id, MAX(admittime) AS admittime
-            FROM mimic_hosp.admissions
+            FROM mimiciv_hosp.admissions
                 GROUP BY subject_id) adm_max
             ON pat.subject_id = adm_max.subject_id
-        LEFT JOIN mimic_hosp.admissions adm
+        LEFT JOIN mimiciv_hosp.admissions adm
             ON adm_max.subject_id = adm.subject_id 
             AND adm_max.admittime = adm.admittime
     GROUP BY 
@@ -61,7 +61,7 @@ WITH tb_admissions AS (
           ELSE NULL END as adm_LANGUAGE
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS  UUID_organization
     FROM  
-        mimic_hosp.patients pat
+        mimiciv_hosp.patients pat
         LEFT JOIN tb_admissions adm
             ON pat.subject_id = adm.subject_id
         LEFT JOIN ed_race ed

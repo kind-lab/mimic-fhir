@@ -29,7 +29,7 @@ WITH fhir_medication_statement_ed AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(med.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM 
         mimic_ed.medrecon med
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON med.subject_id = pat.subject_id
         
         -- UUID namespaces

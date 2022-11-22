@@ -64,8 +64,8 @@ WITH fhir_observation_labevents AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(lab.hadm_id AS TEXT)) AS uuid_HADM_ID
         , uuid_generate_v5(ns_specimen.uuid, CAST(lab.specimen_id AS TEXT)) AS uuid_SPECIMEN_ID
     FROM
-        mimic_hosp.labevents lab
-        LEFT JOIN mimic_hosp.d_labitems dlab
+        mimiciv_hosp.labevents lab
+        LEFT JOIN mimiciv_hosp.d_labitems dlab
             ON lab.itemid = dlab.itemid                             
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
             ON ns_encounter.name = 'Encounter'

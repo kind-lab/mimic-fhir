@@ -17,8 +17,8 @@ WITH icd9_codes AS (
         DISTINCT TRIM(diag.icd_code) AS code
         , icd.long_title AS display
     FROM 
-        mimic_hosp.diagnoses_icd diag
-        LEFT JOIN mimic_hosp.d_icd_diagnoses icd
+        mimiciv_hosp.diagnoses_icd diag
+        LEFT JOIN mimiciv_hosp.d_icd_diagnoses icd
             ON diag.icd_code = icd.icd_code 
             AND diag.icd_version = icd.icd_version 
     WHERE diag.icd_version = 9
