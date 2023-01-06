@@ -29,7 +29,7 @@ VALUES
     , ('medication_formulary_drug_cd', 'Medication formulary drug codes for use in prescriptions and emar')
     , ('medication_frequency', 'The medication frequency reported for medication delivery in MIMIC')
     , ('medication_gsn', 'The medication GSN codes for MIMIC')
-    , ('medication_icu', 'All medication found in the ICU, derived from mimic_icu.d_items')   
+    , ('medication_icu', 'All medication found in the ICU, derived from mimiciv_icu.d_items')   
     , ('medication_method', 'The medication delivery method for MIMIC')
     , ('medication_method_icu', 'The medication delivery method used in the ICU for MIMIC')
     , ('medication_name', 'The standard medication name used in MIMIC. Used in pharmacy, prescriptions, and emar')

@@ -19,8 +19,8 @@ WITH fhir_procedure AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(proc.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(proc.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM
-        mimic_hosp.procedures_icd proc
-        LEFT JOIN mimic_hosp.d_icd_procedures icd
+        mimiciv_hosp.procedures_icd proc
+        LEFT JOIN mimiciv_hosp.d_icd_procedures icd
             ON proc.icd_code = icd.icd_code
             AND proc.icd_version = icd.icd_version
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter

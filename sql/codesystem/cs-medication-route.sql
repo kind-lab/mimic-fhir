@@ -9,9 +9,9 @@ CREATE TABLE fhir_trm.cs_medication_route(
 
 
 WITH med_routes AS (
-    SELECT DISTINCT TRIM(route) AS route FROM mimic_hosp.emar_detail 
+    SELECT DISTINCT TRIM(route) AS route FROM mimiciv_hosp.emar_detail 
     UNION
-    SELECT DISTINCT TRIM(route) AS route FROM mimic_hosp.pharmacy
+    SELECT DISTINCT TRIM(route) AS route FROM mimiciv_hosp.pharmacy
 ) 
 INSERT INTO fhir_trm.cs_medication_route
 SELECT route

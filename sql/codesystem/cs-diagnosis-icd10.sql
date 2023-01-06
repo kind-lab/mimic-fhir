@@ -1,5 +1,5 @@
 -- Generate codes for diagnosis-icd10 codesystem
--- Take codes used in mimic_hosp.diagnosis_icd and mimic_ed.diagnosis
+-- Take codes used in mimiciv_hosp.diagnosis_icd and mimic_ed.diagnosis
 -- Combine all the codes from MIMIC-IV and MIMIC-ED to make sure all ICD codes captured
 -- Need to trim to remove whitespaces, or validator will fail it
 -- FUTURE: fhir should have all these codes in the terminology server, but only have fragmented version.
@@ -18,8 +18,8 @@ WITH icd10_codes AS (
         DISTINCT TRIM(diag.icd_code) AS code
         , icd.long_title AS display
     FROM 
-        mimic_hosp.diagnoses_icd diag
-        LEFT JOIN mimic_hosp.d_icd_diagnoses icd
+        mimiciv_hosp.diagnoses_icd diag
+        LEFT JOIN mimiciv_hosp.d_icd_diagnoses icd
             ON diag.icd_code = icd.icd_code 
             AND diag.icd_version = icd.icd_version 
     WHERE diag.icd_version = 10

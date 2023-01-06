@@ -25,7 +25,7 @@ WITH observation_ed AS (
         , uuid_generate_v5(ns_procedure.uuid, ed.stay_id || '-' || ed.charttime) AS uuid_PROCEDURE
     FROM
         observation_ed ed
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON ed.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_ed
             ON ns_encounter_ed.name = 'EncounterED'
@@ -119,7 +119,7 @@ WITH observation_ed AS (
         , uuid_generate_v5(ns_procedure.uuid, CAST(ed.stay_id AS TEXT)) AS uuid_PROCEDURE
     FROM
         observation_ed ed
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON ed.subject_id = pat.subject_id
         LEFT JOIN mimic_ed.edstays stay
             ON ed.stay_id =  stay.stay_id

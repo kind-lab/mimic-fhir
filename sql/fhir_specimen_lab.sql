@@ -8,7 +8,7 @@ WITH lab AS (
         , MAX(lab.subject_id) AS subject_id
         , MAX(lab.charttime) AS charttime
     FROM 
-        mimic_hosp.labevents lab  
+        mimiciv_hosp.labevents lab  
     GROUP BY
         specimen_id        
 )
@@ -22,7 +22,7 @@ WITH lab AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(lab.subject_id AS TEXT)) as uuid_SUBJECT_ID
     FROM 
         lab
-        LEFT JOIN mimic_hosp.d_labitems dlab
+        LEFT JOIN mimiciv_hosp.d_labitems dlab
             ON lab.itemid = dlab.itemid
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'

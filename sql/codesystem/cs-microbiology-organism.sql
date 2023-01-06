@@ -9,5 +9,5 @@ CREATE TABLE fhir_trm.cs_microbiology_organism(
 
 INSERT INTO fhir_trm.cs_microbiology_organism
 SELECT DISTINCT org_itemid, org_name 
-FROM mimic_hosp.microbiologyevents m 
+FROM mimiciv_hosp.microbiologyevents m 
 WHERE org_itemid IS NOT NULL

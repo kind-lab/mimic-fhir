@@ -31,7 +31,7 @@ WITH prescriptions_med AS (
                     THEN '--' || ndc ELSE '' END            
         ) AS med_UUID        
     FROM 
-        mimic_hosp.prescriptions pr
+        mimiciv_hosp.prescriptions pr
         LEFT JOIN fhir_etl.uuid_namespace ns_medication
             ON ns_medication.name = 'MedicationPrescriptions'
 )

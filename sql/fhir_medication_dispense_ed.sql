@@ -18,7 +18,7 @@ WITH fhir_medication_dispense_ed AS (
         , uuid_generate_v5(ns_encounter.uuid, CAST(py.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM 
         mimic_ed.pyxis py  
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON py.subject_id = pat.subject_id
         -- UUID namespaces
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter

@@ -12,4 +12,4 @@ INSERT INTO fhir_trm.cs_d_labitems
 SELECT 
     itemid AS code
     , label AS display
-FROM mimic_hosp.d_labitems 
+FROM mimiciv_hosp.d_labitems 

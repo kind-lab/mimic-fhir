@@ -8,7 +8,7 @@ SELECT fhir_etl.fn_create_table_patient_dependent('medication_dispense');
 
 WITH distinct_prescriptions AS (
     SELECT DISTINCT pharmacy_id
-    FROM mimic_hosp.prescriptions 
+    FROM mimiciv_hosp.prescriptions 
 )
 -- Collect all pharmacy_id in pharmacy. 
 -- There are some pharmacy_id in prescriptions that will not have a related pharmacy_id in pharmacy
@@ -45,7 +45,7 @@ WITH distinct_prescriptions AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(ph.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(ph.hadm_id AS TEXT)) AS uuid_HADM_ID
     FROM 
-        mimic_hosp.pharmacy ph 
+        mimiciv_hosp.pharmacy ph 
         LEFT JOIN distinct_prescriptions pr
             ON ph.pharmacy_id = pr.pharmacy_id
             

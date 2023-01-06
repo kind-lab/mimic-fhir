@@ -12,7 +12,7 @@ SELECT fhir_etl.fn_create_table_patient_dependent('medication_administration');
 --    4) if nothing is present then store as Unknown medication
 WITH prescriptions AS (
     SELECT DISTINCT pharmacy_id 
-    FROM mimic_hosp.prescriptions 
+    FROM mimiciv_hosp.prescriptions 
 ), emar_detail_unique AS (
     SELECT DISTINCT 
         emar_id
@@ -28,7 +28,7 @@ WITH prescriptions AS (
         , MAX(product_code) AS product_code
         , MAX(pharmacy_id) AS pharmacy_id
     FROM
-        mimic_hosp.emar_detail
+        mimiciv_hosp.emar_detail
     GROUP BY
         emar_id
         , parent_field_ordinal
@@ -116,9 +116,9 @@ WITH prescriptions AS (
         
     FROM
         emar_detail_unique emd
-        LEFT JOIN mimic_hosp.emar em
+        LEFT JOIN mimiciv_hosp.emar em
             ON emd.emar_id = em.emar_id
-        LEFT JOIN mimic_hosp.poe poe
+        LEFT JOIN mimiciv_hosp.poe poe
             ON em.poe_id = poe.poe_id 
         LEFT JOIN prescriptions pr
             ON emd.pharmacy_id = pr.pharmacy_id

@@ -8,4 +8,4 @@ CREATE TABLE fhir_trm.cs_medication_method_icu(
 
 INSERT INTO fhir_trm.cs_medication_method_icu
 SELECT DISTINCT TRIM(ordercategorydescription)
-FROM mimic_icu.inputevents; 
+FROM mimiciv_icu.inputevents; 
