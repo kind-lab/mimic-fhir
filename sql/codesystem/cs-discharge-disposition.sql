@@ -13,7 +13,7 @@ WITH mimic_discharge_disposition AS (
     UNION
     
     -- ED admission sources
-    SELECT DISTINCT disposition AS code FROM mimic_ed.edstays 
+    SELECT DISTINCT disposition AS code FROM mimiciv_ed.edstays 
 )
 INSERT INTO fhir_trm.cs_discharge_disposition
 SELECT code

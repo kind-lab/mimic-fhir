@@ -18,7 +18,7 @@ WITH fhir_encounter_ed AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(ed.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS uuid_ORG
     FROM 
-        mimic_ed.edstays ed
+        mimiciv_ed.edstays ed
         INNER JOIN mimiciv_hosp.patients pat
             ON ed.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter	

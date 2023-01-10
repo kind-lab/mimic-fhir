@@ -28,7 +28,7 @@ WITH fhir_medication_statement_ed AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(MAX(med.subject_id) AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(med.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM 
-        mimic_ed.medrecon med
+        mimiciv_ed.medrecon med
         INNER JOIN mimiciv_hosp.patients pat
             ON med.subject_id = pat.subject_id
         

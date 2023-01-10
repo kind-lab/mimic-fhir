@@ -13,10 +13,10 @@ WITH fhir_procedure_triage AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(proc.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(proc.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM
-        mimic_ed.triage proc
+        mimiciv_ed.triage proc
         INNER JOIN mimiciv_hosp.patients pat
             ON proc.subject_id = pat.subject_id
-        LEFT JOIN mimic_ed.edstays stay
+        LEFT JOIN mimiciv_ed.edstays stay
             ON proc.stay_id = stay.stay_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
             ON ns_encounter.name = 'EncounterED'
@@ -63,7 +63,7 @@ WITH fhir_procedure_vitalsign AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(proc.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter.uuid, CAST(proc.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM
-        mimic_ed.vitalsign proc
+        mimiciv_ed.vitalsign proc
         INNER JOIN mimiciv_hosp.patients pat
             ON proc.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter

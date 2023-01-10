@@ -14,7 +14,7 @@ WITH tb_admissions AS (
         -- Set a birth date based on first hospital time, since MIMIC no longer provides a birth date
         , CAST(CAST(MIN(tfs.intime) AS DATE) - CAST(pat.anchor_age || 'years' AS INTERVAL) AS DATE) AS pat_BIRTH_DATE
         , MIN(adm.marital_status) AS adm_MARITAL_STATUS
-        , MIN(adm.ethnicity) AS adm_ETHNICITY
+        , MIN(adm.race) AS adm_RACE
         , MIN(adm.language) AS adm_LANGUAGE
     FROM  
         mimiciv_hosp.patients pat
@@ -41,7 +41,7 @@ WITH tb_admissions AS (
             MAX(ed.outtime) OVER (PARTITION BY ed.subject_id) max_outtime,
             ROW_NUMBER() OVER (PARTITION BY ed.subject_id ORDER BY ed.outtime DESC) rn,
             race
-        FROM mimic_ed.edstays ed
+        FROM mimiciv_ed.edstays ed
     ) AS ed
     WHERE rn = 1
 ), fhir_patient AS (
@@ -56,7 +56,7 @@ WITH tb_admissions AS (
         
         , mms.fhir_system AS mms_FHIR_SYSTEM
         , mms.fhir_marital_status AS mms_FHIR_MARITAL_STATUS
-        , COALESCE(adm.adm_ETHNICITY, ed.race) AS adm_ETHNICITY
+        , COALESCE(adm.adm_RACE, ed.race) AS adm_RACE
         , CASE WHEN adm.adm_LANGUAGE = 'ENGLISH' THEN 'en'
           ELSE NULL END as adm_LANGUAGE
         , uuid_generate_v5(ns_organization.uuid, 'http://hl7.org/fhir/sid/us-npi/1194052720') AS  UUID_organization
@@ -107,7 +107,7 @@ SELECT
             ELSE NULL END
         , 'birthDate', pat_BIRTH_DATE
         , 'deceasedDateTime', pat_DOD
-        , 'extension', fhir_etl.fn_patient_extension(adm_ETHNICITY, adm_ETHNICITY, pat_BIRTHSEX)
+        , 'extension', fhir_etl.fn_patient_extension(adm_RACE, adm_RACE, pat_BIRTHSEX)
     
         -- Set preferred language if present
         , 'communication',

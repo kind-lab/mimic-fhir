@@ -29,7 +29,7 @@ WITH icd9_codes AS (
         DISTINCT TRIM(eddg.icd_code) AS code
         , eddg.icd_title AS display
     FROM
-        mimic_ed.diagnosis eddg
+        mimiciv_ed.diagnosis eddg
     WHERE icd_version = 9   
 )
 INSERT INTO fhir_trm.cs_diagnosis_icd9
