@@ -1,5 +1,7 @@
-\set outputdir '/tmp/mimic_output'
-\! mkdir -p '/tmp/mimic_output'
+--\set outputdir '/tmp/mimic_output'
+--\! mkdir -p '/tmp/mimic_output'
+\set outputdir '/Volumes/Samsung SSD T7/mimic-fhir-demo'
+
 \t
 -- removes single space in front of output
 \pset format unaligned 
@@ -8,113 +10,140 @@
 
 -- institutional resources
 \echo organization
-\o :outputdir/MimicOrganization.ndjson
-SELECT fhir FROM mimic_fhir.organization;
+\set outputfile :outputdir/MimicOrganization.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.organization) TO ' :'outputfile' 
+:command
 
 \echo location
-\o :outputdir/MimicLocation.ndjson
-SELECT fhir FROM mimic_fhir.location;
+\set outputfile :outputdir/MimicLocation.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.location) TO ' :'outputfile' 
+:command
 
 -- patient tracking resources
 \echo patient
-\o :outputdir/MimicPatient.ndjson
-SELECT fhir FROM mimic_fhir.patient;
+\set outputfile :outputdir/MimicPatient.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.patient) TO ' :'outputfile' 
+:command
 
 \echo encounter
-\o :outputdir/MimicEncounter.ndjson
-SELECT fhir FROM mimic_fhir.encounter;
+\set outputfile :outputdir/MimicEncounter.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.encounter) TO ' :'outputfile' 
+:command
 
 \echo encounter
-\o :outputdir/MimicEncounterED.ndjson
-SELECT fhir FROM mimic_fhir.encounter_ed;
+\set outputfile :outputdir/MimicEncounterED.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.encounter_ed) TO ' :'outputfile' 
+:command
 
 \echo encounter_icu
-\o :outputdir/MimicEncounterICU.ndjson
-SELECT fhir FROM mimic_fhir.encounter_icu;
+\set outputfile :outputdir/MimicEncounterICU.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.encounter_icu) TO ' :'outputfile' 
+:command
 
 -- data resources: conditions, diagnoses, procedures
 \echo condition
-\o :outputdir/MimicCondition.ndjson
-SELECT fhir FROM mimic_fhir.condition;
+\set outputfile :outputdir/MimicCondition.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.condition) TO ' :'outputfile' 
+:command
 
 \echo condition ED
-\o :outputdir/MimicConditionED.ndjson
-SELECT fhir FROM mimic_fhir.condition_ed;
+\set outputfile :outputdir/MimicConditionED.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.condition_ed) TO ' :'outputfile' 
+:command
 
 \echo procedure
-\o :outputdir/MimicProcedure.ndjson
-SELECT fhir FROM mimic_fhir.procedure;
+\set outputfile :outputdir/MimicProcedure.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.procedure) TO ' :'outputfile' 
+:command
 
 \echo procedure ED
-\o :outputdir/MimicProcedureED.ndjson
-SELECT fhir FROM mimic_fhir.procedure_ed;
+\set outputfile :outputdir/MimicProcedureED.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.procedure_ed) TO ' :'outputfile' 
+:command
 
 \echo procedure_icu
-\o :outputdir/MimicProcedureICU.ndjson
-SELECT fhir FROM mimic_fhir.procedure_icu;
+\set outputfile :outputdir/MimicProcedureICU.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.procedure_icu) TO ' :'outputfile' 
+:command
 
 -- data resources: medications
 \echo medication
-\o :outputdir/MimicMedication.ndjson
-SELECT fhir FROM mimic_fhir.medication;
+\set outputfile :outputdir/MimicMedication.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.medication) TO ' :'outputfile' 
+:command
 
 \echo medication_request
-\o :outputdir/MimicMedicationRequest.ndjson
-SELECT fhir FROM mimic_fhir.medication_request;
+\set outputfile :outputdir/MimicMedicationRequest.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.medication_request) TO ' :'outputfile' 
+:command
 
 \echo medication_dispense
-\o :outputdir/MimicMedicationDispense.ndjson
-SELECT fhir FROM mimic_fhir.medication_dispense;
+\set outputfile :outputdir/MimicMedicationDispense.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.medication_dispense) TO ' :'outputfile' 
+:command
 
 \echo medication_dispense_ed
-\o :outputdir/MimicMedicationDispenseED.ndjson
-SELECT fhir FROM mimic_fhir.medication_dispense_ed;
+\set outputfile :outputdir/MimicMedicationDispenseED.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.medication_dispense_ed) TO ' :'outputfile' 
+:command
 
 \echo medadmin
-\o :outputdir/MimicMedicationAdministration.ndjson
-SELECT fhir FROM mimic_fhir.medication_administration;
+\set outputfile :outputdir/MimicMedicationAdministration.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.medication_administration) TO ' :'outputfile' 
+:command
 
 \echo medication_administration_icu
-\o :outputdir/MimicMedicationAdministrationICU.ndjson
-SELECT fhir FROM mimic_fhir.medication_administration_icu;
+\set outputfile :outputdir/MimicMedicationAdministrationICU.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.medication_administration_icu) TO ' :'outputfile' 
+:command
 
 \echo medication_statement_ed
-\o :outputdir/MimicMedicationStatementED.ndjson
-SELECT fhir FROM mimic_fhir.medication_statement_ed;
+\set outputfile :outputdir/MimicMedicationStatementED.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.medication_statement_ed) TO ' :'outputfile' 
+:command
 
 -- diagnostic resources
 \echo observation_labevents
-\o :outputdir/MimicObservationLabevents.ndjson
-SELECT fhir FROM mimic_fhir.observation_labevents;
+\set outputfile :outputdir/MimicObservationLabevents.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_labevents) TO ' :'outputfile' 
+:command
 
 \echo observation_micro_org
-\o :outputdir/MimicObservationMicroOrg.ndjson
-SELECT fhir FROM mimic_fhir.observation_micro_org;
+\set outputfile :outputdir/MimicObservationMicroOrg.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_micro_org) TO ' :'outputfile' 
+:command
 
 \echo observation_micro_susc
-\o :outputdir/MimicObservationMicroSusc.ndjson
-SELECT fhir FROM mimic_fhir.observation_micro_susc;
+\set outputfile :outputdir/MimicObservationMicroSusc.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_micro_susc) TO ' :'outputfile' 
+:command
 
 \echo observation_micro_test
-\o :outputdir/MimicObservationMicroTest.ndjson
-SELECT fhir FROM mimic_fhir.observation_micro_test;
+\set outputfile :outputdir/MimicObservationMicroTest.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_micro_test) TO ' :'outputfile' 
+:command
 
 \echo observation_chartevents
-\o :outputdir/MimicObservationChartevents.ndjson
-SELECT fhir FROM mimic_fhir.observation_chartevents;
+\set outputfile :outputdir/MimicObservationChartevents.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_chartevents) TO ' :'outputfile' 
+:command
 
 \echo observation_datetimeevents
-\o :outputdir/MimicObservationDatetimeevents.ndjson
-SELECT fhir FROM mimic_fhir.observation_datetimeevents;
+\set outputfile :outputdir/MimicObservationDatetimeevents.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_datetimeevents) TO ' :'outputfile' 
+:command
 
 \echo observation_outputevents
-\o :outputdir/MimicObservationOutputevents.ndjson
-SELECT fhir FROM mimic_fhir.observation_outputevents;
+\set outputfile :outputdir/MimicObservationOutputevents.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_outputevents) TO ' :'outputfile' 
+:command
 
 \echo observation_ed
-\o :outputdir/MimicObservationED.ndjson
-SELECT fhir FROM mimic_fhir.observation_ed;
+\set outputfile :outputdir/MimicObservationED.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_ed) TO ' :'outputfile' 
+:command
 
 \echo observation_vitalsigns
-\o :outputdir/MimicObservationVitalSigns.ndjson
-SELECT fhir FROM mimic_fhir.observation_vital_signs;
+\set outputfile :outputdir/MimicObservationVitalSigns.ndjson
+\set command '\\copy (SELECT fhir FROM mimic_fhir.observation_vital_signs) TO ' :'outputfile' 
+:command
