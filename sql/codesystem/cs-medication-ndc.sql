@@ -8,7 +8,7 @@ CREATE TABLE fhir_trm.cs_medication_ndc(
 
 INSERT INTO fhir_trm.cs_medication_ndc 
 SELECT DISTINCT ndc AS code
-FROM mimic_hosp.prescriptions 
+FROM mimiciv_hosp.prescriptions 
 WHERE 
     ndc IS NOT NULL
     AND ndc != '';

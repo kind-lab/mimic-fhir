@@ -8,31 +8,31 @@ CREATE TABLE fhir_trm.cs_units(
 
 
 WITH mimic_units AS (
-    SELECT DISTINCT TRIM(REGEXP_REPLACE(dose_due_unit, '\s+', ' ', 'g')) AS unit FROM mimic_hosp.emar_detail
+    SELECT DISTINCT TRIM(REGEXP_REPLACE(dose_due_unit, '\s+', ' ', 'g')) AS unit FROM mimiciv_hosp.emar_detail
     UNION
-    SELECT DISTINCT TRIM(infusion_rate_unit) AS unit FROM mimic_hosp.emar_detail
+    SELECT DISTINCT TRIM(infusion_rate_unit) AS unit FROM mimiciv_hosp.emar_detail
     UNION 
     
     -- Medication Administration ICU units
-    SELECT DISTINCT TRIM(amountuom)  AS unit FROM mimic_icu.inputevents 
+    SELECT DISTINCT TRIM(amountuom)  AS unit FROM mimiciv_icu.inputevents 
     UNION
-    SELECT DISTINCT TRIM(rateuom) AS unit FROM mimic_icu.inputevents 
+    SELECT DISTINCT TRIM(rateuom) AS unit FROM mimiciv_icu.inputevents 
     UNION 
     
     -- Chartevents units 
-    SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_icu.chartevents  
+    SELECT DISTINCT TRIM(valueuom) AS unit FROM mimiciv_icu.chartevents  
     UNION
     
     -- Observation labs units
-    SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_hosp.labevents   
+    SELECT DISTINCT TRIM(valueuom) AS unit FROM mimiciv_hosp.labevents   
     UNION
     
     -- Outputevents units 
-    SELECT DISTINCT TRIM(valueuom) AS unit FROM mimic_icu.outputevents  
+    SELECT DISTINCT TRIM(valueuom) AS unit FROM mimiciv_icu.outputevents  
     UNION
     
     -- Prescription units 
-    SELECT DISTINCT TRIM(dose_unit_rx) AS unit FROM mimic_hosp.prescriptions p   
+    SELECT DISTINCT TRIM(dose_unit_rx) AS unit FROM mimiciv_hosp.prescriptions p   
 )
 INSERT INTO fhir_trm.cs_units
 SELECT unit

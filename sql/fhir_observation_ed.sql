@@ -10,7 +10,7 @@ WITH observation_ed AS (
         , vs.stay_id
         , vs.charttime
         , x.*
-    FROM mimic_ed.vitalsign vs, jsonb_each_text(to_jsonb(vs)) AS x("key", value)
+    FROM mimiciv_ed.vitalsign vs, jsonb_each_text(to_jsonb(vs)) AS x("key", value)
     WHERE KEY IN ('rhythm', 'pain' ) 
 ), fhir_observation_ed AS (
     SELECT
@@ -25,7 +25,7 @@ WITH observation_ed AS (
         , uuid_generate_v5(ns_procedure.uuid, ed.stay_id || '-' || ed.charttime) AS uuid_PROCEDURE
     FROM
         observation_ed ed
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON ed.subject_id = pat.subject_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_ed
             ON ns_encounter_ed.name = 'EncounterED'
@@ -104,7 +104,7 @@ WITH observation_ed AS (
         tr.subject_id
         , tr.stay_id
         , x.*
-    FROM mimic_ed.triage tr, jsonb_each_text(to_jsonb(tr)) AS x("key", value)
+    FROM mimiciv_ed.triage tr, jsonb_each_text(to_jsonb(tr)) AS x("key", value)
     WHERE KEY IN ('pain', 'acuity', 'chiefcomplaint' ) 
 ), fhir_observation_ed AS (
     SELECT
@@ -119,9 +119,9 @@ WITH observation_ed AS (
         , uuid_generate_v5(ns_procedure.uuid, CAST(ed.stay_id AS TEXT)) AS uuid_PROCEDURE
     FROM
         observation_ed ed
-        INNER JOIN mimic_hosp.patients pat
+        INNER JOIN mimiciv_hosp.patients pat
             ON ed.subject_id = pat.subject_id
-        LEFT JOIN mimic_ed.edstays stay
+        LEFT JOIN mimiciv_ed.edstays stay
             ON ed.stay_id =  stay.stay_id
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter_ed
             ON ns_encounter_ed.name = 'EncounterED'

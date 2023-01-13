@@ -18,8 +18,8 @@ WITH fhir_procedure_icu AS (
         , uuid_generate_v5(ns_patient.uuid, CAST(pe.subject_id AS TEXT)) AS uuid_SUBJECT_ID
         , uuid_generate_v5(ns_encounter_icu.uuid, CAST(pe.stay_id AS TEXT)) AS uuid_STAY_ID
     FROM
-        mimic_icu.procedureevents pe
-        LEFT JOIN mimic_icu.d_items di
+        mimiciv_icu.procedureevents pe
+        LEFT JOIN mimiciv_icu.d_items di
             ON pe.itemid = di.itemid
         LEFT JOIN fhir_etl.map_status_procedure_icu map_status
             ON pe.statusdescription = map_status.mimic_status

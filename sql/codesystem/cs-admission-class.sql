@@ -8,4 +8,4 @@ CREATE TABLE fhir_trm.cs_admission_class(
 
 INSERT INTO fhir_trm.cs_admission_class 
 SELECT DISTINCT admission_type 
-FROM mimic_hosp.admissions 
+FROM mimiciv_hosp.admissions 

@@ -26,7 +26,7 @@ WITH fhir_observation_micro_susc AS (
         , uuid_generate_v5(ns_observation_micro_org.uuid, mi.test_itemid || '-' || mi.micro_specimen_id || '-' || mi.org_itemid) AS uuid_MICRO_ORG
         , uuid_generate_v5(ns_patient.uuid, CAST(mi.subject_id AS TEXT)) as uuid_SUBJECT_ID 
     FROM 
-        mimic_hosp.microbiologyevents mi
+        mimiciv_hosp.microbiologyevents mi
         LEFT JOIN fhir_etl.uuid_namespace ns_patient
             ON ns_patient.name = 'Patient'
         LEFT JOIN fhir_etl.uuid_namespace ns_observation_micro_org

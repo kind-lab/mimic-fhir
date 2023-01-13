@@ -9,11 +9,11 @@ CREATE TABLE fhir_trm.cs_discharge_disposition(
 WITH mimic_discharge_disposition AS (
 
     -- Hospital admission sources
-    SELECT DISTINCT discharge_location AS code FROM mimic_hosp.admissions 
+    SELECT DISTINCT discharge_location AS code FROM mimiciv_hosp.admissions 
     UNION
     
     -- ED admission sources
-    SELECT DISTINCT disposition AS code FROM mimic_ed.edstays 
+    SELECT DISTINCT disposition AS code FROM mimiciv_ed.edstays 
 )
 INSERT INTO fhir_trm.cs_discharge_disposition
 SELECT code

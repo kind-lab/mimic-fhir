@@ -8,7 +8,7 @@ CREATE TABLE fhir_trm.cs_medication_site(
 
 INSERT INTO fhir_trm.cs_medication_site
 SELECT DISTINCT TRIM(REGEXP_REPLACE(site, '\s+', ' ', 'g')) -- need TO remove ALL whitespaces TO pass fhir validation
-FROM mimic_hosp.emar_detail
+FROM mimiciv_hosp.emar_detail
 WHERE 
     site IS NOT NULL 
     AND TRIM(REGEXP_REPLACE(site, '\s+', ' ', 'g')) != ''

@@ -8,6 +8,6 @@ CREATE TABLE fhir_trm.cs_medication_method(
 
 INSERT INTO fhir_trm.cs_medication_method
 SELECT DISTINCT TRIM(event_txt) 
-FROM mimic_hosp.emar  
+FROM mimiciv_hosp.emar  
 WHERE event_txt IS NOT NULL;
 

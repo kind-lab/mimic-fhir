@@ -7,9 +7,9 @@ CREATE TABLE fhir_trm.cs_medication_formulary_drug_cd(
 );
 
 WITH formulary_drug_cd AS (
-    SELECT DISTINCT formulary_drug_cd AS code FROM mimic_hosp.prescriptions p     
+    SELECT DISTINCT formulary_drug_cd AS code FROM mimiciv_hosp.prescriptions p     
     UNION    
-    SELECT DISTINCT product_code AS  code FROM mimic_hosp.emar_detail ed 
+    SELECT DISTINCT product_code AS  code FROM mimiciv_hosp.emar_detail ed 
 )
 INSERT INTO fhir_trm.cs_medication_formulary_drug_cd 
 SELECT code

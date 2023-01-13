@@ -8,4 +8,4 @@ CREATE TABLE fhir_trm.cs_medadmin_category_icu(
 
 INSERT INTO fhir_trm.cs_medadmin_category_icu
 SELECT DISTINCT ordercategoryname 
-FROM mimic_icu.inputevents 
+FROM mimiciv_icu.inputevents 

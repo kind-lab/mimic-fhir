@@ -10,5 +10,5 @@ CREATE TABLE fhir_trm.cs_bodysite(
 -- Need to trim and remove white spaces for codes to pass fhir validation
 INSERT INTO fhir_trm.cs_bodysite
 SELECT DISTINCT TRIM(REGEXP_REPLACE(location, '\s+', ' ', 'g'))
-FROM mimic_icu.procedureevents p 
+FROM mimiciv_icu.procedureevents p 
 WHERE location IS NOT NULL
