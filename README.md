@@ -1,5 +1,8 @@
 # mimic-fhir
-A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV loaded into your local Postgres or follow this [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) to set it up.
+A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV and MIMIC-IV-ED loaded into your local Postgres or follow [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres) respectively to set it up. (Note: When following instructions please use the same db name acroess both guides ie. `mimiciv`) To confirm the database is setup, do the following steps:
+  - Upon loading both the MIMIC-IV and MIMIC-IV-ED data, validate that the data was loaded into postgres by running the following command: `psql -U postgres -d <name of db> -f validate_demo.sql` within their respective projects(`mimic-code/mimic-iv-ed/buildmimic/postgres/` & `mimic-code/mimic-iv/buildmimic/postgres/`)
+  - When all test cases pass you may proceed to creating the fhir tables in Quickstart.
+`
 
 ## Quickstart
 1. Clone the repository locally:  
@@ -10,6 +13,9 @@ git clone https://github.com/kind-lab/mimic-fhir.git
 ```sh
 psql -f create_fhir_tables.sql
 ```
+  - In order to confirm the tables were generated, go into postgres using the command `psql` and connect to the database for which you loaded all your data into (eg `\c mimiciv`). Once connected, check your schema's using the `\dn`to check if you have the `mimic-fhir` schema. Once confirmed, run the following command in the postgres terminal `SET SEARCH_PATH TO MIMIC-FHIR;` and run `\dt` to the relations was made.
+    - Upon seeing the relations, feel free to confirm the data within the tables by running the following query `SELECT * FROM PATIENT LIMIT 1;`. If you see a result set that isn't empty, you know that the information for patient was ported in. You may confirm the rest of the tables with a similar command as above.
+
 3. Set up HAPI FHIR for use in validation/export
     - The first step in validation/export is getting the fhir server running. In our case we will use HAPI FHIR.
     - We made a fork of the jpa starter server: `git clone https://github.com/kind-lab/hapi-fhir-jpaserver-starter.git`
@@ -17,20 +23,44 @@ psql -f create_fhir_tables.sql
       - From the terminal enter psql: `psql`
       - Create hapi database in sql: `CREATE DATABASE hapi_r4;`
       - Exit psql: `\q` 
-    - The *application.yaml* file in the hapi-fhir-jpaserver-starter project was modified to point to the mimic implementation guide
-      - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo.
-    - Start the HAPI FHIR server by going to the *hapi-fhir-jpaserver-starter* folder and running: `mvn jetty:run`
-      - The initial loading of hapi fhir will be around 10-15 minutes, subsequent loads will be faster
-4. Validate mimic-fhir against mimic-profiles IG  
-    - Before starting the py_mimic_fhir package you need to add a *.env* file in mimic-fhir to match your local settings. An example *.env.example* file is available in the folder as reference. These environment variables will be used in the next step.
-      - Export these environment variables to your terminal for ease of use. Run `export $(grep -v '^#' .env | xargs)`
+    3.1. Setting up the .env file
+    - Before starting the py_mimic_fhir package you need to add a *.env* file in mimic-fhir to match your local settings. An example *.env.example* file is available in the folder as reference. 
+
+
+    3.2. Starting the FHIR Server
+      - The *application.yaml* file in the hapi-fhir-jpaserver-starter project was modified to point to the mimic implementation guide
+        - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo.
+      - Start the HAPI FHIR server by going to the *hapi-fhir-jpaserver-starter* folder and running: `mvn jetty:run`
+        - The initial loading of hapi fhir will be around 10-15 minutes, subsequent loads will be faster
+
+4. Configure py_mimic_fhir package for use
+    - Export these environment variables to your terminal for ease of use. Run `export $(grep -v '^#' .env | xargs)`
     - Next get the py_mimic_fhir package setup and ready to validate
       - Move into the *mimic-fhir* folder on your local machine
       - Install the package using `pip install -e .`
-      - Validate some resources! In your terminal (with all the env variables) run: `python py_mimic_fhir validate --num_patients 5`
+
+
+5.  Post terminology to HAPI-FHIR using py_mimic_fhir
+
+    - The default load of HAPI-FHIR with the mimic implementation guide does not fully expand all terminology. To ensure full expansion, we need to post the terminology directly. To do this
+        - Pull from the [mimic-profiles](https://github.com/kind-lab/mimic-profiles)`
+        - Ensure the environment variable `MIMIC_TERMINOLOGY_PATH` is set and pointing to the latest terminology files from [mimic-profiles](https://github.com/kind-lab/mimic-profiles/tree/main/input/resources)
+        - Run the terminology post command in py_mimic_fhir: `python py_mimic_fhir terminology --post`
+
+6.  Load reference data bundles into HAPI-FHIR using py_mimic_fhir
+
+    - Initialize data on the HAPI-FHIR server, so patient bundles can reference the data resources
+    - The data tables for medication and organization only need to be loaded in once to your HAPI-FHIR server. To ensure these resources are loaded in, the first time you run mimic-fhir you must run:
+        - `python py_mimic_fhir validate --init`
+
+
+7. Validate mimic-fhir against mimic-profiles IG  
+      - After step 6 has been run once, you can proceeded to this step to validate some resources! In your terminal (with all the env variables) run: `python py_mimic_fhir validate --num_patients 5`
         - Any failed bundles will be written to your log folder specified in *.env*
 
-5. Export mimic-fhir to ndjson
+
+
+8. Export mimic-fhir to ndjson
     - Using the py_mimic_fhir package you can export all the resources on the server to ndjson
     - Run `python py_mimic_fhir export --export_limit 1`
       - `export_limit` will reduce how much is written out to file. It limits how many binaries are written out. Each binary ~1000 resources. So in this case the limit of 1 will output 1000 resources into ndjsons 
