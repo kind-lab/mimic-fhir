@@ -53,7 +53,6 @@ def export_all_resources_hapi(fhir_server, output_path, limit=10000):
         logger.info(f'Export {profile}')
         result = export_resource(profile, fhir_server, output_path, limit)
         result_dict[profile] = result
-
     if False in result_dict.values():
         logger.error(f'Result dictionary: {result_dict}')
     else:
@@ -258,6 +257,7 @@ def sort_resources(output_path):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
+    logger.info(process)
     assert len(process.stderr) == 0
     return process
 

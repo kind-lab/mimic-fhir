@@ -74,6 +74,7 @@ def validation_worker(patient_id, args, margs):
         response_list = validate_all_bundles(
             patient_id, db_conn, margs, gcp_args
         )
+        db_conn.close()
         result = True
         if False in response_list:
             result = False
@@ -107,12 +108,13 @@ def validate_n_patients(args, margs, gcp_args):
     # Create bundle and post it
     result = True
     for patient_id in patient_ids:
+        
         response_list = validate_all_bundles(
             patient_id, db_conn, margs, gcp_args
         )
         if False in response_list:
             result = False
-
+    db_conn.close()
     return result
 
 
@@ -120,12 +122,13 @@ def validate_all_bundles(patient_id, db_conn, margs, gcp_args):
     response_list = []
     logger.info(f'---------- patient_id: {patient_id}')
     for name, table_list in MIMIC_BUNDLE_TABLE_LIST.items():
+        
         # Create bundle and post it
         bundle_response = validate_bundle(
             name, patient_id, db_conn, margs, gcp_args
         )
         response_list.append(bundle_response)
-    db_conn.close()
+    #db_conn.close()
     return response_list
 
 
