@@ -15,7 +15,7 @@ git clone https://github.com/kind-lab/mimic-fhir.git
 ```sh
 psql -f create_fhir_tables.sql
 ```
-  - In order to confirm the tables were generated correctly, it is recommended to navigate into the `/sql` folder and run the validate.sql file with the following command:
+  - In order to confirm the tables were generated correctly, it is recommended to navigate into the `/sql` folder and run the validate_fhir_tables.sql file with the following command:
     - `psql -d <name of db> -f validate_fhir_tables.sql`
   - If all the test cases pass, proceed to step 3.
 
