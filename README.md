@@ -1,5 +1,5 @@
 # mimic-fhir
-A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV and MIMIC-IV-ED loaded into your local Postgres or follow [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres) respectively to set it up. (Note: When following instructions please use the same db name acroess both guides ie. `mimiciv`) To confirm the database is setup, do the following steps:
+A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV and MIMIC-IV-ED loaded into your local Postgres or follow [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres) respectively to set it up. (Note: When following instructions please use the same db name across both guides ie. `mimiciv`) To confirm the database is setup, do the following steps:
   - Upon loading both the MIMIC-IV and MIMIC-IV-ED data, validate that the data was loaded into postgres by running the following command: `psql -U postgres -d <name of db> -f validate_demo.sql` within their respective projects(`mimic-code/mimic-iv-ed/buildmimic/postgres/` & `mimic-code/mimic-iv/buildmimic/postgres/`)
   - When all test cases pass you may proceed to creating the fhir tables in Quickstart.
 
@@ -15,8 +15,8 @@ git clone https://github.com/kind-lab/mimic-fhir.git
 ```sh
 psql -f create_fhir_tables.sql
 ```
-  - In order to confirm the tables were generated, go into postgres using the command `psql` and connect to the database for which you loaded all your data into (eg `\c mimiciv`). Once connected, check your schema's using the `\dn`to check if you have the `mimic-fhir` schema. Once confirmed, run the following command in the postgres terminal `SET SEARCH_PATH TO MIMIC-FHIR;` and run `\dt` to see if the relations were made.
-    - Upon seeing the relations, feel free to confirm the data within the tables by running the following query `SELECT * FROM PATIENT LIMIT 1;`. If you see a result set that isn't empty, you know that the information for patient was ported in. You may confirm the rest of the tables with a similar command as above.
+  - In order to confirm the tables were generated, go into postgres using the command `psql` and connect to the database for which you loaded all your data into (eg `\c mimiciv`). Once connected, check your schema's using the `\dn`to check if you have the `mimic-fhir` schema. Once confirmed, run the following command in the postgres terminal `SET SEARCH_PATH TO mimic-fhir;` and run `\dt` to see if the relations were made.
+    - Upon seeing the relations, feel free to confirm the data within the tables by running the following query `SELECT * FROM patient LIMIT 1;`. If you see a result set that isn't empty, you know that the information for patient was ported in. You may confirm the rest of the tables with a similar command as above.
 
 3. Set up HAPI FHIR for use in validation/export
     - The first step in validation/export is getting the fhir server running. In our case we will use HAPI FHIR.

@@ -128,7 +128,6 @@ def validate_all_bundles(patient_id, db_conn, margs, gcp_args):
             name, patient_id, db_conn, margs, gcp_args
         )
         response_list.append(bundle_response)
-    #db_conn.close()
     return response_list
 
 
