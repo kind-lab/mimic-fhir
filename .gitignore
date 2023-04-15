@@ -8,6 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -73,6 +74,12 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# OSX .DS_Store
+.DS_Store
+
+# PyCharm / JetBrains
+.idea
 
 # Jupyter Notebook
 .ipynb_checkpoints

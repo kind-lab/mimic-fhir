@@ -1,5 +1,35 @@
 # mimic-fhir
-A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV and MIMIC-IV-ED loaded into your local Postgres or follow [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres) respectively to set it up. (Note: When following instructions please use the same db name across both guides ie. `mimiciv`) To confirm the database is setup, do the following steps:
+A version of MIMIC-IV-on-FHIR ([original repo here](https://github.com/kind-lab/mimic-fhir)). The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. 
+
+## Prerequisites
+1. Install Postgres 
+- These specific instructions are for Ubuntu
+```bash
+$ sudo apt update
+$ sudo apt install postgresql postgresql-contrib
+$ sudo -i -u postgres
+```
+```bash
+postgres@desktop:~$ psql
+```
+```postgres
+-- not sure if you need the passwords, but I ran into trouble later on so I had to come back and add them. This way you won't have to worry about it
+postgres=# CREATE USER grey CREATEDB password <PASSWORD>;
+ALTER USER postgres PASSWORD 'postgres';
+postgres=# \q
+```
+```bash
+postgres@desktop:~$ exit
+```
+
+
+## Quickstart
+1. Clone the repository locally:  
+```sh
+git clone https://github.com/kind-lab/mimic-fhir.git && cd mimic-fhir
+```
+
+Before getting started make sure you have MIMIC-IV and MIMIC-IV-ED loaded into your local Postgres or follow [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres) respectively to set it up. (Note: When following instructions please use the same db name across both guides ie. `mimiciv`) To confirm the database is setup, do the following steps:
   - Upon loading both the MIMIC-IV and MIMIC-IV-ED data, validate that the data was loaded into postgres by running the following command: `psql -U postgres -d <name of db> -f validate_demo.sql` within their respective projects(`mimic-code/mimic-iv-ed/buildmimic/postgres/` & `mimic-code/mimic-iv/buildmimic/postgres/`)
   - When all test cases pass you may proceed to creating the fhir tables in Quickstart.
 
@@ -7,10 +37,7 @@ A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will g
 `
 
 ## Quickstart
-1. Clone the repository locally:  
-```sh
-git clone https://github.com/kind-lab/mimic-fhir.git
-```
+
 2. Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
 ```sh
 psql -f create_fhir_tables.sql
@@ -77,3 +104,10 @@ psql -f create_fhir_tables.sql
 - The [HAPI FHIR Server Validation](https://github.com/kind-lab/mimic-fhir/wiki/HAPI-FHIR-Server-Validation) section walks through validating the MIMIC resources against various implementation guides using HAPI FHIR.
 - The [py_mimic_fhir CLI](https://github.com/kind-lab/mimic-fhir/wiki/py_mimic_fhir-CLI) section details the arguments that can be used in the CLI
 - The [Bundle and Export](https://github.com/kind-lab/mimic-fhir/wiki/HAPI-Bundles-and-Export) section goes over the bundling process and export execution.
+
+## Ubuntu Specific
+- This is a specific guide for those of us on Ubuntu, the above documentation is great, but there were some changes that I had to make and I thought I would document them here.
+
+### Postgresql
+
+- You need Postgres for everything that comes after, so make sure you have it. 
