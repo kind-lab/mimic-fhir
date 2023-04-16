@@ -1,10 +1,96 @@
 # mimic-fhir
-A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. Before getting started make sure you have MIMIC-IV and MIMIC-IV-ED loaded into your local Postgres or follow [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres) respectively to set it up. (Note: When following instructions please use the same db name across both guides ie. `mimiciv`) To confirm the database is setup, do the following steps:
-  - Upon loading both the MIMIC-IV and MIMIC-IV-ED data, validate that the data was loaded into postgres by running the following command: `psql -U postgres -d <name of db> -f validate_demo.sql` within their respective projects(`mimic-code/mimic-iv-ed/buildmimic/postgres/` & `mimic-code/mimic-iv/buildmimic/postgres/`)
-  - When all test cases pass you may proceed to creating the fhir tables in Quickstart.
+A version of MIMIC-IV-on-FHIR ([original repo here](https://github.com/kind-lab/mimic-fhir)). The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson. 
 
-  Note: It is recommended for users to install [miniforge](https://github.com/conda-forge/miniforge) for easy setup. Once installed, make sure to connect to the environment with the following commend `conda activate <environmentName>`. To exit the environment do `conda deactivate `.
-`
+## Prerequisites
+1. Install Postgres 
+- These specific instructions are for Ubuntu
+```bash
+$ sudo apt update
+$ sudo apt install postgresql postgresql-contrib
+$ sudo -i -u postgres
+```
+```bash
+postgres@desktop:~$ psql
+```
+```postgres
+-- not sure if you need the passwords, but I ran into trouble later on so I had to come back and add them. This way you won't have to worry about it
+postgres=# CREATE USER grey CREATEDB password <PASSWORD>;
+ALTER USER postgres PASSWORD 'postgres';
+postgres=# \q
+```
+```bash
+postgres@desktop:~$ exit
+```
+
+## Pregame
+
+1. Clone the repository locally:  
+```sh
+git clone https://github.com/kind-lab/mimic-fhir.git && cd mimic-fhir
+# Don't need the following bcause it's now included in this repo, but just in case
+~~git clone https://github.com/MIT-LCP/mimic-code.git~~
+```
+2. Get Data
+- Before getting started make sure you have MIMIC-IV and MIMIC-IV-ED loaded into your local Postgres. There are specific instructions for [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres) to set it up. (Note: When following instructions please use the same db name across both guides ie. `mimiciv`) 
+- Trying to simplify this, you can also just run the following commands
+```sh
+cd mimic-code
+wget -r -N -c -np --user <USERNAME> --ask-password https://physionet.org/files/mimiciv/2.2/
+wget -r -N -c -np --user <Username> --ask-password https://physionet.org/files/mimic-iv-ed/2.2/
+mv physionet.org/files/mimiciv mimiciv 
+mv physionet.org/files/mimic-iv-ed mimic-iv-ed
+```
+- Note in the above, "<USERNAME>" is your physionet username
+- It's a lot of data, so it does take a while
+- If that doesn't work, go to the bottom of these websites, and you can copy the commands
+- [mimiciv](https://physionet.org/content/mimiciv/2.2/)
+- [mimic-iv-ed](https://physionet.org/content/mimic-iv-ed/2.2/)
+
+3. Database - creation of database with downloaded data
+```sh
+# creates the database itself
+createdb mimiciv
+psql -d mimiciv -f mimic-iv/buildmimic/postgres/create.sql
+
+# take note of the mimiciv version you're on and change the directory accordingly, this one takes a while
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-iv/buildmimic/postgres/load_gz.sql
+
+# The first time you do this, the scripts delete ("drop" in sql parlance) things before you create them to remove old versions. This produces a warning, you can safely ignore it
+
+# I get a number of Notices about constraints not existing for this one
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-iv/buildmimic/postgres/constraint.sql
+
+# Also notices about indexes not existing
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-iv/buildmimic/postgres/index.sql
+
+# We're basically just going to repeat with the mimic ED data
+psql -d mimiciv -f mimic-iv-ed/buildmimic/postgres/create.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimic-iv-ed/mimic-iv-ed/2.2/ed -f mimic-iv-ed/buildmimic/postgres/load_gz.sql
+
+# In the mimic-iv-ed directory, the constraints.sql has the schema listed as mimic_ed, instead of mimiciv_ed, which is the schema in the other files. In this repo I've changed, but if you go with the original repo, you'll probably have to change it
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimic-iv-ed/2.2/ed -f mimic-iv-ed/buildmimic/postgres/constraint.sql
+
+# Same notices about indexes not existing
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimic-iv-ed/2.2/ed -f mimic-iv-ed/buildmimic/postgres/index.sql
+```
+4. Issue with authentication
+- You may not have this issue, but at this point when I tried to run the two validation sql files, it gave me the error: 
+- psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  Peer authentication failed for user "postgres"
+- in order to fix this error, I had to do the following
+```sh
+cd /etc/postgresql/14/main
+sudo nano pg_hba.conf
+```
+- change all instances in the file of "local ... peer" to "local ... md5", then restart
+```sh 
+sudo service postgresql restart
+```
+5. To confirm the database is setup, and the data wsa properly loaded:
+```
+psql -U postgres -d mimiciv -f mimic-iv-ed/buildmimic/postgres/validate.sql
+psql -U postgres -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
+```
+- When all test cases pass you may proceed to creating the fhir tables in Quickstart.
 
 ## Quickstart
 1. Clone the repository locally:  
@@ -13,7 +99,8 @@ git clone https://github.com/kind-lab/mimic-fhir.git
 ```
 2. Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
 ```sh
-psql -f create_fhir_tables.sql
+cd ../sql
+psql -d mimiciv -f create_fhir_tables.sql
 ```
   - In order to confirm the tables were generated correctly, it is recommended to run the [validate_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/validate_fhir_tables.sql) file with the following command:
     - `psql -d <name of db> -f validate_fhir_tables.sql`
