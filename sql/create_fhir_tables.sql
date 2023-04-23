@@ -1,4 +1,4 @@
-SET client_min_messages TO WARNING; -- ignore notices, lots of small ones for drop tables
+-- SET client_min_messages TO WARNING; -- ignore notices, lots of small ones for drop tables
 DROP SCHEMA IF EXISTS mimic_fhir CASCADE;
 DROP SCHEMA IF EXISTS fhir_etl CASCADE;
 
