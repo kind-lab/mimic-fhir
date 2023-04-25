@@ -119,14 +119,22 @@ psql -U postgres -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
 
 - When all test cases pass you may proceed to creating the fhir tables in Quickstart.
 
-## Quickstart
+## Conversion
 
 1. Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
+
+---
+IMPORTANT - I was not able to get this running on my machine (well, it ran, but it never completed because my hardware was not up to the task)
+
+---
 
 ```sh
 cd ../sql
 psql -U postgres -d mimiciv -f create_fhir_tables.sql
 ```
+
+
+
 
   - In order to confirm the tables were generated correctly, it is recommended to run the [validate_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/validate_fhir_tables.sql) file with the following command:
     - `psql -d <name of db> -f validate_fhir_tables.sql`
