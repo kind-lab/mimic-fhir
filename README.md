@@ -134,7 +134,18 @@ createdb hapi_r4
   - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo (although I wasn't able to find it).
   - the ```hapi-fhir-server-starter/src/main/resources/application.yaml``` may need to be edited
   - I changed the username and password that I specified at the very beginning for postgres
-  - I upaded the fhir-packges reference later in the file
+  - I updated the fhir-packges reference later in the file
+  - Also had to edit the pom.xml file (as usual, your mileage may vary)
+    - comment out the version line for the first postgres dependencey
+    - comment out completely the second postgres dependency
+
+```xml
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <!-- <version>42.2.23</version> -->
+</dependency>
+```
 
   ```sh
   cd hapi-fhir-jpaserver-starter
