@@ -123,38 +123,68 @@ cd .. && git clone https://github.com/kind-lab/hapi-fhir-jpaserver-starter.git
 createdb hapi_r4
 ```
 
-They created a \*.env\* file already in the mimic-fhir directory. The only thing I've changed are the SQLUSER and SQLPASS. Those should be the same as you set them at the beginning of this process.
-
+- They created a \*.env\* file already in the mimic-fhir directory. 
+- Change the SQLUSER and SQLPASS. Those should be the same as you set them at the beginning of this process.
+- Choose the paths you're going to use for the MIMIC_JSON_PATH, FHIR_BUNDLE_ERROR_PATH, MIMIC_FHIR_LOG_PATH
 - You'll need to make sure java and maven are installed for this next section
 - The *application.yaml* file in the hapi-fhir-jpaserver-starter project was modified to point to the mimic implementation guide
-  - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo.
-- Start the HAPI FHIR server by going to the *hapi-fhir-jpaserver-starter* folder and running: `mvn jetty:run`
+  - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo (although I wasn't able to find it).
+  - the ```hapi-fhir-server-starter/src/main/resources/application.yaml``` may need to be edited
+  - I changed the username and password that I specified at the very beginning for postgres
+  - I upaded the fhir-packges reference later in the file
+
+  ```sh
+  cd hapi-fhir-jpaserver-starter
+  mvn jetty:run
+  ```
   - The initial loading of hapi fhir will be around 10-15 minutes, subsequent loads will be faster
 
-4. Configure py_mimic_fhir package for use
-    - Export these environment variables to your terminal for ease of use. Run `export $(grep -v '^#' .env | xargs)`
-    - Next get the py_mimic_fhir package setup and ready to validate
-      - Move into the *mimic-fhir* folder on your local machine
-      - Install the package using `pip install -e .`
+## PY_MIMIC_FHIR
+
+- Configure py_mimic_fhir package for use
+
+```
+cd ..
+export $(grep -v '^#' .env | xargs)
+cd py_mimic_fhir
+pip install -e .
+```
+
+- Post terminology to HAPI-FHIR using py_mimic_fhir
+- The default load of HAPI-FHIR with the mimic implementation guide does not fully expand all terminology. To ensure full expansion, we need to post the terminology directly. To do this
+
+```sh
+git clone https://github.com/kind-lab/fhir-packages.git
+cd fhir-packages
+git checkout mimic-package-0.1.0
+```
+- unzip the latest mimic.tgz file
+- This unzipped directory should be used as the environment variable `MIMIC_TERMINOLOGY_PATH`
+- After, go into the py_mimic_fhir directory, install the necessary modules, and post the terminology
+
+```sh
+cd ../py_mimic_fhir
+pip install google-cloud
+pip install google-cloud-pubsub
+pip install psycopg2-binary
+pip install pandas-gbq
+pip install google-api-python-client
+pip install fhir
+pip install fhir-resources
+cd py_mimic_fhir
+python3 terminology.py --post
+```
+Is this actually the correct line? python py_mimic_fhir terminology --post
+
+- Load reference data bundles into HAPI-FHIR using py_mimic_fhir
+- Initialize data on the HAPI-FHIR server, so patient bundles can reference the data resources
+- The data tables for medication and organization only need to be loaded in once to your HAPI-FHIR server. To ensure these resources are loaded in, the first time you run mimic-fhir you must run:
+    - `python py_mimic_fhir validate --init`
 
 
-5.  Post terminology to HAPI-FHIR using py_mimic_fhir
-
-    - The default load of HAPI-FHIR with the mimic implementation guide does not fully expand all terminology. To ensure full expansion, we need to post the terminology directly. To do this
-        - Pull from the [mimic-profiles](https://github.com/kind-lab/mimic-profiles)`
-        - Ensure the environment variable `MIMIC_TERMINOLOGY_PATH` is set and pointing to the latest terminology files from [mimic-profiles](https://github.com/kind-lab/mimic-profiles/tree/main/input/resources)
-        - Run the terminology post command in py_mimic_fhir: `python py_mimic_fhir terminology --post`
-
-6.  Load reference data bundles into HAPI-FHIR using py_mimic_fhir
-
-    - Initialize data on the HAPI-FHIR server, so patient bundles can reference the data resources
-    - The data tables for medication and organization only need to be loaded in once to your HAPI-FHIR server. To ensure these resources are loaded in, the first time you run mimic-fhir you must run:
-        - `python py_mimic_fhir validate --init`
-
-
-7. Validate mimic-fhir against mimic-profiles IG  
-      - After step 6 has been run once, you can proceeded to this step to validate some resources! In your terminal (with all the env variables) run: `python py_mimic_fhir validate --num_patients 5`
-        - Any failed bundles will be written to your log folder specified in *.env*
+- Validate mimic-fhir against mimic-profiles IG  
+  - After step 6 has been run once, you can proceeded to this step to validate some resources! In your terminal (with all the env variables) run: `python py_mimic_fhir validate --num_patients 5`
+    - Any failed bundles will be written to your log folder specified in *.env*
 
 
 
