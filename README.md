@@ -12,6 +12,9 @@ sudo apt update
 # install git and wget
 sudo apt install git wget
 
+# install google command line
+
+
 # clone repo
 git clone https://github.com/kind-lab/mimic-fhir.git && cd mimic-fhir/mimic-code
 ```
@@ -115,10 +118,10 @@ psql -d mimiciv -f validate_fhir_tables.sql
 ## HAPI FHIR for use in validation/export
 
 - The first step in validation/export is getting the fhir server running. In our case we will use HAPI FHIR.
-- The nice folks at kind-lab made a fork of the pa starter server
+- The nice folks at kind-lab made a fork of the hapi jpa starter server
 
 ```sh
-cd .. && git clone https://github.com/kind-lab/hapi-fhir-jpaserver-starter.git
+cd ../.. && git clone https://github.com/kind-lab/hapi-fhir-jpaserver-starter.git
 
 createdb hapi_r4
 ```
@@ -144,9 +147,8 @@ createdb hapi_r4
 - Configure py_mimic_fhir package for use
 
 ```
-cd ..
+cd ../mimic-fhir
 export $(grep -v '^#' .env | xargs)
-cd py_mimic_fhir
 pip install -e .
 ```
 
@@ -158,12 +160,13 @@ git clone https://github.com/kind-lab/fhir-packages.git
 cd fhir-packages
 git checkout mimic-package-0.1.0
 ```
+
 - unzip the latest mimic.tgz file
 - This unzipped directory should be used as the environment variable `MIMIC_TERMINOLOGY_PATH`
 - After, go into the py_mimic_fhir directory, install the necessary modules, and post the terminology
+- NOTE: for this section, you will need to have a google cloud account with command line access
 
 ```sh
-cd ../py_mimic_fhir
 pip install google-cloud
 pip install google-cloud-pubsub
 pip install psycopg2-binary
@@ -172,27 +175,35 @@ pip install google-api-python-client
 pip install fhir
 pip install fhir-resources
 cd py_mimic_fhir
-python3 terminology.py --post
+python3 py_mimic_fhir terminology --post
 ```
-Is this actually the correct line? python py_mimic_fhir terminology --post
 
 - Load reference data bundles into HAPI-FHIR using py_mimic_fhir
 - Initialize data on the HAPI-FHIR server, so patient bundles can reference the data resources
-- The data tables for medication and organization only need to be loaded in once to your HAPI-FHIR server. To ensure these resources are loaded in, the first time you run mimic-fhir you must run:
-    - `python py_mimic_fhir validate --init`
+- The data tables for medication and organization only need to be loaded in once to your HAPI-FHIR server. To ensure these resources are loaded in, the first time you run mimic-fhir you must run
 
+```sh
+python3 py_mimic_fhir validate --init
+```
 
 - Validate mimic-fhir against mimic-profiles IG  
-  - After step 6 has been run once, you can proceeded to this step to validate some resources! In your terminal (with all the env variables) run: `python py_mimic_fhir validate --num_patients 5`
-    - Any failed bundles will be written to your log folder specified in *.env*
+- After step 6 has been run once, you can proceeded to this step to validate some resources! In your terminal (with all the env variables) run: 
 
+```sh
+python3 py_mimic_fhir validate --num_patients 5
+```
 
+- Any failed bundles will be written to your log folder specified in *.env*
 
-8. Export mimic-fhir to ndjson
-    - Using the py_mimic_fhir package you can export all the resources on the server to ndjson
-    - Run `python py_mimic_fhir export --export_limit 1`
-      - `export_limit` will reduce how much is written out to file. It limits how many binaries are written out. Each binary ~1000 resources. So in this case the limit of 1 will output 1000 resources into ndjsons 
-      - The outputted ndjson will be written to the MIMIC_JSON_PATH folder specified inthe *.env*
+- Export mimic-fhir to ndjson
+  - Using the py_mimic_fhir package you can export all the resources on the server to ndjson
+
+```sh
+python3 py_mimic_fhir export --export_limit 100
+```
+
+- `export_limit` will reduce how much is written out to file. It limits how many binaries are written out. Each binary ~1000 resources. So in this case the limit of 1 will output 1000 resources into ndjsons 
+- The outputted ndjson will be written to the MIMIC_JSON_PATH folder specified inthe *.env*
 
 
 ## Useful wiki links
