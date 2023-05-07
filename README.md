@@ -118,24 +118,18 @@ psql -d mimiciv -f validate_fhir_tables.sql
 - The nice folks at kind-lab made a fork of the pa starter server
 
 ```sh
-git clone https://github.com/kind-lab/hapi-fhir-jpaserver-starter.git
+cd .. && git clone https://github.com/kind-lab/hapi-fhir-jpaserver-starter.git
+
+createdb hapi_r4
 ```
 
-- Create the postgres database hapi_r4 that will be used in HAPI: 
-  - From the terminal enter psql: `psql`
-  - Create hapi database in sql: `CREATE DATABASE hapi_r4;`
-  - Exit psql: `\q`
-  
+They created a \*.env\* file already in the mimic-fhir directory. The only thing I've changed are the SQLUSER and SQLPASS. Those should be the same as you set them at the beginning of this process.
 
-    3.1. Setting up the .env file
-      - Before starting the py_mimic_fhir package you need to add a *.env* file in mimic-fhir to match your local settings. An example *.env.example* file is available in the folder as reference. 
-
-
-    3.2. Starting the FHIR Server
-      - The *application.yaml* file in the hapi-fhir-jpaserver-starter project was modified to point to the mimic implementation guide
-        - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo.
-      - Start the HAPI FHIR server by going to the *hapi-fhir-jpaserver-starter* folder and running: `mvn jetty:run`
-        - The initial loading of hapi fhir will be around 10-15 minutes, subsequent loads will be faster
+- You'll need to make sure java and maven are installed for this next section
+- The *application.yaml* file in the hapi-fhir-jpaserver-starter project was modified to point to the mimic implementation guide
+  - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo.
+- Start the HAPI FHIR server by going to the *hapi-fhir-jpaserver-starter* folder and running: `mvn jetty:run`
+  - The initial loading of hapi fhir will be around 10-15 minutes, subsequent loads will be faster
 
 4. Configure py_mimic_fhir package for use
     - Export these environment variables to your terminal for ease of use. Run `export $(grep -v '^#' .env | xargs)`
