@@ -16,7 +16,7 @@ sudo apt install git wget
 
 
 # clone repo
-git clone https://github.com/kind-lab/mimic-fhir.git && cd mimic-fhir/mimic-code
+git clone https://github.com/fhir-fli/mimic-fhir.git && cd mimic-fhir/mimic-code
 ```
 
 ## Postgresql
