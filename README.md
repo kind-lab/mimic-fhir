@@ -98,7 +98,7 @@ psql -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
 - Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
 - IMPORTANT: 
   - this takes a long time and requires a lot of space. I kept running out of space when I tried to do it at first.
-  - I recommend having 800GB, at probably 1TB of space free on the device you're using
+  - Realistically, you probably need 1TB of FREE space on the device you're using
   - This is a lengthy process. Just so you can know what you should expect, I ran this on a machine with:
     - Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz
     - 16 GB RAM
