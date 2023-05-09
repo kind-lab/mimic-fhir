@@ -16,7 +16,7 @@ sudo apt install git wget
 
 
 # clone repo
-git clone https://github.com/kind-lab/mimic-fhir.git && cd mimic-fhir/mimic-code
+git clone https://github.com/fhir-fli/mimic-fhir.git && cd mimic-fhir/mimic-code
 ```
 
 ## Postgresql
@@ -89,8 +89,8 @@ psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-i
 psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-iv-ed/buildmimic/postgres/index.sql
 
 # validate that the setup is correct
-psql -U postgres -d mimiciv -f mimic-iv-ed/buildmimic/postgres/validate.sql
-psql -U postgres -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
+psql -d mimiciv -f mimic-iv-ed/buildmimic/postgres/validate.sql
+psql -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
 ```
 
 ## Conversion
@@ -98,15 +98,15 @@ psql -U postgres -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
 - Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
 - IMPORTANT: 
   - this takes a long time and requires a lot of space. I kept running out of space when I tried to do it at first.
-  - I recommend having 800GB, at probably 1TB of space free on the device you're using
+  - Realistically, you probably need 1TB of FREE space on the device you're using
   - This is a lengthy process. Just so you can know what you should expect, I ran this on a machine with:
     - Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz
     - 16 GB RAM
-  - It took over 12 hours
+  - It took ~14 hours
 
 ```sh
 cd ../sql
-psql -U postgres -d mimiciv -f create_fhir_tables.sql
+psql -d mimiciv -f create_fhir_tables.sql
 ```
 
 - In order to confirm the tables were generated correctly, it is recommended to run the [validate_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/validate_fhir_tables.sql).
