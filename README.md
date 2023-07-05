@@ -6,6 +6,45 @@ A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will g
   Note: It is recommended for users to install [miniforge](https://github.com/conda-forge/miniforge) for easy setup. Once installed, make sure to connect to the environment with the following commend `conda activate <environmentName>`. To exit the environment do `conda deactivate `.
 `
 
+## Prerequisite
+
+Have postgresql
+
+```
+sudo apt-get install postgres
+```
+
+This takes a lot of data, you may need to use a different tablespace
+
+```
+
+```
+
+Clone the repo
+
+```
+git clone git@github.com:kind-lab/mimic-fhir.git
+```
+
+Have MIMIC-IV and MIMIC-IV-ED built on a local postgres database.
+
+```sh
+USERNAME=alistairewj
+wget -rNcnp --user $USERNAME --ask-password --cut-dirs=2 https://physionet.org/files/mimiciv/2.2/
+wget -rNcnp --user $USERNAME --ask-password --cut-dirs=2 https://physionet.org/files/mimic-iv-ed/2.2/
+mkdir -p mimic-iv
+mv physionet.org/2.2 mimic-iv/
+git clone https://github.com/MIT-LCP/mimic-code.git
+# load mimic-iv icu/hosp
+cd mimic-code/mimic-iv/buildmimic/postgres
+psql -d mimic -f create.sql
+psql -d mimic -f load_gz.sql -v mimic_data_dir=../../../../mimic-iv/2.2
+# load mimic-iv ed
+cd ../../../mimic-iv-ed/buildmimic/postgres
+psql -d mimic -f create.sql
+psql -d mimic -f load_gz.sql -v mimic_data_dir=../../../../mimic-iv/2.2
+```
+
 ## Quickstart
 1. Clone the repository locally:  
 ```sh
