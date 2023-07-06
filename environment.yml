@@ -1,6 +1,7 @@
 name: mimic-fhir
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - numpy
   - sqlalchemy
@@ -15,12 +16,13 @@ dependencies:
   - tqdm
   - yapf
   - google-cloud-storage
+  - google-cloud-logging
+  - google-cloud-bigquery
+  - google-cloud-pubsub
+  - google-api-python-client
+  - google-auth
   - pip
   - pip:
     - python-dotenv
     - fhir.resources
-    - google-cloud-bigquery
-    - google-cloud-pubsub==2.13.9
-    - google-api-python-client
     - pandas-gbq
-    - google-auth
