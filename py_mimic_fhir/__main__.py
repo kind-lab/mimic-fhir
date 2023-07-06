@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 
 from py_mimic_fhir.validate import validate_n_patients, multiprocess_validate, revalidate_bad_bundles
-from py_mimic_fhir.io import export_all_resources
+from py_mimic_fhir.io import export_all_resources, export_patient_bundles
 from py_mimic_fhir.terminology import generate_all_terminology, post_terminology
 from py_mimic_fhir.config import MimicArgs, GoogleArgs, PatientEverythingArgs
 from py_mimic_fhir.db import MFDatabaseConnection
@@ -241,23 +241,9 @@ def parse_arguments(arguments=None):
         help='The bundle run that had failed bundles'
     )
 
-    # Export - can be run separate from validation
+    # Export FHIR resources to disk
     arg_export = subparsers.add_parser(
         "export", help=("Export options for mimic-fhir data")
-    )
-    arg_export.add_argument(
-        '--export_limit',
-        required=False,
-        type=float,
-        default=10000,
-        help='Export Limit, 1 is ~ 1000 resources'
-    )
-
-    arg_export.add_argument(
-        '--patient_everything',
-        required=False,
-        action='store_true',
-        help='Flag to export patient-everything bundles'
     )
 
     arg_export.add_argument(
@@ -269,14 +255,6 @@ def parse_arguments(arguments=None):
     )
 
     arg_export.add_argument(
-        '--count',
-        required=False,
-        type=int,
-        default=100,
-        help='Number of resources allowed per page, max 1000'
-    )
-
-    arg_export.add_argument(
         '--resource_types',
         required=False,
         type=str,
@@ -285,6 +263,56 @@ def parse_arguments(arguments=None):
     )
 
     arg_export.add_argument(
+        '--ndjson_by_patient',
+        required=False,
+        action='store_true',
+        help='Flag to export ndjson by patient from postgres'
+    )
+
+    # Export to GCP - can be run separate from validation
+    arg_export_to_gcp = subparsers.add_parser(
+        "export_to_gcp", help=("Export options for mimic-fhir data")
+    )
+    arg_export_to_gcp.add_argument(
+        '--export_limit',
+        required=False,
+        type=float,
+        default=10000,
+        help='Export Limit, 1 is ~ 1000 resources'
+    )
+
+    arg_export_to_gcp.add_argument(
+        '--patient_everything',
+        required=False,
+        action='store_true',
+        help='Flag to export patient-everything bundles'
+    )
+
+    arg_export_to_gcp.add_argument(
+        '--num_patients',
+        required=False,
+        type=int,
+        default=1,
+        help='Number of patients to export patient-everything bundles'
+    )
+
+    arg_export_to_gcp.add_argument(
+        '--count',
+        required=False,
+        type=int,
+        default=100,
+        help='Number of resources allowed per page, max 1000'
+    )
+
+    arg_export_to_gcp.add_argument(
+        '--resource_types',
+        required=False,
+        type=str,
+        default='Patient,Encounter,Condition,Procedure',
+        help='Resource types to be included in patient-everything bundles'
+    )
+
+    arg_export_to_gcp.add_argument(
         '--pe_topic',
         required=True,
         action=EnvDefault,
@@ -292,7 +320,7 @@ def parse_arguments(arguments=None):
         help='Google PubSub Topic for patient-everything'
     )
 
-    arg_export.add_argument(
+    arg_export_to_gcp.add_argument(
         '--ndjson_by_patient',
         required=False,
         action='store_true',
@@ -375,7 +403,24 @@ def revalidate(args, gcp_args):
 
 
 # Export all resources from FHIR Server and write to NDJSON
-def export(args, gcp_args):
+def export(args):
+    db_conn = MFDatabaseConnection(
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
+        args.port
+    )
+    pe_args = PatientEverythingArgs(
+        args.patient_everything, args.num_patients, args.resource_types,
+        args.pe_topic, args.count
+    )
+    export_patient_bundles(
+       db_conn, args.output_path,
+       num_patients=args.num_patients,
+       resource_types=args.resource_types,
+       validator=args.validator
+    )
+
+# export but also ping GCP
+def export_to_gcp(args, gcp_args):
     db_conn = MFDatabaseConnection(
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
         args.port
@@ -434,7 +479,9 @@ def main(argv=sys.argv):
     elif args.actions == 'revalidate':
         revalidate(args, gcp_args)
     elif args.actions == 'export':
-        export(args, gcp_args)
+        export(args)
+    elif args.actions == 'export_to_gcp':
+        export_to_gcp(args, gcp_args)
     elif args.actions == 'terminology':
         terminology(args)
     else:

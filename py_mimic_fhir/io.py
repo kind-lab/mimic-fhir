@@ -19,6 +19,29 @@ from py_mimic_fhir.lookup import (
 logger = logging.getLogger(__name__)
 
 
+def export_patient_bundles(
+    db_conn,
+    output_path,
+    num_patients=None,
+    resource_types=None,
+    validator=None
+):
+    """Export patient-wise bundles"""
+    export_data_related_ndjson(db_conn, output_path)
+    export_patient_related_ndjson(db_conn, output_path)
+    if validator is None:
+        return None
+
+    # if validator == 'HAPI':
+    #     result_dict = export_all_resources_hapi(fhir_server, output_path, limit)
+    #     result = False not in result_dict.values()
+    # elif validator == 'GCP' and pe_args.patient_bundle:
+    #     result = export_patient_everything_gcp(gcp_args, pe_args, db_conn)
+    # elif validator == 'GCP' and not pe_args.patient_bundle:
+    #     result = export_all_resources_gcp(gcp_args)
+
+    return None
+
 # Export all the resources, for debugging can limit how many to output. limit = 1 ~1000 resources
 def export_all_resources(
     fhir_server,
