@@ -408,10 +408,6 @@ def export(args):
         args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
         args.port
     )
-    pe_args = PatientEverythingArgs(
-        args.patient_everything, args.num_patients, args.resource_types,
-        args.pe_topic, args.count
-    )
     export_patient_bundles(
        db_conn, args.output_path,
        num_patients=args.num_patients,
