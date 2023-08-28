@@ -3,33 +3,22 @@ A version of MIMIC-IV-on-FHIR. The scripts and packages in the repository will g
   - Upon loading both the MIMIC-IV and MIMIC-IV-ED data, validate that the data was loaded into postgres by running the following command: `psql -U postgres -d <name of db> -f validate_demo.sql` within their respective projects(`mimic-code/mimic-iv-ed/buildmimic/postgres/` & `mimic-code/mimic-iv/buildmimic/postgres/`)
   - When all test cases pass you may proceed to creating the fhir tables in Quickstart.
 
-  Note: It is recommended for users to install [miniforge](https://github.com/conda-forge/miniforge) for easy setup. Once installed, make sure to connect to the environment with the following commend `conda activate <environmentName>`. To exit the environment do `conda deactivate `.
-`
+Note: It is recommended for users to install [miniforge](https://github.com/conda-forge/miniforge) for easy setup. Once installed, make sure to connect to the environment with the following commend `conda activate <environmentName>`. To exit the environment do `conda deactivate `.
 
-## Prerequisite
+## Prerequisites
 
-Have postgresql
+**You will need 1 TB of free space to store the full MIMIC-IV dataset in FHIR.**
+
+1. Have postgresql
 
 ```
 sudo apt-get install postgres
 ```
 
-This takes a lot of data, you may need to use a different tablespace
-
-```
-
-```
-
-Clone the repo
-
-```
-git clone git@github.com:kind-lab/mimic-fhir.git
-```
-
-Have MIMIC-IV and MIMIC-IV-ED built on a local postgres database.
+2. Have MIMIC-IV and MIMIC-IV-ED built on a local postgres database.
 
 ```sh
-USERNAME=alistairewj
+USERNAME=CHANGE_TO_PHYSIONET_USERNAME
 wget -rNcnp --user $USERNAME --ask-password --cut-dirs=2 https://physionet.org/files/mimiciv/2.2/
 wget -rNcnp --user $USERNAME --ask-password --cut-dirs=2 https://physionet.org/files/mimic-iv-ed/2.2/
 mkdir -p mimic-iv
@@ -46,17 +35,52 @@ psql -d mimic -f load_gz.sql -v mimic_data_dir=../../../../mimic-iv/2.2
 ```
 
 ## Quickstart
+
+### Generate the data within PostgreSQL
+
+This will result in a `mimic_fhir` schema with FHIR resources for the MIMIC-IV data.
+
 1. Clone the repository locally:  
 ```sh
 git clone https://github.com/kind-lab/mimic-fhir.git
 ```
 2. Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
 ```sh
+cd mimic-fhir/sql
 psql -f create_fhir_tables.sql
 ```
-  - In order to confirm the tables were generated correctly, it is recommended to run the [validate_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/validate_fhir_tables.sql) file with the following command:
-    - `psql -d <name of db> -f validate_fhir_tables.sql`
+3. Validate the tables built correctly.
+  - For the full MIMIC-IV dataset: `psql -f validate_fhir_tables.sql`, see [validate_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/validate_fhir_tables.sql)
+  - For the demo: `psql -f validate_fhir_tables_demo.sql`, see [validate_fhir_tables_demo.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/validate_fhir_tables_demo.sql)
   - If all the test cases pass, proceed to step 3.
+
+### Export the data to ndjson
+
+IF you want to directly export the data to ndjson, organized by resource, you can do that directly from PostgreSQL.
+
+#### (Optional) Validate a single resource first
+Before running the full export, it's worth it to validate a single resource. You can do that as follows:
+
+```sh
+psql -c "\copy (SELECT to_json(fhir) FROM mimic_fhir.patients LIMIT 1) TO 'patient_1.json';"
+java -jar validator_cli.jar patient_1.json -version 4.0 -ig /path/to/mimic/implementation-guide
+```
+
+The MIMIC implementation guide can be built from the [mimic-profiles GitHub repository](https://github.com/kind-lab/mimic-profiles).
+
+#### Export resources to ndjson
+
+An SQL script is provided which runs all COPY commands to output the data.
+**The script outputs all files to the current working directory.** Make sure you have sufficient space.
+
+```sh
+psql -f export_fhir_tables.sql
+```
+
+The script outputs files as compressed ndjson using the `gzip` command line tool.
+If you are on Windows, you may need to omit the `gzip` step, or install the GNU CoreUtils package.
+
+### Insert into a FHIR server (HAPI FHIR)
 
 3. Set up HAPI FHIR for use in validation/export
     - The first step in validation/export is getting the fhir server running. In our case we will use HAPI FHIR.
