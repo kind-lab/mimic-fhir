@@ -20,15 +20,20 @@ logger = logging.getLogger(__name__)
 
 
 def export_patient_bundles(
-    db_conn,
+    db,
     output_path,
     num_patients=None,
     resource_types=None,
     validator=None
 ):
     """Export patient-wise bundles"""
-    export_data_related_ndjson(db_conn, output_path)
-    export_patient_related_ndjson(db_conn, output_path)
+    # export resources which are fixed for all patients
+    # organization, medications, etc.
+    export_data_related_ndjson(db, output_path)
+
+    # export patient-specific resources
+    # observations, encounters, etc.
+    export_patient_related_ndjson(db, output_path)
     if validator is None:
         return None
 
@@ -285,8 +290,8 @@ def sort_resources(output_path):
     return process
 
 
-def export_patient_related_ndjson(db_conn, output_path):
-    patient_list = db_conn.get_n_patient_id()
+def export_patient_related_ndjson(db, output_path, patient_ids=None):
+    patient_list = db.get_patient_id()
     patient_output_path = f'{output_path}/patients'
 
     create_folder_if_not_exists(output_path)
@@ -296,21 +301,21 @@ def export_patient_related_ndjson(db_conn, output_path):
         patient_folder = f'{patient_output_path}/{patient_id}'
         create_folder_if_not_exists(patient_folder)
 
-        resource_list = db_conn.get_resources_by_pat('patient', patient_id)
+        resource_list = db.get_resources_by_pat('patient', patient_id)
         write_ndjson_by_table_name('patient', patient_folder, resource_list)
         for table in MIMIC_PATIENT_TABLE_LIST:
-            resource_list = db_conn.get_resources_by_pat(table, patient_id)
+            resource_list = db.get_resources_by_pat(table, patient_id)
             write_ndjson_by_table_name(table, patient_folder, resource_list)
 
 
-def export_data_related_ndjson(db_conn, output_path):
+def export_data_related_ndjson(db, output_path):
     data_output_path = f'{output_path}/data'
     create_folder_if_not_exists(output_path)
     create_folder_if_not_exists(data_output_path)
 
     for table in MIMIC_DATA_TABLE_LIST:
         query_table = f"SELECT fhir FROM mimic_fhir.{table}"
-        resource_list = db_conn.read_query(query_table)
+        resource_list = db.read_query(query_table)
         write_ndjson_by_table_name(table, data_output_path, resource_list)
 
 

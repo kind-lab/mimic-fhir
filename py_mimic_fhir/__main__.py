@@ -405,8 +405,7 @@ def revalidate(args, gcp_args):
 # Export all resources from FHIR Server and write to NDJSON
 def export(args):
     db_conn = MFDatabaseConnection(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
-        args.port
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.port
     )
     export_patient_bundles(
        db_conn, args.output_path,
@@ -418,8 +417,7 @@ def export(args):
 # export but also ping GCP
 def export_to_gcp(args, gcp_args):
     db_conn = MFDatabaseConnection(
-        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.db_mode,
-        args.port
+        args.sqluser, args.sqlpass, args.dbname_mimic, args.host, args.port
     )
     pe_args = PatientEverythingArgs(
         args.patient_everything, args.num_patients, args.resource_types,

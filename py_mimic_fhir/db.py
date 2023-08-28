@@ -4,48 +4,23 @@ import json
 import pandas as pd
 import pandas_gbq as pdq
 import google.auth
-
+from sqlalchemy import create_engine, URL
 
 class MFDatabaseConnection():
-    def __init__(self, sqluser, sqlpass, dbname, host, db_mode, port=5432):
-        self.db_conn = self.connect_db(
-            sqluser, sqlpass, dbname, host, db_mode, port
+    def __init__(self, sqluser, sqlpass, dbname, host, port=5432):
+        # default is to connect with SQLAlchemy to postgresql
+        engine = create_engine(
+            f'postgresql://{sqluser}:{sqlpass}@{host}:{port}/{dbname}'
         )
-        self.db_mode = db_mode
-
-    # database connection
-    def connect_db(self, sqluser, sqlpass, dbname, host, db_mode, port=5432):
-        if db_mode == 'POSTGRES':
-            connection = psycopg2.connect(
-                dbname=dbname,
-                user=sqluser,
-                password=sqlpass,
-                host=host,
-                port=port
-            )
-            connection.set_session(readonly=True)
-        elif db_mode == 'BIGQUERY':
-            credentials, project = google.auth.default()
-            pdq.context.credentials = credentials
-            pdq.context.project = project
-            connection = db_mode
-        else:
-            connection = db_mode
-        return connection
+        self.engine = engine
+        self.con = engine.connect()
+        self.db_mode = 'Postgres'
 
     def close(self):
-        if self.db_mode == 'POSTGRES':
-            self.db_conn.close()
+        self.con.close()
 
     def read_query(self, query):
-        if self.db_conn == 'BIGQUERY':
-            df = pdq.read_gbq(query)
-            if 'fhir' in df.columns:
-                df['fhir'] = df['fhir'].apply(json.loads)
-        else:
-            df = pd.read_sql_query(query, self.db_conn)
-
-        return df
+        return pd.read_sql_query(query, self.con)
 
     def get_table(self, schema, table):
         q_table = f"SELECT * FROM {schema}.{table};"
@@ -75,13 +50,21 @@ class MFDatabaseConnection():
 
     def get_n_patient_id(self, n_patient=0):
         if n_patient == 0:
-            q_resource = f"SELECT * FROM mimic_fhir.patient"
+            q_resource = f"SELECT * FROM mimic_fhir.patient ORDER BY id"
         else:
-            q_resource = f"SELECT * FROM mimic_fhir.patient LIMIT {n_patient}"
+            q_resource = f"SELECT * FROM mimic_fhir.patient ORDER BY id LIMIT {n_patient}"
         resource = self.read_query(q_resource)
         patient_ids = [fhir['id'] for fhir in resource.fhir]
 
         return patient_ids
+
+    def get_patient_id(self, n_patient: int=0):
+        if n_patient == 0:
+            q_resource = f"SELECT id FROM mimic_fhir.patient ORDER BY id"
+        else:
+            q_resource = f"SELECT id FROM mimic_fhir.patient ORDER BY id LIMIT {n_patient}"
+        resource = self.read_query(q_resource)
+        return resource['fhir'].tolist()
 
     def get_n_resources(self, table, n_limit=0):
         if n_limit == 0:
@@ -109,3 +92,23 @@ class MFDatabaseConnection():
 
         resource = self.read_query(q_resource)
         return resource.fhir[0]['id']
+
+
+class BigQueryDB(MFDatabaseConnection):
+    def connect_db(self, sqluser, sqlpass, dbname, host, port=5432):
+        self.credentials, self.project = google.auth.default()
+        pdq.context.credentials = self.credentials
+        pdq.context.project = self.project
+        self.db_mode = 'BigQuery'
+    
+    def read_query(self, query):
+        df = pdq.read_gbq(query)
+        if 'fhir' in df.columns:
+            df['fhir'] = df['fhir'].apply(json.loads)
+        return df
+
+    def close(self):
+        pass
+class PostgresDB(MFDatabaseConnection):
+    def __repr__(self):
+        return f"PostgresDB(sqluser={self.sqluser}, sqlpass={self.sqlpass}, dbname={self.dbname}, host={self.host}, port={self.port})"
