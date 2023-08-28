@@ -1,35 +1,35 @@
 WITH expected AS
 (
-    SELECT 'condition' AS tbl,                          4506 AS row_count UNION ALL
-    SELECT 'condition_ed' AS tbl,                       545 AS row_count UNION ALL
-    SELECT 'encounter' AS tbl,                          275 AS row_count UNION ALL
-    SELECT 'encounter_ed' AS tbl,                       222 AS row_count UNION ALL
-    SELECT 'encounter_icu' AS tbl,                      140 AS row_count UNION ALL
-    SELECT 'location' AS tbl,                           31 AS row_count UNION ALL
-    SELECT 'medication' AS tbl,                         1480 AS row_count UNION ALL
-    SELECT 'medication_administration' AS tbl,          36131 AS row_count UNION ALL
-    SELECT 'medication_administration_icu' AS tbl,      20404 AS row_count UNION ALL
-    SELECT 'medication_dispense' AS tbl,                14293 AS row_count UNION ALL
-    SELECT 'medication_dispense_ed' AS tbl,             1082 AS row_count UNION ALL
-    SELECT 'medication_mix' AS tbl,                     314 AS row_count UNION ALL
-    SELECT 'medication_request' AS tbl,                 17552 AS row_count UNION ALL
-    SELECT 'medication_statement_ed' AS tbl,            2411 AS row_count UNION ALL
-    SELECT 'observation_chartevents' AS tbl,            668862 AS row_count UNION ALL
-    SELECT 'observation_datetimeevents' AS tbl,         15280 AS row_count UNION ALL
-    SELECT 'observation_ed' AS tbl,                     2742 AS row_count UNION ALL
-    SELECT 'observation_labevents' AS tbl,              107727 AS row_count UNION ALL
-    SELECT 'observation_micro_org' AS tbl,              338 AS row_count UNION ALL
-    SELECT 'observation_micro_susc' AS tbl,             1036 AS row_count UNION ALL
-    SELECT 'observation_micro_test' AS tbl,             1893 AS row_count UNION ALL
-    SELECT 'observation_outputevents' AS tbl,           9362 AS row_count UNION ALL
-    SELECT 'observation_vital_signs' AS tbl,            6300 AS row_count UNION ALL
-    SELECT 'organization' AS tbl,                       1 AS row_count UNION ALL
-    SELECT 'patient' AS tbl,                            100 AS row_count UNION ALL
-    SELECT 'procedure' AS tbl,                          722 AS row_count UNION ALL
-    SELECT 'procedure_ed' AS tbl,                       1260 AS row_count UNION ALL
-    SELECT 'procedure_icu' AS tbl,                      1468 AS row_count UNION ALL
-    SELECT 'specimen' AS tbl,                           1336 AS row_count UNION ALL
-    SELECT 'specimen_lab' AS tbl,                       11122 AS row_count
+    SELECT 'condition' AS tbl,                             4756326 AS row_count UNION ALL
+    SELECT 'condition_ed' AS tbl,                           899050 AS row_count UNION ALL
+    SELECT 'encounter' AS tbl,                              431231 AS row_count UNION ALL
+    SELECT 'encounter_ed' AS tbl,                           425087 AS row_count UNION ALL
+    SELECT 'encounter_icu' AS tbl,                           73181 AS row_count UNION ALL
+    SELECT 'location' AS tbl,                                   39 AS row_count UNION ALL
+    SELECT 'medication' AS tbl,                              19689 AS row_count UNION ALL
+    SELECT 'medication_administration' AS tbl,            27754178 AS row_count UNION ALL
+    SELECT 'medication_administration_icu' AS tbl,         8978893 AS row_count UNION ALL
+    SELECT 'medication_dispense' AS tbl,                  12689767 AS row_count UNION ALL
+    SELECT 'medication_dispense_ed' AS tbl,                1586053 AS row_count UNION ALL
+    SELECT 'medication_mix' AS tbl,                           6338 AS row_count UNION ALL
+    SELECT 'medication_request' AS tbl,                   15416901 AS row_count UNION ALL
+    SELECT 'medication_statement_ed' AS tbl,               2598365 AS row_count UNION ALL
+    SELECT 'observation_chartevents' AS tbl,             313645032 AS row_count UNION ALL
+    SELECT 'observation_datetimeevents' AS tbl,            7112999 AS row_count UNION ALL
+    SELECT 'observation_ed' AS tbl,                        4404481 AS row_count UNION ALL
+    SELECT 'observation_labevents' AS tbl,               118171367 AS row_count UNION ALL
+    SELECT 'observation_micro_org' AS tbl,                  289928 AS row_count UNION ALL
+    SELECT 'observation_micro_susc' AS tbl,                1107278 AS row_count UNION ALL
+    SELECT 'observation_micro_test' AS tbl,                2184371 AS row_count UNION ALL
+    SELECT 'observation_outputevents' AS tbl,              4234967 AS row_count UNION ALL
+    SELECT 'observation_vital_signs' AS tbl,               9948485 AS row_count UNION ALL
+    SELECT 'organization' AS tbl,                                1 AS row_count UNION ALL
+    SELECT 'patient' AS tbl,                                299712 AS row_count UNION ALL
+    SELECT 'procedure' AS tbl,                              669186 AS row_count UNION ALL
+    SELECT 'procedure_ed' AS tbl,                          1989697 AS row_count UNION ALL
+    SELECT 'procedure_icu' AS tbl,                          696092 AS row_count UNION ALL
+    SELECT 'specimen' AS tbl,                              1587215 AS row_count UNION ALL
+    SELECT 'specimen_lab' AS tbl,                         13376689 AS row_count
 )
 , observed as
 (
