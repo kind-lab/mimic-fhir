@@ -74,7 +74,7 @@ An SQL script is provided which runs all COPY commands to output the data.
 **The script outputs all files to the current working directory.** Make sure you have sufficient space.
 
 ```sh
-psql -f export_fhir_tables.sql
+psql "options=--search_path=mimic_fhir"" -f export_fhir_tables.sql
 ```
 
 The script outputs files as compressed ndjson using the `gzip` command line tool.
