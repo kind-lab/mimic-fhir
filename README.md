@@ -80,6 +80,41 @@ psql "options=--search_path=mimic_fhir"" -f export_fhir_tables.sql
 The script outputs files as compressed ndjson using the `gzip` command line tool.
 If you are on Windows, you may need to omit the `gzip` step, or install the GNU CoreUtils package.
 
+For reference,the filesizes are:
+
+Row count | File size | File name
+---       | ---       | ---
+1         |      320B | organization.ndjson.gz
+39        |      1.7K | location.ndjson.gz
+6338      |      410K | medication_mix.ndjson.gz
+19689     |      792K | medication.ndjson.gz
+73181     |      7.4M | encounter_icu.ndjson.gz
+899050    |       56M | condition_ed.ndjson.gz
+289928    |       46M | observation_micro_org.ndjson.gz
+299712    |       15M | patient.ndjson.gz
+425087    |       33M | encounter_ed.ndjson.gz
+431231    |       52M | encounter.ndjson.gz
+669186    |       41M | procedure.ndjson.gz
+696092    |       34M | procedure_icu.ndjson.gz
+1107278   |       51M | observation_micro_susc.ndjson.gz
+1586053   |       72M | medication_dispense_ed.ndjson.gz
+1587215   |       68M | specimen.ndjson.gz
+1989697   |       76M | procedure_ed.ndjson.gz
+2184371   |      171M | observation_micro_test.ndjson.gz
+2598365   |      152M | medication_statement_ed.ndjson.gz
+4234967   |      161M | observation_outputevents.ndjson.gz
+4404481   |      223M | observation_ed.ndjson.gz
+4756326   |      233M | condition.ndjson.gz
+7112999   |      259M | observation_datetimeevents.ndjson.gz
+8978893   |      506M | medication_administration_icu.ndjson.gz
+9948485   |      445M | observation_vital_signs.ndjson.gz
+13376689  |      484M | specimen_lab.ndjson.gz
+15416901  |      1.1G | medication_request.ndjson.gz
+27754178  |      1.2G | medication_administration.ndjson.gz
+27754178  |      887M | medication_dispense.ndjson.gz
+118171367 |      8.1G |  observation_labevents.ndjson.gz
+313645032 |       15G |  observation_chartevents.ndjson.gz
+
 ### Insert into a FHIR server (HAPI FHIR)
 
 3. Set up HAPI FHIR for use in validation/export
