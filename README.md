@@ -12,9 +12,6 @@ sudo apt update
 # install git and wget
 sudo apt install git wget
 
-# install google command line
-
-
 # clone repo
 git clone https://github.com/fhir-fli/mimic-fhir.git && cd mimic-fhir/mimic-code
 ```
@@ -32,10 +29,10 @@ sudo -i -u postgres
 postgres@desktop:~$ psql
 ```
 
-
 ```sh
 # For this, the user needs to be the same as the username you are using on the current computer you're using
-postgres=# CREATE USER grey CREATEDB password <PASSWORD>;
+# replace '${PASSWORD}' with your actual password, but leave the single quotes around it
+postgres=# CREATE USER grey CREATEDB password '${PASSWORD}';
 
 postgres=# exit
 ```
@@ -68,19 +65,19 @@ createdb mimiciv
 psql -d mimiciv -f mimic-iv/buildmimic/postgres/create.sql
 
 # take note of the mimiciv version you're on and change the directory accordingly, this one takes a while
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-iv/buildmimic/postgres/load_gz.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=..mimiciv/2.2 -f mimic-iv/buildmimic/postgres/load_gz.sql
 
 # The first time you do this, the scripts delete ("drop" in sql parlance) things before you create them to remove old versions. This produces a warning, you can safely ignore it
 
 # I get a number of Notices about constraints not existing for this one
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-iv/buildmimic/postgres/constraint.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=..mimiciv/2.2 -f mimic-iv/buildmimic/postgres/constraint.sql
 
 # Also notices about indexes not existing
 psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-iv/buildmimic/postgres/index.sql
 
 # We're basically just going to repeat with the mimic ED data
 psql -d mimiciv -f mimic-iv-ed/buildmimic/postgres/create.sql
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-iv-ed/buildmimic/postgres/load_gz.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=../mimicived/2.2/ed -f mimic-iv-ed/buildmimic/postgres/load_gz.sql
 
 # In the mimic-iv-ed directory, the constraints.sql has the schema listed as mimic_ed, instead of mimiciv_ed, which is the schema in the other files. In this repo I've changed, but if you go with the original repo, you'll probably have to change it
 psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-iv-ed/buildmimic/postgres/constraint.sql
@@ -98,11 +95,11 @@ psql -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
 - Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
 - IMPORTANT: 
   - this takes a long time and requires a lot of space. I kept running out of space when I tried to do it at first.
-  - Realistically, you probably need 1TB of FREE space on the device you're using
+  - Realistically, you probably need 2TB of FREE space on the device you're using
   - This is a lengthy process. Just so you can know what you should expect, I ran this on a machine with:
-    - Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz
-    - 16 GB RAM
-  - It took ~14 hours
+    - AMD® Ryzen 9 3900xt 12-core processor × 24 
+    - 64 GB RAM
+  - It took ~12 hours
 
 ```sh
 cd ../sql
@@ -130,63 +127,48 @@ createdb hapi_r4
 - Change the SQLUSER and SQLPASS. Those should be the same as you set them at the beginning of this process.
 - Choose the paths you're going to use for the MIMIC_JSON_PATH, FHIR_BUNDLE_ERROR_PATH, MIMIC_FHIR_LOG_PATH
 - You'll need to make sure java and maven are installed for this next section
-- The *application.yaml* file in the hapi-fhir-jpaserver-starter project was modified to point to the mimic implementation guide
-  - The mimic implementation guide is stored in the [kindlab fhir-packages](https://github.com/kind-lab/fhir-packages) repo (although I wasn't able to find it).
-  - the ```hapi-fhir-server-starter/src/main/resources/application.yaml``` may need to be edited
-  - I changed the username and password that I specified at the very beginning for postgres
-  - I updated the fhir-packges reference later in the file
-  - Also had to edit the pom.xml file (as usual, your mileage may vary)
-    - comment out the version line for the first postgres dependencey
-    - comment out completely the second postgres dependency
+- The *application.yaml* file in the hapi-fhir-jpaserver-starter project also needs the username and password changed at the beginning to the same ones you have been using
+- then run: 
 
-```xml
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <!-- <version>42.2.23</version> -->
-</dependency>
+```sh
+cd hapi-fhir-jpaserver-starter
+mvn jetty:run
 ```
 
-  ```sh
-  cd hapi-fhir-jpaserver-starter
-  mvn jetty:run
-  ```
-  - The initial loading of hapi fhir will be around 10-15 minutes, subsequent loads will be faster
+- The initial loading of hapi fhir will be around 10-15 minutes, subsequent loads will be faster
 
 ## PY_MIMIC_FHIR
 
 - Configure py_mimic_fhir package for use
+- Post terminology to HAPI-FHIR using py_mimic_fhir
 
+```sh
+git clone https://github.com/kind-lab/mimic-profiles.git
 ```
+
+- Ensure the environment variable `MIMIC_TERMINOLOGY_PATH` is set and pointing to the latest terminology files `mimic-profiles/input/resources`
+
+```sh
 cd ../mimic-fhir
 export $(grep -v '^#' .env | xargs)
 pip install -e .
 ```
 
-- Post terminology to HAPI-FHIR using py_mimic_fhir
-- The default load of HAPI-FHIR with the mimic implementation guide does not fully expand all terminology. To ensure full expansion, we need to post the terminology directly. To do this
-
-```sh
-git clone https://github.com/kind-lab/fhir-packages.git
-cd fhir-packages
-git checkout mimic-package-0.1.0
-```
-
-- unzip the latest mimic.tgz file
-- This unzipped directory should be used as the environment variable `MIMIC_TERMINOLOGY_PATH`
-- After, go into the py_mimic_fhir directory, install the necessary modules, and post the terminology
-- NOTE: for this section, you will need to have a google cloud account with command line access
+- there are some packages that seem to be required before you can run the terminology post command
 
 ```sh
 pip install google-cloud
 pip install google-cloud-pubsub
 pip install psycopg2-binary
 pip install pandas-gbq
-pip install google-api-python-client
 pip install fhir
 pip install fhir-resources
-cd py_mimic_fhir
-python3 py_mimic_fhir terminology --post
+```
+
+- Run the terminology post command in py_mimic_fhir: 
+
+```sh
+python py_mimic_fhir terminology --post
 ```
 
 - Load reference data bundles into HAPI-FHIR using py_mimic_fhir
