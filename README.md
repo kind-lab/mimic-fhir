@@ -43,7 +43,7 @@ postgres@desktop:~$ exit
 
 ## Download the data and structure it in Postgresql
 
-- Note in the below, <USERNAME> is your physionet username
+- Note in the below, ```<USERNAME>``` is your physionet username
 - It's a fair amount of data and it can take some time, 30-40 minutes is not unusual
 - If that doesn't work, go to the bottom of these websites, and you can copy the commands
 - [mimiciv](https://physionet.org/content/mimiciv/2.2/)
