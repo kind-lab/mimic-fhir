@@ -1,26 +1,63 @@
 # mimic-fhir
 
+This repository provides code for converting the [MIMIC-IV](https://physionet.org/content/mimiciv/2.2/) and [MIMIC-IV-ED](https://physionet.org/content/mimic-iv-ed/2.2/) databases into [FHIR](https://www.hl7.org/fhir/).
+
+Code in this repository is organized as follows:
+
+
+* [sql/](/sql/) contains SQL scripts for creating the FHIR tables in PostgreSQL and mapping data from MIMIC-IV/MIMIC-IV-ED
+* [py_mimic_fhir/](/py_mimic_fhir/) contains a Python package for importing, validating and exporting FHIR resources from a HAPI FHIR server
+* [mimic-profiles/](/mimic-profiles/) (submodule) contains the FHIR profiles and terminology for MIMIC-IV/MIMIC-IV-ED
+* [hapi-fhir-jpaserver-starter/](/hapi-fhir-jpaserver-starter/) (submodule) contains a fork of the HAPI FHIR JPA Server Starter project with some modifications to support the MIMIC-IV/MIMIC-IV-ED profiles and terminology
+* [mimic-code/](/mimic-code/) (submodule) contains the MIMIC-IV build scripts for building the MIMIC-IV/MIMIC-IV-ED databases in PostgreSQL
+* [fhir-packages](/fhir-packages/) contains the FHIR packages for the MIMIC-IV/MIMIC-IV-ED profiles and terminology (currently an empty folder)
+
 - A version of MIMIC-IV-on-FHIR ([original repo here](https://github.com/kind-lab/mimic-fhir)). The scripts and packages in the repository will generate the MIMIC-IV FHIR tables in PostgreSQL, validate in HAPI fhir, and export to ndjson.
 - Also know that there are specific instructions for MIMIC-IV and MIMIC-IV-ED to be loaded into your local Postgres. The specific instructions are at [MIMIC-IV guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv/buildmimic/postgres) and [MIMIC-IV-ED guide](https://github.com/MIT-LCP/mimic-code/tree/main/mimic-iv-ed/buildmimic/postgres). You can follow those instructions, but I've included it all here, but I want to ensure I give credit where it is due. (Note: When following other instructions please use the same db name across both guides ie. `mimiciv`)
 
-## Prerequisites
+## Accessing the data
+
+This repository is provided for those who wish to explore the build process and regenerate the data in FHIR themselves.
+For those who are simply interested in the data, there are two PhysioNet projects where the data has already been published:
+
+* [MIMIC-IV FHIR Demo](https://physionet.org/content/mimic-iv-fhir-demo) - A demo project with 100 patients. Openly available.
+* [MIMIC-IV FHIR](https://physionet.org/content/mimic-iv-fhir) - The full MIMIC-IV dataset. Requires a credentialed PhysioNet account.
+
+## Building MIMIC-IV on FHIR
+
+Briefly, the steps to convert MIMIC-IV/MIMIC-IV-ED to FHIR are as follows:
+
+1. Clone this repository and its submodules
+2. Install PostgreSQL and create a database
+3. Download the MIMIC-IV/MIMIC-IV-ED data and load it into PostgreSQL
+4. Generate the FHIR tables by running [create_fhir_tables.sql](/sql/create_fhir_tables.sql)
+
+### Detailed instructions (Ubuntu)
+
+#### Install packages
+
+First install git, wget, and postgresql
 
 ```sh
 # update
 sudo apt update
-
-# install git and wget
-sudo apt install git wget
-
-# clone repo
-git clone https://github.com/fhir-fli/mimic-fhir.git && cd mimic-fhir/mimic-code
+sudo apt install git wget postgresql postgresql-contrib
 ```
 
-## Postgresql
-```sh
-# install
-sudo apt install postgresql postgresql-contrib
+Clone the repository and its submodules.
 
+```sh
+# use recurse submodules to also clone the mimic-code/mimic-profiles repo
+git clone --recurse-submodules https://github.com/fhir-fli/mimic-fhir.git
+```
+
+#### Create a postgres user
+
+Configure a user for the database.
+For convenient access, you should pick a username which is identical to your operating system username, that way
+you won't have to specify the username when connecting to the database, and authentication is simplified.
+
+```sh
 #get into postgres
 sudo -i -u postgres
 ```
@@ -41,13 +78,15 @@ postgres=# exit
 postgres@desktop:~$ exit
 ```
 
-## Download the data and structure it in Postgresql
+#### Download the data and structure it in Postgresql
 
 - Note in the below, ```<USERNAME>``` is your physionet username
-- It's a fair amount of data and it can take some time, 30-40 minutes is not unusual
+- It is around ~6 GB of data and so the download can take some time, 30-40 minutes is not unusual
 - If that doesn't work, go to the bottom of these websites, and you can copy the commands
-- [mimiciv](https://physionet.org/content/mimiciv/2.2/)
-- [mimic-iv-ed](https://physionet.org/content/mimic-iv-ed/2.2/)
+  - [mimiciv](https://physionet.org/content/mimiciv/2.2/)
+  - [mimic-iv-ed](https://physionet.org/content/mimic-iv-ed/2.2/)
+
+The following commands should be run in the mimic-fhir directory.
 
 ```sh
 wget -r -N -c -np --user <USERNAME> --ask-password https://physionet.org/files/mimiciv/2.2/
@@ -62,39 +101,31 @@ rm -r physionet.org/
 
 # creates the database itself
 createdb mimiciv
-psql -d mimiciv -f mimic-iv/buildmimic/postgres/create.sql
+psql -d mimiciv -f mimic-code/mimic-iv/buildmimic/postgres/create.sql
 
 # take note of the mimiciv version you're on and change the directory accordingly, this one takes a while
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=..mimiciv/2.2 -f mimic-iv/buildmimic/postgres/load_gz.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-code/mimic-iv/buildmimic/postgres/load_gz.sql
 
-# The first time you do this, the scripts delete ("drop" in sql parlance) things before you create them to remove old versions. This produces a warning, you can safely ignore it
-
-# I get a number of Notices about constraints not existing for this one
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=..mimiciv/2.2 -f mimic-iv/buildmimic/postgres/constraint.sql
-
-# Also notices about indexes not existing
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-iv/buildmimic/postgres/index.sql
+# The first time you do this, the scripts delete ("drop" in sql parlance) things before you create them to remove old versions.
+# This produces many warnings, you can safely ignore them.
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-code/mimic-iv/buildmimic/postgres/constraint.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimiciv/2.2 -f mimic-code/mimic-iv/buildmimic/postgres/index.sql
 
 # We're basically just going to repeat with the mimic ED data
-psql -d mimiciv -f mimic-iv-ed/buildmimic/postgres/create.sql
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=../mimicived/2.2/ed -f mimic-iv-ed/buildmimic/postgres/load_gz.sql
-
-# In the mimic-iv-ed directory, the constraints.sql has the schema listed as mimic_ed, instead of mimiciv_ed, which is the schema in the other files. In this repo I've changed, but if you go with the original repo, you'll probably have to change it
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-iv-ed/buildmimic/postgres/constraint.sql
-
-# Same notices about indexes not existing
-psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-iv-ed/buildmimic/postgres/index.sql
+psql -d mimiciv -f mimic-code/mimic-iv-ed/buildmimic/postgres/create.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-code/mimic-iv-ed/buildmimic/postgres/load_gz.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-code/mimic-iv-ed/buildmimic/postgres/constraint.sql
+psql -d mimiciv -v ON_ERROR_STOP=1 -v mimic_data_dir=mimicived/2.2/ed -f mimic-code/mimic-iv-ed/buildmimic/postgres/index.sql
 
 # validate that the setup is correct
-psql -d mimiciv -f mimic-iv-ed/buildmimic/postgres/validate.sql
-psql -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
+psql -d mimiciv -f mimic-code/mimic-iv-ed/buildmimic/postgres/validate.sql
+psql -d mimiciv -f mimic-code/mimic-iv/buildmimic/postgres/validate.sql
 ```
 
-## Conversion
+#### Conversion
 
 - Generate the FHIR tables by running [create_fhir_tables.sql](https://github.com/kind-lab/mimic-fhir/blob/main/sql/create_fhir_tables.sql) found in the folder `mimic-fhir/sql`
 - IMPORTANT: 
-  - this takes a long time and requires a lot of space. I kept running out of space when I tried to do it at first.
   - Realistically, you probably need 2TB of FREE space on the device you're using
   - This is a lengthy process. Just so you can know what you should expect, I ran this on a machine with:
     - AMD® Ryzen 9 3900xt 12-core processor × 24 
@@ -102,7 +133,7 @@ psql -d mimiciv -f mimic-iv/buildmimic/postgres/validate.sql
   - It took ~12 hours
 
 ```sh
-cd ../sql
+cd sql
 psql -d mimiciv -f create_fhir_tables.sql
 ```
 
@@ -115,9 +146,10 @@ psql -d mimiciv -f validate_fhir_tables.sql
 ## HAPI FHIR for use in validation/export
 
 - The first step in validation/export is getting the fhir server running. In our case we will use HAPI FHIR.
-- The nice folks at kind-lab made a fork of the hapi jpa starter server
+- There is a fork of the HAPI FHIR server with a few modifications to enable use with the FHIR data
 
 ```sh
+# leave the mimic-fhir/sql directory and clone the hapi-fhir repo
 cd ../.. && git clone https://github.com/kind-lab/hapi-fhir-jpaserver-starter.git
 
 createdb hapi_r4
@@ -141,11 +173,6 @@ mvn jetty:run
 
 - Configure py_mimic_fhir package for use
 - Post terminology to HAPI-FHIR using py_mimic_fhir
-
-```sh
-git clone https://github.com/kind-lab/mimic-profiles.git
-```
-
 - Ensure the environment variable `MIMIC_TERMINOLOGY_PATH` is set and pointing to the latest terminology files `mimic-profiles/input/resources`
 
 ```sh
