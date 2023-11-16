@@ -1,0 +1,9 @@
+[submodule "mimic-code"]
+	path = mimic-code
+	url = https://github.com/MIT-LCP/mimic-code
+[submodule "mimic-profiles"]
+	path = mimic-profiles
+	url = https://github.com/kind-lab/mimic-profiles
+[submodule "fhir-packages"]
+	path = fhir-packages
+	url = https://github.com/kind-lab/fhir-packages

@@ -141,3 +141,7 @@ log/
 tutorial/pathling/staging
 tutorial/hapi/database
 tutorial/pathling/output
+
+*mimiciv*
+*hapi-fhir-jpaserver-starter*
+*local_mimic_fhir_files*
