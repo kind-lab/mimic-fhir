@@ -269,12 +269,12 @@ SELECT
         )) 
         , 'status', stat_FHIR_STATUS
         , 'intent', 'order'
-        , 'medicationCodeableConcept', jsonb_build_array(jsonb_build_object(
+        , 'medicationCodeableConcept', jsonb_build_object(
             'coding', jsonb_build_array(jsonb_build_object(
                 'code', pm_MEDICATION
                 , 'system', pm_MEDICATION_SYSTEM
             ))
-        ))
+        )
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'encounter', 
             CASE WHEN uuid_HADM_ID IS NOT NULL
