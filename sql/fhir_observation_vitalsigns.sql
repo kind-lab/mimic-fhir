@@ -9,8 +9,8 @@ WITH vital_signs AS (
         vs.subject_id
         , vs.stay_id
         , vs.charttime
-        , x.*
         , vs.sbp
+        , x.*
     FROM mimiciv_ed.vitalsign vs, jsonb_each_text(to_jsonb(vs)) AS x("key", value)
     WHERE KEY IN ('dbp', 'o2sat', 'resprate', 'heartrate', 'temperature') -- rhythm excluded FOR now (stored in MimicObservationED)
 ), fhir_observation_vs AS (
@@ -189,9 +189,9 @@ WITH triage_vital_signs AS (
     SELECT 
         tr.subject_id
         , tr.stay_id
-        , x.*
         , tr.sbp
-    FROM 
+        , x.*
+    FROM
         mimiciv_ed.triage tr, jsonb_each_text(to_jsonb(tr)) AS x("key", value)
     WHERE KEY IN ('dbp', 'o2sat', 'resprate', 'heartrate', 'temperature') -- pain/rhythm excluded FOR now (stored in MimicObservationED)
 ), fhir_observation_vs AS (
