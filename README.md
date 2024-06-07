@@ -186,6 +186,7 @@ pip install -e .
 ```sh
 pip install google-cloud
 pip install google-cloud-pubsub
+pip install google-api-python-client
 pip install psycopg2-binary
 pip install pandas-gbq
 pip install fhir
