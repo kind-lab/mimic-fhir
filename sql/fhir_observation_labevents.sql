@@ -185,7 +185,7 @@ SELECT
         , 'extension', 
             CASE WHEN lab_PRIORITY IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
-                    'url', 'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-lab-priority'
+                    'url', 'http://mimic.mit.edu/fhir/mimic/StructureDefinition/lab-priority'
                     , 'valueString', lab_PRIORITY
                 ))
             ELSE NULL END
