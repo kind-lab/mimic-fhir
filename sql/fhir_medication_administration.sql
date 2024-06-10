@@ -164,7 +164,10 @@ SELECT
                     , 'code', emd_MEDICATION
                 ))
             )   
-        , 'request', jsonb_build_object('reference', 'MedicationRequest/' || uuid_MEDICATION_REQUEST)
+        , 'request',
+            CASE WHEN uuid_MEDICATION_REQUEST IS NOT NULL
+                THEN  jsonb_build_object('reference', 'MedicationRequest/' || uuid_MEDICATION_REQUEST)
+            ELSE NULL END
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
         , 'context', 
             CASE WHEN uuid_HADM_ID IS NOT NULL
