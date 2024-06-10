@@ -125,14 +125,14 @@ SELECT
                         'value', vs_VALUE
                         , 'unit', 'breaths/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Breaths}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'heartrate' THEN
                     jsonb_build_object(
                         'value', vs_VALUE
                         , 'unit', 'beats/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Beats}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'o2sat' THEN
                     jsonb_build_object(
@@ -308,14 +308,14 @@ SELECT
                         'value', vs_VALUE
                         , 'unit', 'breaths/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Breaths}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'heartrate' THEN
                     jsonb_build_object(
                         'value', vs_VALUE
                         , 'unit', 'beats/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Beats}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'o2sat' THEN
                     jsonb_build_object(

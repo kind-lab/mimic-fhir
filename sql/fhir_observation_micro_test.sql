@@ -141,7 +141,7 @@ SELECT
                 'coding', jsonb_build_array(jsonb_build_object(
                     'code', valueCodeableConcept
                     , 'display', CASE WHEN valueCodeableConcept = 'MSK'
-                        THEN 'Mask' ELSE 'NoInformation' END
+                        THEN 'masked' ELSE 'NoInformation' END
                     , 'system', 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor' 
                 ))
             )
