@@ -28,6 +28,11 @@ WITH distinct_prescriptions AS (
         , medu.fhir_unit AS medu_FHIR_UNIT
         , ph.dispensation AS ph_DISPENSATION
         , ph.fill_quantity AS ph_FILL_QUANTITY
+        -- assume the ph.fill_quantity is [#]<decima-number>[<unit>]. The unit can be quoted. Valid units are ml, bottle, btl, g, lb
+        -- anything else will produce NULL ph_FILL_QUANTITY_VALUE.
+        -- Quantities without unit will produce NULL ph_FILL_QUANTITY_UNIT  (notice the difference in the reg. expressions)
+        , (regexp_match(ph.fill_quantity, '^\s*#?(\d+(\.\d+)?)\s*''*(|ml|bottle|btl|g|lb)''*\s*$','i'))[1]::NUMERIC AS ph_FILL_QUANTITY_VALUE
+        , replace(lower((regexp_match(ph.fill_quantity, '^\s*#?(\d+(\.\d+)?)\s*''*(ml|bottle|btl|g|lb)''*\s*$','i'))[3]), 'btl', 'bottle') AS ph_FILL_QUANTITY_UNIT
         , TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g')) AS ph_MEDICATION
         , CASE WHEN ph.duration IS NULL 
                 AND ph.frequency IS NULL 
@@ -104,9 +109,10 @@ SELECT
                 ))  
             ELSE NULL END
         , 'quantity', 
-            CASE WHEN ph_FILL_QUANTITY IS NOT NULL THEN 
+            CASE WHEN ph_FILL_QUANTITY_VALUE IS NOT NULL THEN
                 jsonb_build_object(
-                    'value', ph_FILL_QUANTITY
+                    'value', ph_FILL_QUANTITY_VALUE
+                    , 'unit', ph_FILL_QUANTITY_UNIT
                 ) 
             ELSE NULL END 
         , 'dosageInstruction', CASE WHEN dosageInstructionFlag THEN ARRAY[jsonb_build_object(
