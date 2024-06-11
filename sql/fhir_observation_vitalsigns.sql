@@ -94,7 +94,7 @@ SELECT
                         jsonb_build_object(
                             'system', 'http://loinc.org'
                             , 'code', '2708-6'
-                            , 'display', 'Oxgyen saturation in Arterial blood'
+                            , 'display', 'Oxygen saturation in Arterial blood'
                         )
                     WHEN vs_KEY = 'dbp' THEN
                         jsonb_build_object(
@@ -302,7 +302,7 @@ SELECT
                         jsonb_build_object(
                             'system', 'http://loinc.org'
                             , 'code', '2708-6'
-                            , 'display', 'Oxgyen saturation in Arterial blood'
+                            , 'display', 'Oxygen saturation in Arterial blood'
                         )
                     WHEN vs_KEY = 'dbp' THEN
                         jsonb_build_object(
