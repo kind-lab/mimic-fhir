@@ -20,7 +20,7 @@ WITH fhir_observation_labevents AS (
         , CASE WHEN lab.valueuom != ' ' THEN
             lab.valueuom 
         ELSE NULL END AS lab_VALUEUOM
-        , lab.value AS lab_VALUE
+        , NULLIF(TRIM(lab.value),'') AS lab_VALUE
         , lab.priority AS lab_PRIORITY
   
         -- Parse values with a comparator and pulling out numeric value
