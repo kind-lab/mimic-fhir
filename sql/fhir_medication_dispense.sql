@@ -33,7 +33,7 @@ WITH distinct_prescriptions AS (
         -- Quantities without unit will produce NULL ph_FILL_QUANTITY_UNIT  (notice the difference in the reg. expressions)
         , (regexp_match(ph.fill_quantity, '^\s*#?(\d+(\.\d+)?)\s*''*(|ml|bottle|btl|g|lb)''*\s*$','i'))[1]::NUMERIC AS ph_FILL_QUANTITY_VALUE
         , replace(lower((regexp_match(ph.fill_quantity, '^\s*#?(\d+(\.\d+)?)\s*''*(ml|bottle|btl|g|lb)''*\s*$','i'))[3]), 'btl', 'bottle') AS ph_FILL_QUANTITY_UNIT
-        , TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g')) AS ph_MEDICATION
+        , NULLIF(TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g')),'') AS ph_MEDICATION
         , CASE WHEN ph.duration IS NULL 
                 AND ph.frequency IS NULL 
                 AND ph.one_hr_max IS NULL 
@@ -69,8 +69,8 @@ WITH distinct_prescriptions AS (
             ON ph.duration_interval = medu.mimic_unit 
     
     -- only create medication dispense if medication is specified
-    WHERE 
-        ph.medication IS NOT NULL
+    WHERE
+        NULLIF(TRIM(ph.medication),'')  IS NOT NULL
 ) 
 
 INSERT INTO mimic_fhir.medication_dispense
