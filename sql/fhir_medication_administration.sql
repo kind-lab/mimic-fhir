@@ -58,7 +58,8 @@ WITH prescriptions AS (
             WHEN emd.dose_given IN ('N', 'INI') THEN 
                 TRIM(emd.product_unit)
             WHEN emd.dose_given ~ '^[0-9\.]+$' THEN -- ALL NUMERIC
-                TRIM(emd.dose_given_unit)
+                -- NULLIF to treat blanks strings as NULLs
+                NULLIF(TRIM(emd.dose_given_unit), '')
             ELSE NULL -- accounts FOR 46,000 VALUES WITH FREE text      
         END AS emd_DOSE_GIVEN_UNIT
         
