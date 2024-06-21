@@ -124,7 +124,7 @@ SELECT
                     ))
                 )
                 ELSE NULL END           
-            , 'timing', CASE WHEN ph_FREQUENCY IS NOT NULL AND ph_DURATION IS NOT NULL THEN jsonb_build_object(
+            , 'timing', CASE WHEN ph_FREQUENCY IS NOT NULL OR ph_DURATION IS NOT NULL THEN jsonb_build_object(
                 'code', CASE WHEN ph_FREQUENCY IS NOT NULL THEN 
                     jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(
