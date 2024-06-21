@@ -8,10 +8,13 @@ CREATE TABLE fhir_trm.cs_units(
 
 
 WITH mimic_units AS (
-    SELECT DISTINCT TRIM(REGEXP_REPLACE(dose_due_unit, '\s+', ' ', 'g')) AS unit FROM mimiciv_hosp.emar_detail
+    -- Medication Administration hospital units
+    SELECT DISTINCT TRIM(dose_given_unit) AS unit FROM mimiciv_hosp.emar_detail
     UNION
     SELECT DISTINCT TRIM(infusion_rate_unit) AS unit FROM mimiciv_hosp.emar_detail
-    UNION 
+    UNION
+    SELECT DISTINCT TRIM(product_unit) AS unit FROM mimiciv_hosp.emar_detail
+    UNION
     
     -- Medication Administration ICU units
     SELECT DISTINCT TRIM(amountuom)  AS unit FROM mimiciv_icu.inputevents 
@@ -32,10 +35,11 @@ WITH mimic_units AS (
     UNION
     
     -- Prescription units 
-    SELECT DISTINCT TRIM(dose_unit_rx) AS unit FROM mimiciv_hosp.prescriptions p   
+    SELECT DISTINCT TRIM(dose_unit_rx) AS unit FROM mimiciv_hosp.prescriptions p
+
 )
 INSERT INTO fhir_trm.cs_units
-SELECT unit
+SELECT DISTINCT unit
 FROM mimic_units
 WHERE 
     unit IS NOT NULL 
