@@ -18,7 +18,7 @@ WITH distinct_prescriptions AS (
         
         -- dosage information
         , ph.route AS ph_ROUTE
-        , ph.frequency AS ph_FREQUENCY
+        , TRIM(REGEXP_REPLACE(frequency, '\s+', ' ', 'g')) AS ph_FREQUENCY
         , ph.disp_sched AS ph_DISP_SCHED
         , CASE WHEN ph.one_hr_max ~ '^[0-9\.]+$' THEN 
             CAST(ph.one_hr_max AS DECIMAL) 
