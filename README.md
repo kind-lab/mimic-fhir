@@ -227,6 +227,26 @@ python3 py_mimic_fhir export --export_limit 100
 - The outputted ndjson will be written to the MIMIC_JSON_PATH folder specified inthe *.env*
 
 
+## Generating terminology resources
+
+The `bin/psql-export-trm.py` script can be used to generate terminology resources such as code systems and value sets
+from the `fhir_trm` schema of mimic database. These resources can be used to update the MIMIC code systems and value sets defintions in MIMIC-IV IG 
+(`mimic-profile/input/resources`).
+
+To update the resource generate the terminology tables in postgresql SQL first with `sql/create_fhir_terminology.sql`
+(or `sql/create_fhir_terminology.sql) and then run the script with the following command (replace the placeholders with the actual values):
+
+```sh
+python bin/psql-export-trm.py \  
+  --db-name "${DATABASE}" \
+  --db-user "${USER}" \
+  --db-pass "${PGPASSWORD}" \
+  --date "2022-09-21T13:59:43-04:00" \
+  mimic-profiles/input/resources 
+```
+
+The script requires `click` python package (in addition to the packages listed in the section above).
+
 ## Useful wiki links
 - The [FHIR Conversion Asusmptions](https://github.com/kind-lab/mimic-fhir/wiki/FHIR-Conversion-Assumptions) section covers assumptions made during the MIMIC to FHIR process.
 - The [HAPI FHIR Server Validation](https://github.com/kind-lab/mimic-fhir/wiki/HAPI-FHIR-Server-Validation) section walks through validating the MIMIC resources against various implementation guides using HAPI FHIR.
