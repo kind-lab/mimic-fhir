@@ -9,8 +9,8 @@ WITH vital_signs AS (
         vs.subject_id
         , vs.stay_id
         , vs.charttime
-        , x.*
         , vs.sbp
+        , x.*
     FROM mimiciv_ed.vitalsign vs, jsonb_each_text(to_jsonb(vs)) AS x("key", value)
     WHERE KEY IN ('dbp', 'o2sat', 'resprate', 'heartrate', 'temperature') -- rhythm excluded FOR now (stored in MimicObservationED)
 ), fhir_observation_vs AS (
@@ -94,7 +94,7 @@ SELECT
                         jsonb_build_object(
                             'system', 'http://loinc.org'
                             , 'code', '2708-6'
-                            , 'display', 'Oxgyen saturation in Arterial blood'
+                            , 'display', 'Oxygen saturation in Arterial blood'
                         )
                     WHEN vs_KEY = 'dbp' THEN
                         jsonb_build_object(
@@ -125,14 +125,14 @@ SELECT
                         'value', vs_VALUE
                         , 'unit', 'breaths/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Breaths}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'heartrate' THEN
                     jsonb_build_object(
                         'value', vs_VALUE
                         , 'unit', 'beats/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Beats}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'o2sat' THEN
                     jsonb_build_object(
@@ -144,7 +144,6 @@ SELECT
                 ELSE NULL -- blood pressure stored in components
             END
         , 'component', CASE
-            WHEN vs_VALUE IS NULL THEN NULL 
             WHEN vs_KEY = 'dbp' THEN
                 jsonb_build_array(
                     jsonb_build_object(
@@ -155,12 +154,25 @@ SELECT
                                 , 'display', 'Systolic blood pressure'
                             )) 
                         )                   
-                        , 'valueQuantity', jsonb_build_object(
-                            'value', vs_SBP
-                            , 'unit', 'mm[Hg]'
-                            , 'system', 'http://unitsofmeasure.org'
-                            , 'code', 'mm[Hg]'
-                        )
+                        , 'valueQuantity',
+                            CASE WHEN vs_SBP IS NOT NULL THEN
+                                jsonb_build_object(
+                                    'value', vs_SBP
+                                    , 'unit', 'mm[Hg]'
+                                    , 'system', 'http://unitsofmeasure.org'
+                                    , 'code', 'mm[Hg]'
+                                )
+                            END
+                        , 'dataAbsentReason',
+                            CASE WHEN vs_SBP IS NULL THEN
+                                 jsonb_build_object(
+                                         'coding', jsonb_build_array(jsonb_build_object(
+                                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'
+                                     , 'code', 'unknown'
+                                     , 'display', 'Unknown'
+                                    ))
+                                 )
+                            END
                     )
                     , jsonb_build_object(
                         'code', jsonb_build_object(
@@ -170,12 +182,25 @@ SELECT
                                 , 'display', 'Diastolic blood pressure'
                             )) 
                         )         
-                        , 'valueQuantity', jsonb_build_object(
-                            'value', vs_VALUE
-                            , 'unit', 'mm[Hg]'
-                            , 'system', 'http://unitsofmeasure.org'
-                            , 'code', 'mm[Hg]'
-                        )
+                        , 'valueQuantity',
+                            CASE WHEN vs_VALUE IS NOT NULL THEN
+                                jsonb_build_object(
+                                    'value', vs_VALUE
+                                    , 'unit', 'mm[Hg]'
+                                    , 'system', 'http://unitsofmeasure.org'
+                                    , 'code', 'mm[Hg]'
+                                    )
+                            END
+                        , 'dataAbsentReason',
+                            CASE WHEN vs_VALUE IS NULL THEN
+                                 jsonb_build_object(
+                                         'coding', jsonb_build_array(jsonb_build_object(
+                                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'
+                                     , 'code', 'unknown'
+                                     , 'display', 'Unknown'
+                                    ))
+                                 )
+                            END
                     )            
                 )
         ELSE NULL END
@@ -189,9 +214,9 @@ WITH triage_vital_signs AS (
     SELECT 
         tr.subject_id
         , tr.stay_id
-        , x.*
         , tr.sbp
-    FROM 
+        , x.*
+    FROM
         mimiciv_ed.triage tr, jsonb_each_text(to_jsonb(tr)) AS x("key", value)
     WHERE KEY IN ('dbp', 'o2sat', 'resprate', 'heartrate', 'temperature') -- pain/rhythm excluded FOR now (stored in MimicObservationED)
 ), fhir_observation_vs AS (
@@ -277,7 +302,7 @@ SELECT
                         jsonb_build_object(
                             'system', 'http://loinc.org'
                             , 'code', '2708-6'
-                            , 'display', 'Oxgyen saturation in Arterial blood'
+                            , 'display', 'Oxygen saturation in Arterial blood'
                         )
                     WHEN vs_KEY = 'dbp' THEN
                         jsonb_build_object(
@@ -308,14 +333,14 @@ SELECT
                         'value', vs_VALUE
                         , 'unit', 'breaths/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Breaths}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'heartrate' THEN
                     jsonb_build_object(
                         'value', vs_VALUE
                         , 'unit', 'beats/minute'
                         , 'system', 'http://unitsofmeasure.org'
-                        , 'code', '{Beats}/min'
+                        , 'code', '/min'
                     )
                 WHEN vs_KEY = 'o2sat' THEN
                     jsonb_build_object(
@@ -327,7 +352,6 @@ SELECT
                 ELSE NULL -- blood pressure stored in components
             END
         , 'component', CASE
-            WHEN vs_VALUE IS NULL THEN NULL 
             WHEN vs_KEY = 'dbp' THEN
                 jsonb_build_array(
                     jsonb_build_object(
@@ -338,12 +362,25 @@ SELECT
                                 , 'display', 'Systolic blood pressure'
                             )) 
                         )               
-                        , 'valueQuantity', jsonb_build_object(
-                            'value', vs_SBP
-                            , 'unit', 'mm[Hg]'
-                            , 'system', 'http://unitsofmeasure.org'
-                            , 'code', 'mm[Hg]'
-                        )
+                        , 'valueQuantity',
+                            CASE WHEN vs_SBP IS NOT NULL THEN
+                                jsonb_build_object(
+                                    'value', vs_SBP
+                                    , 'unit', 'mm[Hg]'
+                                    , 'system', 'http://unitsofmeasure.org'
+                                    , 'code', 'mm[Hg]'
+                                )
+                            END
+                        , 'dataAbsentReason',
+                            CASE WHEN vs_SBP IS NULL THEN
+                                 jsonb_build_object(
+                                         'coding', jsonb_build_array(jsonb_build_object(
+                                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'
+                                     , 'code', 'unknown'
+                                     , 'display', 'Unknown'
+                                    ))
+                                 )
+                            END
                     ),
                     jsonb_build_object(
                         'code', jsonb_build_object(
@@ -353,13 +390,26 @@ SELECT
                                 , 'display', 'Diastolic blood pressure'
                             )) 
                         )               
-                        , 'valueQuantity', jsonb_build_object(
-                            'value', vs_VALUE
-                            , 'unit', 'mm[Hg]'
-                            , 'system', 'http://unitsofmeasure.org'
-                            , 'code', 'mm[Hg]'
-                        )
-                    )            
+                        , 'valueQuantity',
+                            CASE WHEN vs_VALUE IS NOT NULL THEN
+                                jsonb_build_object(
+                                    'value', vs_VALUE
+                                    , 'unit', 'mm[Hg]'
+                                    , 'system', 'http://unitsofmeasure.org'
+                                    , 'code', 'mm[Hg]'
+                                )
+                            END
+                        , 'dataAbsentReason',
+                            CASE WHEN vs_VALUE IS NULL THEN
+                                 jsonb_build_object(
+                                         'coding', jsonb_build_array(jsonb_build_object(
+                                         'system', 'http://terminology.hl7.org/CodeSystem/data-absent-reason'
+                                     , 'code', 'unknown'
+                                     , 'display', 'Unknown'
+                                    ))
+                                 )
+                            END
+                    )
                 )
         ELSE NULL END
     )) AS fhir

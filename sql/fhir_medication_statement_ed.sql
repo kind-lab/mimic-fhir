@@ -13,10 +13,10 @@ WITH fhir_medication_statement_ed AS (
         , ndc AS med_NDC
         , med.name AS med_NAME
         , STRING_AGG(
-            CAST(CASE WHEN etccode IS NOT NULL THEN 
+            CAST(CASE WHEN cs_medication_etc.code IS NOT NULL THEN
                 jsonb_build_object(
-                    'code', etccode
-                    , 'display', etcdescription
+                    'code', cs_medication_etc.code
+                    , 'display', cs_medication_etc.display
                     , 'system', 'http://mimic.mit.edu/fhir/mimic/CodeSystem/mimic-medication-etc'                
                 ) 
             ELSE NULL END AS TEXT), ',')  AS med_ETC_CODES
@@ -31,7 +31,12 @@ WITH fhir_medication_statement_ed AS (
         mimiciv_ed.medrecon med
         INNER JOIN mimiciv_hosp.patients pat
             ON med.subject_id = pat.subject_id
-        
+
+        -- code system
+
+        LEFT OUTER JOIN fhir_trm.cs_medication_etc AS cs_medication_etc
+            ON TRIM(med.etccode) = cs_medication_etc.code
+
         -- UUID namespaces
         LEFT JOIN fhir_etl.uuid_namespace ns_encounter
             ON ns_encounter.name = 'EncounterED'

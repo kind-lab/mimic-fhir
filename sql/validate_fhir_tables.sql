@@ -9,7 +9,7 @@ WITH expected AS
     SELECT 'medication' AS tbl,                         19689 AS row_count UNION ALL
     SELECT 'medication_administration' AS tbl,          27754178 AS row_count UNION ALL
     SELECT 'medication_administration_icu' AS tbl,      8978893 AS row_count UNION ALL
-    SELECT 'medication_dispense' AS tbl,                12689767 AS row_count UNION ALL
+    SELECT 'medication_dispense' AS tbl,                12689766 AS row_count UNION ALL
     SELECT 'medication_dispense_ed' AS tbl,             1586053 AS row_count UNION ALL
     SELECT 'medication_mix' AS tbl,                     6338 AS row_count UNION ALL
     SELECT 'medication_request' AS tbl,                 15416901 AS row_count UNION ALL

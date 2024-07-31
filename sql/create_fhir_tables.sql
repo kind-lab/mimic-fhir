@@ -47,6 +47,13 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 \echo map lab interpretation
 \i fhir_etl/map_lab_interpretation.sql
 
+
+-- fhir terminology tables
+\echo =========================== fhir_trm  ====================================
+\echo create_fhir_terminology
+\i create_fhir_terminology.sql
+
+
 \echo =========================== fhir_etl functions ====================================
 \echo fn_patient_extension
 \i fn/fn_patient_extension.sql
@@ -160,7 +167,3 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- cluster mimic_fhir tables
 \echo cluster mimic_fhir tables
 \i create_table_clusters.sql
-
--- fhir terminology tables
-\echo create_fhir_terminology
-\i create_fhir_terminology.sql
