@@ -18,7 +18,7 @@ WITH distinct_prescriptions AS (
         
         -- dosage information
         , ph.route AS ph_ROUTE
-        , ph.frequency AS ph_FREQUENCY
+        , TRIM(REGEXP_REPLACE(frequency, '\s+', ' ', 'g')) AS ph_FREQUENCY
         , ph.disp_sched AS ph_DISP_SCHED
         , CASE WHEN ph.one_hr_max ~ '^[0-9\.]+$' THEN 
             CAST(ph.one_hr_max AS DECIMAL) 
@@ -28,7 +28,12 @@ WITH distinct_prescriptions AS (
         , medu.fhir_unit AS medu_FHIR_UNIT
         , ph.dispensation AS ph_DISPENSATION
         , ph.fill_quantity AS ph_FILL_QUANTITY
-        , TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g')) AS ph_MEDICATION
+        -- assume the ph.fill_quantity is [#]<decima-number>[<unit>]. The unit can be quoted. Valid units are ml, bottle, btl, g, lb
+        -- anything else will produce NULL ph_FILL_QUANTITY_VALUE.
+        -- Quantities without unit will produce NULL ph_FILL_QUANTITY_UNIT  (notice the difference in the reg. expressions)
+        , (regexp_match(ph.fill_quantity, '^\s*#?(\d+(\.\d+)?)\s*''*(|ml|bottle|btl|g|lb)''*\s*$','i'))[1]::NUMERIC AS ph_FILL_QUANTITY_VALUE
+        , replace(lower((regexp_match(ph.fill_quantity, '^\s*#?(\d+(\.\d+)?)\s*''*(ml|bottle|btl|g|lb)''*\s*$','i'))[3]), 'btl', 'bottle') AS ph_FILL_QUANTITY_UNIT
+        , NULLIF(TRIM(REGEXP_REPLACE(ph.medication, '\s+', ' ', 'g')),'') AS ph_MEDICATION
         , CASE WHEN ph.duration IS NULL 
                 AND ph.frequency IS NULL 
                 AND ph.one_hr_max IS NULL 
@@ -64,8 +69,8 @@ WITH distinct_prescriptions AS (
             ON ph.duration_interval = medu.mimic_unit 
     
     -- only create medication dispense if medication is specified
-    WHERE 
-        ph.medication IS NOT NULL
+    WHERE
+        NULLIF(TRIM(ph.medication),'')  IS NOT NULL
 ) 
 
 INSERT INTO mimic_fhir.medication_dispense
@@ -104,9 +109,10 @@ SELECT
                 ))  
             ELSE NULL END
         , 'quantity', 
-            CASE WHEN ph_FILL_QUANTITY IS NOT NULL THEN 
+            CASE WHEN ph_FILL_QUANTITY_VALUE IS NOT NULL THEN
                 jsonb_build_object(
-                    'value', ph_FILL_QUANTITY
+                    'value', ph_FILL_QUANTITY_VALUE
+                    , 'unit', ph_FILL_QUANTITY_UNIT
                 ) 
             ELSE NULL END 
         , 'dosageInstruction', CASE WHEN dosageInstructionFlag THEN ARRAY[jsonb_build_object(
@@ -118,7 +124,7 @@ SELECT
                     ))
                 )
                 ELSE NULL END           
-            , 'timing', CASE WHEN ph_FREQUENCY IS NOT NULL AND ph_DURATION IS NOT NULL THEN jsonb_build_object(
+            , 'timing', CASE WHEN ph_FREQUENCY IS NOT NULL OR ph_DURATION IS NOT NULL THEN jsonb_build_object(
                 'code', CASE WHEN ph_FREQUENCY IS NOT NULL THEN 
                     jsonb_build_object(
                         'coding', jsonb_build_array(jsonb_build_object(

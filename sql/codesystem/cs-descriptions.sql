@@ -10,7 +10,6 @@ INSERT INTO fhir_trm.cs_descriptions(codesystem, description)
 VALUES  
       ('admission_class', 'The admission class for MIMIC')
     , ('admission_type', 'The admission type for MIMIC')
-    , ('admission_type_icu', 'The admission type for ICU encounters in MIMIC')
     , ('admit_source', 'The admission source for MIMIC')
     , ('bodysite', 'The bodysite codes for MIMIC')
     , ('chartevents_d_items', 'The chartevents item codes used in the ICU for MIMIC')

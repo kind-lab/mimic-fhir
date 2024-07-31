@@ -20,7 +20,7 @@ WITH fhir_observation_labevents AS (
         , CASE WHEN lab.valueuom != ' ' THEN
             lab.valueuom 
         ELSE NULL END AS lab_VALUEUOM
-        , lab.value AS lab_VALUE
+        , NULLIF(TRIM(lab.value),'') AS lab_VALUE
         , lab.priority AS lab_PRIORITY
   
         -- Parse values with a comparator and pulling out numeric value
@@ -185,7 +185,7 @@ SELECT
         , 'extension', 
             CASE WHEN lab_PRIORITY IS NOT NULL THEN
                 jsonb_build_array(jsonb_build_object(
-                    'url', 'http://mimic.mit.edu/fhir/mimic/StructureDefinition/mimic-lab-priority'
+                    'url', 'http://mimic.mit.edu/fhir/mimic/StructureDefinition/lab-priority'
                     , 'valueString', lab_PRIORITY
                 ))
             ELSE NULL END

@@ -69,7 +69,7 @@ SELECT
         , 'id', medmix_UUID
         , 'text', jsonb_build_object(
             'status', 'generated',
-            'div', '<div><p><b>Temporary narrative for medication mix</b></p></div>'
+            'div', '<div xmlns="http://www.w3.org/1999/xhtml"><p><b>Temporary narrative for medication mix</b></p></div>'
         )
         , 'meta', jsonb_build_object(
             'profile', jsonb_build_array(

@@ -41,9 +41,10 @@ SELECT
             , 'system', 'http://mimic.mit.edu/fhir/mimic/identifier/specimen-micro'
         ))
         , 'subject', jsonb_build_object('reference', 'Patient/' || uuid_SUBJECT_ID)
-        , 'collection', jsonb_build_object(
-            'collectedDateTime', mi_CHARTTIME
-        )
+        , 'collection',
+            CASE WHEN mi_CHARTTIME IS NOT NULL
+                THEN jsonb_build_object('collectedDateTime', mi_CHARTTIME)
+            ELSE NULL END
         , 'type', CASE WHEN mi_SPEC_TYPE_DESC IS NOT NULL AND mi_SPEC_TYPE_DESC != '' THEN
             jsonb_build_object(
                 'coding', jsonb_build_array(jsonb_build_object(

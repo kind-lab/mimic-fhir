@@ -3,7 +3,8 @@
 	url = https://github.com/MIT-LCP/mimic-code
 [submodule "mimic-profiles"]
 	path = mimic-profiles
-	url = https://github.com/kind-lab/mimic-profiles
+	url = https://github.com/kind-lab/mimic-profiles.git
+	branch = main
 [submodule "fhir-packages"]
 	path = fhir-packages
 	url = https://github.com/kind-lab/fhir-packages

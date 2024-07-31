@@ -4,15 +4,20 @@
 
 DROP TABLE IF EXISTS fhir_trm.cs_medication_etc;
 CREATE TABLE fhir_trm.cs_medication_etc(
-    code      VARCHAR NOT NULL
+    code      VARCHAR PRIMARY KEY
     , display VARCHAR NOT NULL
 );
 
-INSERT INTO fhir_trm.cs_medication_etc
-SELECT
-    etccode AS code
-    , MAX(etcdescription) AS display -- grab one description
-FROM mimiciv_ed.medrecon 
-WHERE 
-    etccode IS NOT NULL 
-GROUP BY etccode
+WITH cs_medrecon AS (
+ SELECT
+     NULLIF(TRIM(etccode), '') AS cs_code
+    , etcdescription AS cs_display
+ FROM mimiciv_ed.medrecon
+)
+INSERT INTO fhir_trm.cs_medication_etc SELECT
+    TRIM(cs_code) AS code
+    , MAX(cs_display) AS display -- grab one description
+FROM cs_medrecon
+WHERE cs_code IS NOT NULL
+GROUP BY cs_code
+

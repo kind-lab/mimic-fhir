@@ -8,7 +8,7 @@
 
 DROP TABLE IF EXISTS fhir_trm.cs_diagnosis_icd10;
 CREATE TABLE fhir_trm.cs_diagnosis_icd10(
-    code      VARCHAR NOT NULL,
+    code      VARCHAR PRIMARY KEY,
     display   VARCHAR NOT NULL
 );
 
