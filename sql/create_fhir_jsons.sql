@@ -150,6 +150,16 @@ do $$ BEGIN RAISE 'outputdir not set, exiting'; END; $$ LANGUAGE plpgsql;
 :command
 
 \echo observation_vitalsigns
-\set outputfile :outputdir/MimicObservationVitalSigns.ndjson
+\set outputfile :outputdir/MimicObservationVitalSignsED.ndjson
 \set command '\\copy mimic_fhir.observation_vital_signs(fhir) TO ' :'outputfile' :with_format
+:command
+
+\echo specimen
+\set outputfile :outputdir/MimicSpecimen.ndjson
+\set command '\\copy mimic_fhir.specimen(fhir) TO ' :'outputfile' :with_format
+:command
+
+\echo specimen_lab
+\set outputfile :outputdir/MimicSpecimenLab.ndjson
+\set command '\\copy mimic_fhir.specimen_lab(fhir) TO ' :'outputfile' :with_format
 :command
