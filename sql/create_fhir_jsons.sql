@@ -93,6 +93,11 @@ do $$ BEGIN RAISE 'outputdir not set, exiting'; END; $$ LANGUAGE plpgsql;
 \set command '\\copy mimic_fhir.medication_dispense_ed(fhir) TO ' :'outputfile' :with_format
 :command
 
+\echo medication_dispense_mix
+\set outputfile :outputdir/MimicMedicationMix.ndjson
+\set command '\\copy mimic_fhir.medication_mix(fhir) TO ' :'outputfile' :with_format
+:command
+
 \echo medadmin
 \set outputfile :outputdir/MimicMedicationAdministration.ndjson
 \set command '\\copy mimic_fhir.medication_administration(fhir) TO ' :'outputfile' :with_format
