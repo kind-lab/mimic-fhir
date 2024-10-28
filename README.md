@@ -143,6 +143,16 @@ psql -d mimiciv -f create_fhir_tables.sql
 psql -d mimiciv -f validate_fhir_tables.sql
 ```
 
+
+#### Export to ndjson files
+
+- Export the FHIR resources to ndjson files in `<output-dir>` by running [create_fhir_jsons.sql](...)  found in the folder `mimic-fhir/sql`
+(replace `<output-dir>` with the desired existing and empty output directory).
+
+```sh
+psql -d mimiciv -v "outputdir=<output-dir>" -f sql/create_fhir_jsons.sql
+````
+
 ## HAPI FHIR for use in validation/export
 
 - The first step in validation/export is getting the fhir server running. In our case we will use HAPI FHIR.
